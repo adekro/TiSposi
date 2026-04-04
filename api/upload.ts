@@ -208,12 +208,3 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: 'Errore durante il caricamento' })
   }
 }
-
-// Disabilita il body parser di Vercel per gestire manualmente il multipart
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '11mb',
-    },
-  },
-}
