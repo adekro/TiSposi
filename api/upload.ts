@@ -2,6 +2,13 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { google } from 'googleapis'
 import { Readable } from 'stream'
 
+// Disabilita il bodyParser di Vercel: serve leggere il raw stream per multipart/form-data
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+}
+
 // Tipi MIME ammessi per le foto
 const ALLOWED_MIME = new Set([
   'image/jpeg',
