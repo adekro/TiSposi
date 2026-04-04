@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { google } from 'googleapis'
-import { Readable } from 'stream'
+import { PassThrough } from 'stream'
 
 // Disabilita il bodyParser di Vercel: leggiamo il raw stream direttamente
 export const config = {
@@ -66,7 +66,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const timestamp = Date.now()
       const filename = `dedica_${timestamp}.txt`
 
-      const fileStream = Readable.from([Buffer.from(testo, 'utf8')])
+      const textBuf = Buffer.from(testo, 'utf8')
+      const fileStream = new PassThrough()
+      fileStream.end(textBuf)
       const uploaded = await drive.files.create({
         requestBody: {
           name: filename,
@@ -106,7 +108,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const ext = contentType.split('/')[1].replace('jpeg', 'jpg')
     const filename = `photo_${Date.now()}.${ext}`
 
-    const fileStream = Readable.from([rawBody])
+    const fileStream = new PassThrough()
+    fileStream.end(rawBody)
     const uploaded = await drive.files.create({
       requestBody: {
         name: filename,
@@ -133,7 +136,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       timestamp: uploaded.data.createdTime,
     })
   } catch (err) {
-    console.error('[upload] Errore:', err)
-    return res.status(500).json({ error: 'Errore durante il caricamento' })
+    const message = err instanceof Error ? err.message : String(err)
+    console.error('[upload] Errore:', message, err)
+    return res.status(500).json({ error: 'Errore durante il caricamento', detail: message })
   }
 }

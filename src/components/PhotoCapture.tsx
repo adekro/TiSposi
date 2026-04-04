@@ -113,8 +113,13 @@ const PhotoCapture = forwardRef<PhotoCaptureHandle, PhotoCaptureProps>(function 
       onUploaded()
       handleClose()
     } catch (err) {
-      onError('Errore durante il caricamento. Riprova.')
-      console.error(err)
+      let detail = ''
+      try {
+        const parsed = JSON.parse(err instanceof Error ? err.message : String(err)) as { detail?: string }
+        detail = parsed.detail ? `: ${parsed.detail}` : ''
+      } catch { /* non JSON */ }
+      onError(`Errore durante il caricamento${detail}. Riprova.`)
+      console.error('[upload]', err)
     } finally {
       setUploading(false)
     }
