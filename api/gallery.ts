@@ -3,13 +3,15 @@ import { google } from 'googleapis'
 import type { GalleryItem } from '../src/types'
 
 function getAuthClient() {
-  const raw = process.env.GOOGLE_SERVICE_ACCOUNT_KEY
-  if (!raw) throw new Error('GOOGLE_SERVICE_ACCOUNT_KEY non impostata')
-  const credentials = JSON.parse(raw)
-  return new google.auth.GoogleAuth({
-    credentials,
-    scopes: ['https://www.googleapis.com/auth/drive.readonly'],
-  })
+  const clientId = process.env.GOOGLE_CLIENT_ID
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET
+  const refreshToken = process.env.GOOGLE_REFRESH_TOKEN
+  if (!clientId || !clientSecret || !refreshToken) {
+    throw new Error('Credenziali OAuth2 mancanti (GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET / GOOGLE_REFRESH_TOKEN)')
+  }
+  const oauth2 = new google.auth.OAuth2(clientId, clientSecret)
+  oauth2.setCredentials({ refresh_token: refreshToken })
+  return oauth2
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
