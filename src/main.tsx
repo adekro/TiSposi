@@ -13,7 +13,7 @@ registerSW({ immediate: true })
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 30_000,
+      staleTime: 10_000,
       refetchOnWindowFocus: false,
     },
   },
