@@ -2,7 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { google } from 'googleapis'
 import { Readable } from 'stream'
 
-// Disabilita il bodyParser di Vercel: serve leggere il raw stream per multipart/form-data
+// Disabilita il bodyParser di Vercel: leggiamo il raw stream direttamente
 export const config = {
   api: {
     bodyParser: false,
@@ -29,7 +29,6 @@ function getAuthClient() {
   })
 }
 
-// Legge il body raw come Buffer (Vercel disabilita bodyParser per multipart)
 async function readRawBody(req: VercelRequest): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = []
@@ -37,68 +36,6 @@ async function readRawBody(req: VercelRequest): Promise<Buffer> {
     req.on('end', () => resolve(Buffer.concat(chunks)))
     req.on('error', reject)
   })
-}
-
-// Estrae boundary dal Content-Type header
-function getBoundary(contentType: string): string {
-  const match = contentType.match(/boundary=([^;]+)/)
-  if (!match) throw new Error('boundary non trovato nel Content-Type')
-  return match[1].trim()
-}
-
-interface ParsedPart {
-  name: string
-  filename?: string
-  mimeType?: string
-  data: Buffer
-}
-
-// Parser multipart minimo — sufficiente per il nostro caso d'uso single-file
-function parseMultipart(body: Buffer, boundary: string): ParsedPart[] {
-  const parts: ParsedPart[] = []
-  const sep = Buffer.from(`--${boundary}`)
-  const CRLF = Buffer.from('\r\n')
-
-  let offset = 0
-  while (offset < body.length) {
-    const sepIdx = body.indexOf(sep, offset)
-    if (sepIdx === -1) break
-    offset = sepIdx + sep.length
-
-    // Fine multipart
-    if (body.slice(offset, offset + 2).toString() === '--') break
-
-    // Salta \r\n dopo il boundary
-    if (body.slice(offset, offset + 2).toString() === '\r\n') offset += 2
-
-    // Leggi headers della parte
-    const headerEnd = body.indexOf(Buffer.from('\r\n\r\n'), offset)
-    if (headerEnd === -1) break
-    const headerStr = body.slice(offset, headerEnd).toString('utf8')
-    offset = headerEnd + 4
-
-    // Trova il prossimo boundary per delimitare il corpo
-    const nextSepIdx = body.indexOf(sep, offset)
-    const partEnd = nextSepIdx === -1 ? body.length : nextSepIdx - 2 // -2 per \r\n prima di --boundary
-
-    const partData = body.slice(offset, partEnd)
-    offset = nextSepIdx === -1 ? body.length : nextSepIdx
-
-    // Estrai name, filename, content-type dagli header
-    const dispositionMatch = headerStr.match(/Content-Disposition:[^\r\n]*name="([^"]+)"/)
-    const filenameMatch = headerStr.match(/filename="([^"]+)"/)
-    const mimeMatch = headerStr.match(/Content-Type:\s*([^\r\n]+)/)
-
-    if (!dispositionMatch) continue
-
-    parts.push({
-      name: dispositionMatch[1],
-      filename: filenameMatch?.[1],
-      mimeType: mimeMatch?.[1].trim(),
-      data: partData,
-    })
-  }
-  return parts
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -111,15 +48,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: 'GOOGLE_DRIVE_FOLDER_ID non impostata' })
   }
 
-  const contentType = req.headers['content-type'] ?? ''
+  const contentType = (req.headers['content-type'] ?? '').split(';')[0].trim()
 
   try {
     const auth = getAuthClient()
     const drive = google.drive({ version: 'v3', auth })
 
-    // ── Dedica testuale ───────────────────────────────────────────────
-    if (contentType.includes('application/json')) {
-      const body = req.body as { testo?: unknown }
+    // ── Dedica testuale (JSON) ────────────────────────────────────────
+    if (contentType === 'application/json') {
+      const rawBody = await readRawBody(req)
+      const body = JSON.parse(rawBody.toString('utf8')) as { testo?: unknown }
       const testo = typeof body.testo === 'string' ? body.testo.trim() : ''
       if (testo.length < 2 || testo.length > 500) {
         return res.status(400).json({ error: 'Testo non valido (2-500 caratteri)' })
@@ -146,45 +84,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       })
     }
 
-    // ── Upload foto (multipart/form-data) ────────────────────────────
-    if (!contentType.includes('multipart/form-data')) {
-      return res.status(400).json({ error: 'Content-Type non supportato' })
+    // ── Upload foto (binary stream) ───────────────────────────────────
+    // Il frontend invia il file direttamente come body binario con Content-Type
+    // corretto (niente multipart), evitando qualsiasi parsing complesso.
+    if (!ALLOWED_MIME.has(contentType)) {
+      return res.status(415).json({
+        error: `Tipo file non supportato: ${contentType}. Usa JPEG, PNG o WebP.`,
+      })
     }
 
-    const boundary = getBoundary(contentType)
     const rawBody = await readRawBody(req)
+
+    if (rawBody.length === 0) {
+      return res.status(400).json({ error: 'Nessun file ricevuto' })
+    }
 
     if (rawBody.length > MAX_SIZE_BYTES) {
       return res.status(413).json({ error: 'File troppo grande (max 10MB)' })
     }
 
-    const parts = parseMultipart(rawBody, boundary)
-    const filePart = parts.find((p) => p.name === 'photo' && p.filename)
-
-    if (!filePart) {
-      return res.status(400).json({ error: 'Nessun file foto trovato nel form' })
-    }
-
-    // Validazione MIME lato server
-    const mime = filePart.mimeType ?? ''
-    if (!ALLOWED_MIME.has(mime)) {
-      return res.status(415).json({
-        error: `Tipo file non supportato: ${mime}. Usa JPEG, PNG o WebP.`,
-      })
-    }
-
-    // Genera nome file sicuro con timestamp
-    const ext = mime.split('/')[1].replace('jpeg', 'jpg')
+    const ext = contentType.split('/')[1].replace('jpeg', 'jpg')
     const filename = `photo_${Date.now()}.${ext}`
 
-    const fileStream = Readable.from([filePart.data])
+    const fileStream = Readable.from([rawBody])
     const uploaded = await drive.files.create({
       requestBody: {
         name: filename,
         parents: [folderId],
-        mimeType: mime,
+        mimeType: contentType,
       },
-      media: { mimeType: mime, body: fileStream },
+      media: { mimeType: contentType, body: fileStream },
       fields: 'id,name,createdTime',
     })
 

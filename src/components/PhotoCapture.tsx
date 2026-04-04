@@ -92,10 +92,9 @@ const PhotoCapture = forwardRef<PhotoCaptureHandle, PhotoCaptureProps>(function 
     setProgress(0)
 
     try {
-      const formData = new FormData()
-      formData.append('photo', selectedFile, selectedFile.name)
-
-      // XMLHttpRequest per avere il progresso upload
+      // XMLHttpRequest per avere il progresso upload.
+      // Il file è inviato come body binario diretto con il suo Content-Type,
+      // evitando il parsing multipart sul server.
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest()
         xhr.upload.onprogress = (e) => {
@@ -107,7 +106,8 @@ const PhotoCapture = forwardRef<PhotoCaptureHandle, PhotoCaptureProps>(function 
         }
         xhr.onerror = () => reject(new Error('Errore di rete'))
         xhr.open('POST', '/api/upload')
-        xhr.send(formData)
+        xhr.setRequestHeader('Content-Type', selectedFile.type)
+        xhr.send(selectedFile)
       })
 
       onUploaded()
