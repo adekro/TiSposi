@@ -1,0 +1,19 @@
+# Dipendenze
+node_modules/
+dist/
+
+# Env locali (MAI committare le chiavi reali!)
+.env.local
+.env.*.local
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Vercel
+.vercel/
