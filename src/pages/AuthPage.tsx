@@ -20,7 +20,7 @@ type AuthMode = "signup" | "login";
 
 export default function AuthPage() {
   const navigate = useNavigate();
-  const { session } = useAuth();
+  const { session, configError } = useAuth();
   const [mode, setMode] = useState<AuthMode>("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,12 +32,33 @@ export default function AuthPage() {
     return <Navigate to="/app" replace />;
   }
 
+  if (configError) {
+    return (
+      <Box
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          py: 4,
+        }}
+      >
+        <Container maxWidth="sm">
+          <Alert severity="error">{configError}</Alert>
+        </Container>
+      </Box>
+    );
+  }
+
   const handleSubmit = async () => {
     setLoading(true);
     setError("");
     setMessage("");
 
     try {
+      if (!supabase) {
+        throw new Error("Supabase non configurato nel client.");
+      }
+
       if (mode === "signup") {
         const { error: signUpError } = await supabase.auth.signUp({
           email: email.trim(),

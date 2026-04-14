@@ -2,11 +2,9 @@ import { useRef, useState } from "react";
 import {
   Alert,
   Box,
-  Button,
   CircularProgress,
   Container,
   Fab,
-  Paper,
   Snackbar,
   Tooltip,
   Typography,
@@ -15,7 +13,6 @@ import {
 import CameraAltIcon from "@mui/icons-material/CameraAlt";
 import EditIcon from "@mui/icons-material/Edit";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
-import HomeIcon from "@mui/icons-material/Home";
 import { useGallery } from "../hooks/useGallery";
 import { useQueryClient } from "@tanstack/react-query";
 import PhotoGrid from "../components/PhotoGrid";
@@ -24,13 +21,15 @@ import PhotoCapture, {
 } from "../components/PhotoCapture";
 import DedicaDialog from "../components/DedicaDialog";
 import PWAInstallBanner from "../components/PWAInstallBanner";
-import { Link as RouterLink, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 export default function GalleryPage() {
   const { publicId = "" } = useParams();
   const theme = useTheme();
   const queryClient = useQueryClient();
   const { data, isLoading, isFetching, error } = useGallery(publicId);
+
+  console.log("GalleryPage render", { publicId, data, isLoading, error });
   const items = data?.items ?? [];
   const event = data?.event;
 
@@ -84,43 +83,6 @@ export default function GalleryPage() {
     );
   }
 
-  if (error || !event) {
-    return (
-      <Box
-        sx={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: theme.palette.background.default,
-          px: 2,
-        }}
-      >
-        <Paper
-          sx={{ p: 4, maxWidth: 520, textAlign: "center", borderRadius: 4 }}
-        >
-          <Typography
-            variant="h4"
-            sx={{ fontFamily: '"Playfair Display", serif', mb: 1.5 }}
-          >
-            Galleria non trovata
-          </Typography>
-          <Typography color="text.secondary" sx={{ mb: 3 }}>
-            L'evento richiesto non esiste oppure non e ancora configurato.
-          </Typography>
-          <Button
-            component={RouterLink}
-            to="/"
-            variant="contained"
-            startIcon={<HomeIcon />}
-          >
-            Torna alla home
-          </Button>
-        </Paper>
-      </Box>
-    );
-  }
-
   return (
     <Box
       sx={{
@@ -168,7 +130,7 @@ export default function GalleryPage() {
             mb: 0.5,
           }}
         >
-          {event.title}
+          {event?.title}
         </Typography>
         <Typography
           variant="subtitle1"
@@ -180,14 +142,14 @@ export default function GalleryPage() {
             fontSize: "0.85rem",
           }}
         >
-          {event.spouses}
+          {event?.spouses}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>
           📸 {items.filter((i) => i.type === "photo").length} foto · ✏️{" "}
           {items.filter((i) => i.type === "dedica").length} dediche
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
-          Condividi questa pagina con gli invitati: /{event.publicId}/gallery
+          Condividi questa pagina con gli invitati: /{event?.publicId}/gallery
         </Typography>
       </Box>
 

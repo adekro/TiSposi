@@ -5,6 +5,8 @@ import { getServiceSupabaseClient } from "./_lib/supabase";
 import type { GalleryItem, PublicGalleryResponse } from "../src/types";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  console.log("[gallery] Handler invocato con query:", req.query);
+
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method not allowed" });
   }
@@ -15,11 +17,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: "Parametro publicId mancante" });
   }
 
+  console.log("[gallery] Request ricevuta per publicId:", publicId);
+
   try {
     const event = await getEventByPublicId(publicId);
     if (!event) {
       return res.status(404).json({ error: "Evento non trovato" });
     }
+
+    console.log("[gallery] Evento trovato:", {
+      id: event.id,
+      title: event.title,
+      storageProvider: event.storage_provider,
+    });
 
     let items: GalleryItem[] = [];
 
@@ -31,6 +41,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       items = await listDriveGalleryItems(event.google_drive_folder_id);
     } else {
+      console.log("[gallery] Utilizzo di Supabase come storage provider");
       const supabase = getServiceSupabaseClient();
       const { data, error } = await supabase
         .from("gallery_entries")

@@ -9,7 +9,9 @@ import weddingTheme from "./theme";
 import { registerSW } from "virtual:pwa-register";
 
 // Registra il Service Worker PWA con aggiornamento automatico silenzioso
-registerSW({ immediate: true });
+if (import.meta.env.PROD) {
+  registerSW({ immediate: true });
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {

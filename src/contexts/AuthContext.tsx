@@ -1,11 +1,12 @@
 import type { Session, User } from "@supabase/supabase-js";
 import { createContext, useContext, useEffect, useState } from "react";
-import { supabase } from "../lib/supabase";
+import { supabase, supabaseConfigError } from "../lib/supabase";
 
 interface AuthContextValue {
   loading: boolean;
   session: Session | null;
   user: User | null;
+  configError: string | null;
   signOut: () => Promise<void>;
 }
 
@@ -17,6 +18,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
+    if (!supabase) {
+      setLoading(false);
+      return;
+    }
+
     let active = true;
 
     void supabase.auth.getSession().then(({ data, error }) => {
@@ -50,7 +56,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         loading,
         session,
         user,
+        configError: supabaseConfigError,
         signOut: async () => {
+          if (!supabase) return;
           await supabase.auth.signOut();
         },
       }}

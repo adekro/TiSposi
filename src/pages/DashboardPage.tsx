@@ -42,7 +42,7 @@ const defaultState: FormState = {
 };
 
 export default function DashboardPage() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, configError } = useAuth();
   const [form, setForm] = useState<FormState>(defaultState);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -50,7 +50,10 @@ export default function DashboardPage() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !supabase) {
+      setLoading(false);
+      return;
+    }
 
     let active = true;
 
@@ -93,6 +96,23 @@ export default function DashboardPage() {
     return null;
   }
 
+  if (configError) {
+    return (
+      <Box
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          py: 4,
+        }}
+      >
+        <Container maxWidth="md">
+          <Alert severity="error">{configError}</Alert>
+        </Container>
+      </Box>
+    );
+  }
+
   const normalizedPublicId = form.publicId.trim().toLowerCase();
   const publicUrl = normalizedPublicId
     ? `${window.location.origin}/${normalizedPublicId}/gallery`
@@ -100,6 +120,11 @@ export default function DashboardPage() {
   const publicIdValid = PUBLIC_ID_PATTERN.test(normalizedPublicId);
 
   const handleSave = async () => {
+    if (!supabase) {
+      setError("Supabase non configurato nel client.");
+      return;
+    }
+
     const title = form.title.trim();
     const spouses = form.spouses.trim();
     const googleDriveFolderId = form.googleDriveFolderId.trim();
