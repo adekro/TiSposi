@@ -1,18 +1,20 @@
-import { useQuery } from '@tanstack/react-query'
-import type { GalleryItem } from '../types'
+import { useQuery } from "@tanstack/react-query";
+import type { PublicGalleryResponse } from "../types";
 
-async function fetchGallery(): Promise<GalleryItem[]> {
-  const res = await fetch('/api/gallery')
-  if (!res.ok) throw new Error('Errore nel caricamento della galleria')
-  return res.json() as Promise<GalleryItem[]>
+async function fetchGallery(publicId: string): Promise<PublicGalleryResponse> {
+  const res = await fetch(
+    `/api/gallery?publicId=${encodeURIComponent(publicId)}`,
+  );
+  if (!res.ok) throw new Error("Errore nel caricamento della galleria");
+  return res.json() as Promise<PublicGalleryResponse>;
 }
 
-export function useGallery() {
-  return useQuery<GalleryItem[]>({
-    queryKey: ['gallery'],
-    queryFn: fetchGallery,
+export function useGallery(publicId: string) {
+  return useQuery<PublicGalleryResponse>({
+    queryKey: ["gallery", publicId],
+    queryFn: () => fetchGallery(publicId),
+    enabled: publicId.trim().length > 0,
     refetchInterval: 30_000, // polling ogni 30 secondi
     staleTime: 30_000,
-    placeholderData: [],
-  })
+  });
 }

@@ -1,78 +1,95 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { google } from 'googleapis'
-import type { GalleryItem } from '../src/types'
-
-function getAuthClient() {
-  const clientId = process.env.GOOGLE_CLIENT_ID
-  const clientSecret = process.env.GOOGLE_CLIENT_SECRET
-  const refreshToken = process.env.GOOGLE_REFRESH_TOKEN
-  if (!clientId || !clientSecret || !refreshToken) {
-    throw new Error('Credenziali OAuth2 mancanti (GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET / GOOGLE_REFRESH_TOKEN)')
-  }
-  const oauth2 = new google.auth.OAuth2(clientId, clientSecret)
-  oauth2.setCredentials({ refresh_token: refreshToken })
-  return oauth2
-}
+import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { getEventByPublicId } from "./_lib/events";
+import { listDriveGalleryItems } from "./_lib/drive";
+import { getServiceSupabaseClient } from "./_lib/supabase";
+import type { GalleryItem, PublicGalleryResponse } from "../src/types";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' })
+  if (req.method !== "GET") {
+    return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID
-  if (!folderId) {
-    return res.status(500).json({ error: 'GOOGLE_DRIVE_FOLDER_ID non impostata' })
+  const publicId =
+    typeof req.query.publicId === "string" ? req.query.publicId : "";
+  if (!publicId.trim()) {
+    return res.status(400).json({ error: "Parametro publicId mancante" });
   }
 
   try {
-    const auth = getAuthClient()
-    const drive = google.drive({ version: 'v3', auth })
+    const event = await getEventByPublicId(publicId);
+    if (!event) {
+      return res.status(404).json({ error: "Evento non trovato" });
+    }
 
-    const response = await drive.files.list({
-      q: `'${folderId}' in parents and trashed = false`,
-      fields: 'files(id,name,mimeType,createdTime)',
-      orderBy: 'createdTime desc',
-      pageSize: 200,
-    })
+    let items: GalleryItem[] = [];
 
-    const files = response.data.files ?? []
-    const items: GalleryItem[] = []
-
-    for (const file of files) {
-      if (!file.id || !file.name) continue
-
-      if (file.name.startsWith('dedica_') && file.mimeType === 'text/plain') {
-        // Scarica il contenuto del file di testo
-        const textRes = await drive.files.get(
-          { fileId: file.id, alt: 'media' },
-          { responseType: 'text' },
+    if (event.storage_provider === "google_drive") {
+      if (!event.google_drive_folder_id) {
+        return res
+          .status(500)
+          .json({ error: "Evento configurato senza cartella Google Drive" });
+      }
+      items = await listDriveGalleryItems(event.google_drive_folder_id);
+    } else {
+      const supabase = getServiceSupabaseClient();
+      const { data, error } = await supabase
+        .from("gallery_entries")
+        .select(
+          "id, type, text_content, photo_base64, photo_mime_type, created_at",
         )
+        .eq("event_id", event.id)
+        .order("created_at", { ascending: false })
+        .limit(200);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      items = [];
+
+      for (const entry of data ?? []) {
+        if (entry.type === "dedica") {
+          items.push({
+            id: entry.id,
+            type: "dedica",
+            text: entry.text_content ?? "",
+            timestamp: entry.created_at ?? new Date().toISOString(),
+          });
+          continue;
+        }
+
+        if (!entry.photo_base64 || !entry.photo_mime_type) {
+          continue;
+        }
+
         items.push({
-          id: file.id,
-          type: 'dedica',
-          text: String(textRes.data),
-          timestamp: file.createdTime ?? new Date().toISOString(),
-        })
-      } else if (
-        file.mimeType?.startsWith('image/') ||
-        file.mimeType === 'application/octet-stream'
-      ) {
-        // URL CDN Google — pubblicamente accessibile dopo aver impostato permesso anyone:reader
-        const url = `https://lh3.googleusercontent.com/d/${file.id}=w1200`
-        items.push({
-          id: file.id,
-          type: 'photo',
-          url,
-          timestamp: file.createdTime ?? new Date().toISOString(),
-        })
+          id: entry.id,
+          type: "photo",
+          url: `data:${entry.photo_mime_type};base64,${entry.photo_base64}`,
+          mimeType: entry.photo_mime_type,
+          timestamp: entry.created_at ?? new Date().toISOString(),
+        });
       }
     }
 
+    const payload: PublicGalleryResponse = {
+      event: {
+        id: event.id,
+        publicId: event.public_id,
+        title: event.title,
+        spouses: event.spouses,
+        storageProvider: event.storage_provider,
+      },
+      items,
+    };
+
     // Cache HTTP: 30s (max-age) con stale-while-revalidate
-    res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=60')
-    return res.status(200).json(items)
+    res.setHeader("Cache-Control", "s-maxage=30, stale-while-revalidate=60");
+    return res.status(200).json(payload);
   } catch (err) {
-    console.error('[gallery] Errore:', err)
-    return res.status(500).json({ error: 'Errore nel recupero della galleria' })
+    console.error("[gallery] Errore:", err);
+    return res
+      .status(500)
+      .json({ error: "Errore nel recupero della galleria" });
   }
 }

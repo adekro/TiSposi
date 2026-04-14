@@ -1,12 +1,12 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import { VitePWA } from 'vite-plugin-pwa'
-import path from 'path'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import { VitePWA } from "vite-plugin-pwa";
+import path from "path";
 
 export default defineConfig({
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      "@": path.resolve(__dirname, "./src"),
     },
   },
   build: {
@@ -16,36 +16,37 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'icons/*.png'],
+      registerType: "autoUpdate",
+      includeAssets: ["favicon.svg", "icons/*.png"],
       manifest: {
-        name: 'Martina & Natan — 10 Ottobre 2026',
-        short_name: 'TiSposi',
-        description: 'Galleria fotografica del matrimonio di Martina e Natan',
-        theme_color: '#C9A76C',
-        background_color: '#FAF7F2',
-        display: 'standalone',
-        scope: '/',
-        start_url: '/',
-        orientation: 'portrait',
+        name: "TiSposi",
+        short_name: "TiSposi",
+        description:
+          "Landing, dashboard e galleria fotografica per eventi privati",
+        theme_color: "#C9A76C",
+        background_color: "#FAF7F2",
+        display: "standalone",
+        scope: "/",
+        start_url: "/",
+        orientation: "portrait",
         icons: [
           {
-            src: 'icons/pwa-192x192.svg',
-            sizes: 'any',
-            type: 'image/svg+xml',
-            purpose: 'any maskable',
+            src: "icons/pwa-192x192.svg",
+            sizes: "any",
+            type: "image/svg+xml",
+            purpose: "any maskable",
           },
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
         runtimeCaching: [
           {
-            // API gallery: sempre dalla rete, fallback cache
+            // API gallery pubblica: sempre dalla rete, fallback cache
             urlPattern: /^https?:\/\/.*\/api\/gallery/,
-            handler: 'NetworkFirst',
+            handler: "NetworkFirst",
             options: {
-              cacheName: 'api-gallery-cache',
+              cacheName: "api-gallery-cache",
               expiration: { maxEntries: 1, maxAgeSeconds: 60 },
               networkTimeoutSeconds: 5,
             },
@@ -53,9 +54,9 @@ export default defineConfig({
           {
             // Immagini CDN Google Drive (lh3.googleusercontent.com)
             urlPattern: /^https:\/\/lh3\.googleusercontent\.com\//,
-            handler: 'CacheFirst',
+            handler: "CacheFirst",
             options: {
-              cacheName: 'drive-images-cache',
+              cacheName: "drive-images-cache",
               expiration: { maxEntries: 500, maxAgeSeconds: 60 * 60 * 24 * 7 },
             },
           },
@@ -63,4 +64,4 @@ export default defineConfig({
       },
     }),
   ],
-})
+});

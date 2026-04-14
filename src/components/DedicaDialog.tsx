@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState } from "react";
 import {
   Button,
   CircularProgress,
@@ -8,73 +8,103 @@ import {
   DialogTitle,
   TextField,
   Typography,
-} from '@mui/material'
-import EditIcon from '@mui/icons-material/Edit'
-import DOMPurify from 'dompurify'
+} from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
+import DOMPurify from "dompurify";
 
 interface DedicaDialogProps {
-  open: boolean
-  onClose: () => void
-  onSubmitted: () => void
-  onError: (msg: string) => void
+  open: boolean;
+  publicId: string;
+  onClose: () => void;
+  onSubmitted: () => void;
+  onError: (msg: string) => void;
 }
 
-const MIN_LEN = 2
-const MAX_LEN = 300
+const MIN_LEN = 2;
+const MAX_LEN = 300;
 
-export default function DedicaDialog({ open, onClose, onSubmitted, onError }: DedicaDialogProps) {
-  const [testo, setTesto] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [touched, setTouched] = useState(false)
+export default function DedicaDialog({
+  open,
+  publicId,
+  onClose,
+  onSubmitted,
+  onError,
+}: DedicaDialogProps) {
+  const [testo, setTesto] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [touched, setTouched] = useState(false);
 
-  const trimmed = testo.trim()
-  const hasError = touched && (trimmed.length < MIN_LEN || trimmed.length > MAX_LEN)
+  const trimmed = testo.trim();
+  const hasError =
+    touched && (trimmed.length < MIN_LEN || trimmed.length > MAX_LEN);
 
   const handleSubmit = async () => {
-    setTouched(true)
-    if (trimmed.length < MIN_LEN || trimmed.length > MAX_LEN) return
+    setTouched(true);
+    if (trimmed.length < MIN_LEN || trimmed.length > MAX_LEN) return;
+    if (!publicId) {
+      onError("Evento non valido: impossibile inviare la dedica.");
+      return;
+    }
 
     // Sanitizza l'input prima di inviarlo
-    const sanitized = DOMPurify.sanitize(trimmed, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] })
+    const sanitized = DOMPurify.sanitize(trimmed, {
+      ALLOWED_TAGS: [],
+      ALLOWED_ATTR: [],
+    });
 
-    setLoading(true)
+    setLoading(true);
     try {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ testo: sanitized }),
-      })
+      const res = await fetch(
+        `/api/upload?publicId=${encodeURIComponent(publicId)}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ testo: sanitized }),
+        },
+      );
       if (!res.ok) {
-        const data = (await res.json()) as { error?: string }
-        throw new Error(data.error ?? 'Errore nel server')
+        const data = (await res.json()) as { error?: string };
+        throw new Error(data.error ?? "Errore nel server");
       }
-      setTesto('')
-      setTouched(false)
-      onSubmitted()
-      onClose()
+      setTesto("");
+      setTouched(false);
+      onSubmitted();
+      onClose();
     } catch (err) {
-      onError(err instanceof Error ? err.message : 'Errore durante l\'invio della dedica')
+      onError(
+        err instanceof Error
+          ? err.message
+          : "Errore durante l'invio della dedica",
+      );
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleClose = () => {
-    if (loading) return
-    setTesto('')
-    setTouched(false)
-    onClose()
-  }
+    if (loading) return;
+    setTesto("");
+    setTouched(false);
+    onClose();
+  };
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ fontFamily: '"Playfair Display", serif', display: 'flex', alignItems: 'center', gap: 1 }}>
+      <DialogTitle
+        sx={{
+          fontFamily: '"Playfair Display", serif',
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+        }}
+      >
         <EditIcon color="secondary" />
         Scrivi una dedica
       </DialogTitle>
       <DialogContent>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Lascia un messaggio per gli sposi — apparirà nella galleria di tutti gli ospiti.
+          Lascia un messaggio per gli sposi: apparirà nella galleria pubblica
+          dell'evento.
         </Typography>
         <TextField
           autoFocus
@@ -106,11 +136,13 @@ export default function DedicaDialog({ open, onClose, onSubmitted, onError }: De
           variant="contained"
           color="secondary"
           disabled={loading || trimmed.length < MIN_LEN}
-          startIcon={loading ? <CircularProgress size={16} color="inherit" /> : undefined}
+          startIcon={
+            loading ? <CircularProgress size={16} color="inherit" /> : undefined
+          }
         >
-          {loading ? 'Invio…' : 'Invia dedica'}
+          {loading ? "Invio…" : "Invia dedica"}
         </Button>
       </DialogActions>
     </Dialog>
-  )
+  );
 }
