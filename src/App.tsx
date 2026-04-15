@@ -5,6 +5,9 @@ import GalleryPage from "./pages/GalleryPage";
 import LandingPage from "./pages/LandingPage";
 import DashboardPage from "./pages/DashboardPage";
 import UpdatePasswordPage from "./pages/UpdatePasswordPage";
+import PrivacyPage from "./pages/PrivacyPage";
+import CookiePage from "./pages/CookiePage";
+import TerminiPage from "./pages/TerminiPage";
 
 export default function App() {
   return (
@@ -12,6 +15,9 @@ export default function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/auth" element={<AuthPage />} />
       <Route path="/update-password" element={<UpdatePasswordPage />} />
+      <Route path="/privacy" element={<PrivacyPage />} />
+      <Route path="/cookie" element={<CookiePage />} />
+      <Route path="/termini" element={<TerminiPage />} />
       <Route element={<ProtectedRoute />}>
         <Route path="/app" element={<DashboardPage />} />
       </Route>

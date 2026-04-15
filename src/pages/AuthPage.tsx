@@ -4,7 +4,10 @@ import {
   Button,
   Card,
   CardContent,
+  Checkbox,
   Container,
+  FormControlLabel,
+  Link,
   Stack,
   Tab,
   Tabs,
@@ -15,6 +18,7 @@ import { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { supabase } from "../lib/supabase";
+import LegalFooter from "../components/LegalFooter";
 
 type AuthMode = "signup" | "login" | "forgot";
 
@@ -27,6 +31,8 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
+  const [photoConsentAccepted, setPhotoConsentAccepted] = useState(false);
 
   if (session) {
     return <Navigate to="/app" replace />;
@@ -128,6 +134,8 @@ export default function AuthPage() {
               onChange={(_event, nextValue: AuthMode) => {
                 setError("");
                 setMessage("");
+                setPrivacyAccepted(false);
+                setPhotoConsentAccepted(false);
                 setMode(nextValue);
               }}
               variant="fullWidth"
@@ -195,10 +203,69 @@ export default function AuthPage() {
                     }
                   />
 
+                  {mode === "signup" ? (
+                    <Stack spacing={0.5}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={privacyAccepted}
+                            onChange={(e) =>
+                              setPrivacyAccepted(e.target.checked)
+                            }
+                          />
+                        }
+                        label={
+                          <Typography variant="body2">
+                            Ho letto e accetto la{" "}
+                            <Link
+                              href="/privacy"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              underline="hover"
+                            >
+                              Privacy Policy
+                            </Link>{" "}
+                            e i{" "}
+                            <Link
+                              href="/termini"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              underline="hover"
+                            >
+                              Termini e Condizioni
+                            </Link>
+                          </Typography>
+                        }
+                      />
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={photoConsentAccepted}
+                            onChange={(e) =>
+                              setPhotoConsentAccepted(e.target.checked)
+                            }
+                          />
+                        }
+                        label={
+                          <Typography variant="body2">
+                            Dichiaro di caricare solo foto per cui ho ottenuto
+                            il consenso delle persone ritratte
+                          </Typography>
+                        }
+                      />
+                    </Stack>
+                  ) : null}
+
                   <Button
                     variant="contained"
                     size="large"
-                    disabled={loading || !email.trim() || password.length < 6}
+                    disabled={
+                      loading ||
+                      !email.trim() ||
+                      password.length < 6 ||
+                      (mode === "signup" &&
+                        (!privacyAccepted || !photoConsentAccepted))
+                    }
                     onClick={handleSubmit}
                   >
                     {loading
@@ -230,6 +297,8 @@ export default function AuthPage() {
             </Stack>
           </CardContent>
         </Card>
+
+        <LegalFooter />
       </Container>
     </Box>
   );

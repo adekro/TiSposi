@@ -14,6 +14,7 @@ import PhotoLibraryIcon from "@mui/icons-material/PhotoLibrary";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import LegalFooter from "../components/LegalFooter";
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -133,6 +134,8 @@ export default function LandingPage() {
               body="Gli invitati usano una route dedicata dell'evento per vedere foto, caricarne di nuove e scrivere dediche."
             />
           </Stack>
+
+          <LegalFooter />
         </Stack>
       </Container>
     </Box>

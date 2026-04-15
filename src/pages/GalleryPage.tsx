@@ -21,6 +21,7 @@ import PhotoCapture, {
 } from "../components/PhotoCapture";
 import DedicaDialog from "../components/DedicaDialog";
 import PWAInstallBanner from "../components/PWAInstallBanner";
+import LegalFooter from "../components/LegalFooter";
 import { useParams } from "react-router-dom";
 
 export default function GalleryPage() {
@@ -156,6 +157,11 @@ export default function GalleryPage() {
       {/* ── Galleria ── */}
       <Container maxWidth="md" sx={{ pt: 2, px: { xs: 1.5, sm: 3 } }}>
         <PhotoGrid items={items} loading={isLoading} />
+      </Container>
+
+      {/* ── Footer legale ── */}
+      <Container maxWidth="md">
+        <LegalFooter />
       </Container>
 
       {/* ── FAB azione foto (primario) ── */}
