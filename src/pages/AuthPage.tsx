@@ -16,7 +16,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { supabase } from "../lib/supabase";
 
-type AuthMode = "signup" | "login";
+type AuthMode = "signup" | "login" | "forgot";
 
 export default function AuthPage() {
   const navigate = useNavigate();
@@ -59,7 +59,16 @@ export default function AuthPage() {
         throw new Error("Supabase non configurato nel client.");
       }
 
-      if (mode === "signup") {
+      if (mode === "forgot") {
+        const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+          email.trim(),
+          { redirectTo: `${window.location.origin}/update-password` },
+        );
+        if (resetError) throw resetError;
+        setMessage(
+          "Email inviata. Controlla la casella e clicca il link per impostare la nuova password.",
+        );
+      } else if (mode === "signup") {
         const { error: signUpError } = await supabase.auth.signUp({
           email: email.trim(),
           password,
@@ -115,8 +124,12 @@ export default function AuthPage() {
             </Typography>
 
             <Tabs
-              value={mode}
-              onChange={(_event, nextValue: AuthMode) => setMode(nextValue)}
+              value={mode === "forgot" ? "login" : mode}
+              onChange={(_event, nextValue: AuthMode) => {
+                setError("");
+                setMessage("");
+                setMode(nextValue);
+              }}
               variant="fullWidth"
               sx={{ mb: 3 }}
             >
@@ -128,40 +141,92 @@ export default function AuthPage() {
               {error ? <Alert severity="error">{error}</Alert> : null}
               {message ? <Alert severity="success">{message}</Alert> : null}
 
-              <TextField
-                fullWidth
-                type="email"
-                label="Email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                autoComplete="email"
-              />
-              <TextField
-                fullWidth
-                type="password"
-                label="Password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                autoComplete={
-                  mode === "signup" ? "new-password" : "current-password"
-                }
-              />
+              {mode === "forgot" ? (
+                <>
+                  <Typography color="text.secondary" sx={{ mb: 1 }}>
+                    Inserisci la tua email e ti invieremo un link per
+                    reimpostare la password.
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    type="email"
+                    label="Email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    autoComplete="email"
+                  />
+                  <Button
+                    variant="contained"
+                    size="large"
+                    disabled={loading || !email.trim()}
+                    onClick={handleSubmit}
+                  >
+                    {loading ? "Attendere..." : "Invia link di recupero"}
+                  </Button>
+                  <Button
+                    variant="text"
+                    onClick={() => {
+                      setError("");
+                      setMessage("");
+                      setMode("login");
+                    }}
+                  >
+                    Torna al login
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <TextField
+                    fullWidth
+                    type="email"
+                    label="Email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    autoComplete="email"
+                  />
+                  <TextField
+                    fullWidth
+                    type="password"
+                    label="Password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    autoComplete={
+                      mode === "signup" ? "new-password" : "current-password"
+                    }
+                  />
 
-              <Button
-                variant="contained"
-                size="large"
-                disabled={loading || !email.trim() || password.length < 6}
-                onClick={handleSubmit}
-              >
-                {loading
-                  ? "Attendere..."
-                  : mode === "signup"
-                    ? "Crea account"
-                    : "Entra nella dashboard"}
-              </Button>
-              <Button variant="text" onClick={() => navigate("/")}>
-                Torna alla landing
-              </Button>
+                  <Button
+                    variant="contained"
+                    size="large"
+                    disabled={loading || !email.trim() || password.length < 6}
+                    onClick={handleSubmit}
+                  >
+                    {loading
+                      ? "Attendere..."
+                      : mode === "signup"
+                        ? "Crea account"
+                        : "Entra nella dashboard"}
+                  </Button>
+
+                  {mode === "login" ? (
+                    <Button
+                      variant="text"
+                      size="small"
+                      onClick={() => {
+                        setError("");
+                        setMessage("");
+                        setMode("forgot");
+                      }}
+                    >
+                      Hai dimenticato la password?
+                    </Button>
+                  ) : null}
+
+                  <Button variant="text" onClick={() => navigate("/")}>
+                    Torna alla landing
+                  </Button>
+                </>
+              )}
             </Stack>
           </CardContent>
         </Card>

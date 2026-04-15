@@ -23,7 +23,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { supabase } from "../lib/supabase";
 import type { EventSettingsRow, StorageProvider } from "../types";
 
-const PUBLIC_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const PUBLIC_ID_PATTERN = /^[a-z0-9]+$/;
 
 interface FormState {
   title: string;
@@ -246,13 +246,13 @@ export default function DashboardPage() {
                       publicId: normalizePublicId(event.target.value),
                     })
                   }
-                  placeholder="marta-luca"
+                  placeholder="martaluca"
                   helperText={
                     normalizedPublicId.length === 0
-                      ? "Usa solo lettere minuscole, numeri e trattini."
+                      ? "Usa solo lettere minuscole e numeri (senza trattini)."
                       : publicIdValid
                         ? `Route pubblica: /${normalizedPublicId}/gallery`
-                        : "Formato non valido. Usa solo lettere minuscole, numeri e trattini."
+                        : "Formato non valido. Usa solo lettere minuscole e numeri."
                   }
                   fullWidth
                   disabled={loading || saving}
@@ -346,9 +346,7 @@ function normalizePublicId(value: string) {
   return value
     .trim()
     .toLowerCase()
-    .replace(/[^a-z0-9-]+/g, "-")
-    .replace(/-{2,}/g, "-")
-    .replace(/^-|-$/g, "");
+    .replace(/[^a-z0-9]+/g, "");
 }
 
 function buildPublicIdFromEmail(email?: string) {
