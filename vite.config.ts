@@ -56,7 +56,18 @@ export default defineConfig({
             options: {
               cacheName: "api-gallery-cache",
               expiration: { maxEntries: 1, maxAgeSeconds: 60 },
-              networkTimeoutSeconds: 5,
+              networkTimeoutSeconds: 10,
+              cacheableResponse: { statuses: [200] },
+            },
+          },
+          {
+            // Foto singole Supabase DB
+            urlPattern: /^https?:\/\/.*\/api\/photo/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "supabase-photos-cache",
+              expiration: { maxEntries: 500, maxAgeSeconds: 60 * 60 * 24 * 7 },
+              cacheableResponse: { statuses: [200] },
             },
           },
           {
