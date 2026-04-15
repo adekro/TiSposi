@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getEventByPublicId } from "./_lib/events";
-import { uploadDriveDedica, uploadDrivePhoto } from "./_lib/drive";
-import { getServiceSupabaseClient } from "./_lib/supabase";
+import { getEventByPublicId } from "./_lib/events.js";
+import { uploadDriveDedica, uploadDrivePhoto } from "./_lib/drive.js";
+import { getServiceSupabaseClient } from "./_lib/supabase.js";
 
 // Disabilita il bodyParser di Vercel: leggiamo il raw stream direttamente
 export const config = {

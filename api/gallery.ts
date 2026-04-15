@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getEventByPublicId } from "./_lib/events";
-import { getServiceSupabaseClient } from "./_lib/supabase";
+import { getEventByPublicId } from "./_lib/events.js";
+import { getServiceSupabaseClient } from "./_lib/supabase.js";
 import type { GalleryItem, PublicGalleryResponse } from "../src/types";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {

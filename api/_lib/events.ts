@@ -1,5 +1,5 @@
 import type { StorageProvider } from "../../src/types";
-import { getServiceSupabaseClient } from "./supabase";
+import { getServiceSupabaseClient } from "./supabase.js";
 
 export interface EventRecord {
   id: string;
