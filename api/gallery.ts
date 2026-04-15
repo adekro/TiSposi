@@ -1,6 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { getEventByPublicId } from "./_lib/events";
-import { listDriveGalleryItems } from "./_lib/drive";
 import { getServiceSupabaseClient } from "./_lib/supabase";
 import type { GalleryItem, PublicGalleryResponse } from "../src/types";
 
@@ -39,15 +38,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .status(500)
           .json({ error: "Evento configurato senza cartella Google Drive" });
       }
+      const { listDriveGalleryItems } = await import("./_lib/drive");
       items = await listDriveGalleryItems(event.google_drive_folder_id);
     } else {
       console.log("[gallery] Utilizzo di Supabase come storage provider");
       const supabase = getServiceSupabaseClient();
       const { data, error } = await supabase
         .from("gallery_entries")
-        .select(
-          "id, type, text_content, photo_base64, photo_mime_type, created_at",
-        )
+        .select("id, type, text_content, photo_mime_type, created_at")
         .eq("event_id", event.id)
         .order("created_at", { ascending: false })
         .limit(200);
@@ -69,14 +67,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           continue;
         }
 
-        if (!entry.photo_base64 || !entry.photo_mime_type) {
+        if (!entry.photo_mime_type) {
           continue;
         }
 
         items.push({
           id: entry.id,
           type: "photo",
-          url: `data:${entry.photo_mime_type};base64,${entry.photo_base64}`,
+          url: `/api/photo?id=${entry.id}`,
           mimeType: entry.photo_mime_type,
           timestamp: entry.created_at ?? new Date().toISOString(),
         });
