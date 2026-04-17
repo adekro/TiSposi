@@ -64,3 +64,57 @@ export interface RsvpEntry {
   notes: string | null;
   created_at: string;
 }
+
+// ── Fase 3: Wedding Planning ──────────────────────────────────────────────────
+export interface ChecklistItem {
+  id: string;
+  event_id: string;
+  task: string;
+  due_label: string | null;
+  due_offset_days: number | null;
+  completed: boolean;
+  created_at: string;
+}
+
+export type RsvpStatus = "pending" | "confirmed" | "declined";
+
+export interface GuestEntry {
+  id: string;
+  event_id: string;
+  full_name: string;
+  email: string | null;
+  phone: string | null;
+  table_number: string | null;
+  rsvp_status: RsvpStatus;
+  notes: string | null;
+  created_at: string;
+}
+
+export type ContractStatus = "da_firmare" | "firmato" | "non_necessario";
+export type PaymentStatus = "non_pagato" | "acconto" | "saldo_pagato";
+
+export interface BudgetItem {
+  id: string;
+  event_id: string;
+  category: string;
+  description: string;
+  estimated_amount: number;
+  actual_amount: number;
+  paid: boolean;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface Supplier {
+  id: string;
+  event_id: string;
+  name: string;
+  category: string;
+  contact_name: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  contract_status: ContractStatus;
+  payment_status: PaymentStatus;
+  notes: string | null;
+  created_at: string;
+}

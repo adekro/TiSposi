@@ -5,6 +5,7 @@ dist/
 # Env locali (MAI committare le chiavi reali!)
 .env.local
 .env.*.local
+.env
 
 # Editor
 .vscode/

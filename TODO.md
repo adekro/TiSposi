@@ -36,16 +36,15 @@
 
 ## 📋 Fase 3 — Wedding Planning (dashboard sposi)
 
-- [ ] **Checklist sposi** pre-popolata con scadenze (12 mesi → giorno del matrimonio)
-- [ ] **Lista invitati**: nome, email/tel, tavolo assegnato, stato RSVP
-- [ ] **Budget tracker**: voci per categoria (venue, catering, fiori…), previsto vs reale
-- [ ] **Gestione fornitori**: nome, categoria, contatti, stato pagamento/contratto
+- [x] **Checklist sposi** pre-popolata con scadenze (12 mesi → giorno del matrimonio)
+- [x] **Lista invitati**: nome, email/tel, tavolo assegnato, stato RSVP
+- [x] **Budget tracker**: voci per categoria (venue, catering, fiori…), previsto vs reale
+- [x] **Gestione fornitori**: nome, categoria, contatti, stato pagamento/contratto
 
 ---
 
 ## 📋 Fase 4 — Platform
 
-- [ ] **Notifiche email** (Resend): nuova foto, nuovo RSVP, nuova dedica → email agli sposi
 - [ ] **Statistiche**: visite galleria, foto caricate, RSVP ricevuti
 - [ ] **Export galleria**: download ZIP di tutte le foto
-- [ ] **Multi-evento**: più matrimoni per account (rimuovere `UNIQUE(owner_user_id)`)
+- [ ] **Gestione Media**: eliminare singolarmente foto caricate e dediche da dashboard sposi 

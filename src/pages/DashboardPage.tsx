@@ -21,8 +21,16 @@ import DownloadIcon from "@mui/icons-material/Download";
 import { useAuth } from "../contexts/AuthContext";
 import { useEventSettings } from "../hooks/useEventSettings";
 import { useRsvp } from "../hooks/useRsvp";
+import { useChecklist } from "../hooks/useChecklist";
+import { useGuestList } from "../hooks/useGuestList";
+import { useBudget } from "../hooks/useBudget";
+import { useSuppliers } from "../hooks/useSuppliers";
 import DashboardHeader from "../components/DashboardHeader";
 import EventSettingsForm from "../components/EventSettingsForm";
+import ChecklistTab from "../components/ChecklistTab";
+import GuestListTab from "../components/GuestListTab";
+import BudgetTab from "../components/BudgetTab";
+import SuppliersTab from "../components/SuppliersTab";
 
 export default function DashboardPage() {
   const { user, signOut, configError } = useAuth();
@@ -31,6 +39,10 @@ export default function DashboardPage() {
   const { entries, stats, loading: rsvpLoading, error: rsvpError } = useRsvp(
     user?.id ?? "",
   );
+  const checklistHook = useChecklist(user?.id ?? "");
+  const guestListHook = useGuestList(user?.id ?? "");
+  const budgetHook = useBudget(user?.id ?? "");
+  const suppliersHook = useSuppliers(user?.id ?? "");
   const [tab, setTab] = useState(0);
 
   if (!user) {
@@ -93,13 +105,40 @@ export default function DashboardPage() {
           />
 
           <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-            <Tabs value={tab} onChange={(_, v: number) => setTab(v)}>
+            <Tabs
+              value={tab}
+              onChange={(_, v: number) => setTab(v)}
+              variant="scrollable"
+              scrollButtons="auto"
+            >
               <Tab label="Configurazione evento" />
               <Tab
                 label={
                   stats.totalRsvp > 0
                     ? `RSVP (${stats.totalRsvp})`
                     : "RSVP"
+                }
+              />
+              <Tab
+                label={
+                  checklistHook.items.length > 0
+                    ? `Checklist (${checklistHook.items.filter((i) => i.completed).length}/${checklistHook.items.length})`
+                    : "Checklist"
+                }
+              />
+              <Tab
+                label={
+                  guestListHook.stats.total > 0
+                    ? `Invitati (${guestListHook.stats.total})`
+                    : "Invitati"
+                }
+              />
+              <Tab label="Budget" />
+              <Tab
+                label={
+                  suppliersHook.suppliers.length > 0
+                    ? `Fornitori (${suppliersHook.suppliers.length})`
+                    : "Fornitori"
                 }
               />
             </Tabs>
@@ -205,6 +244,10 @@ export default function DashboardPage() {
               )}
             </Stack>
           )}
+          {tab === 2 && <ChecklistTab hook={checklistHook} />}
+          {tab === 3 && <GuestListTab hook={guestListHook} />}
+          {tab === 4 && <BudgetTab hook={budgetHook} />}
+          {tab === 5 && <SuppliersTab hook={suppliersHook} />}
         </Stack>
       </Container>
     </Box>

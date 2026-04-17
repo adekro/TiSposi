@@ -154,3 +154,149 @@ create policy "Owners can read own rsvp entries"
         and events.owner_user_id = auth.uid()
     )
   );
+
+-- ── Fase 3: Wedding Planning ─────────────────────────────────────────────────
+
+-- Checklist
+create table if not exists public.checklist_items (
+  id uuid primary key default gen_random_uuid(),
+  event_id uuid not null references public.events (id) on delete cascade,
+  task text not null,
+  due_label text,
+  due_offset_days integer,
+  completed boolean not null default false,
+  created_at timestamptz not null default timezone('utc', now())
+);
+
+create index if not exists idx_checklist_items_event_id
+  on public.checklist_items (event_id, due_offset_days nulls last);
+
+alter table public.checklist_items enable row level security;
+
+drop policy if exists "Owners can manage checklist" on public.checklist_items;
+create policy "Owners can manage checklist"
+  on public.checklist_items for all
+  using (
+    exists (
+      select 1 from public.events
+      where events.id = checklist_items.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.events
+      where events.id = checklist_items.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  );
+
+-- Guest list
+create table if not exists public.guest_list (
+  id uuid primary key default gen_random_uuid(),
+  event_id uuid not null references public.events (id) on delete cascade,
+  full_name text not null check (char_length(full_name) between 1 and 200),
+  email text,
+  phone text,
+  table_number text,
+  rsvp_status text not null default 'pending' check (rsvp_status in ('pending', 'confirmed', 'declined')),
+  notes text,
+  created_at timestamptz not null default timezone('utc', now())
+);
+
+create index if not exists idx_guest_list_event_id
+  on public.guest_list (event_id, full_name);
+
+alter table public.guest_list enable row level security;
+
+drop policy if exists "Owners can manage guest list" on public.guest_list;
+create policy "Owners can manage guest list"
+  on public.guest_list for all
+  using (
+    exists (
+      select 1 from public.events
+      where events.id = guest_list.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.events
+      where events.id = guest_list.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  );
+
+-- Budget items
+create table if not exists public.budget_items (
+  id uuid primary key default gen_random_uuid(),
+  event_id uuid not null references public.events (id) on delete cascade,
+  category text not null,
+  description text not null,
+  estimated_amount numeric(10,2) not null default 0,
+  actual_amount numeric(10,2) not null default 0,
+  paid boolean not null default false,
+  notes text,
+  created_at timestamptz not null default timezone('utc', now())
+);
+
+create index if not exists idx_budget_items_event_id
+  on public.budget_items (event_id, category, created_at);
+
+alter table public.budget_items enable row level security;
+
+drop policy if exists "Owners can manage budget" on public.budget_items;
+create policy "Owners can manage budget"
+  on public.budget_items for all
+  using (
+    exists (
+      select 1 from public.events
+      where events.id = budget_items.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.events
+      where events.id = budget_items.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  );
+
+-- Suppliers
+create table if not exists public.suppliers (
+  id uuid primary key default gen_random_uuid(),
+  event_id uuid not null references public.events (id) on delete cascade,
+  name text not null check (char_length(name) between 1 and 200),
+  category text not null,
+  contact_name text,
+  contact_email text,
+  contact_phone text,
+  contract_status text not null default 'da_firmare' check (contract_status in ('da_firmare', 'firmato', 'non_necessario')),
+  payment_status text not null default 'non_pagato' check (payment_status in ('non_pagato', 'acconto', 'saldo_pagato')),
+  notes text,
+  created_at timestamptz not null default timezone('utc', now())
+);
+
+create index if not exists idx_suppliers_event_id
+  on public.suppliers (event_id, category, name);
+
+alter table public.suppliers enable row level security;
+
+drop policy if exists "Owners can manage suppliers" on public.suppliers;
+create policy "Owners can manage suppliers"
+  on public.suppliers for all
+  using (
+    exists (
+      select 1 from public.events
+      where events.id = suppliers.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.events
+      where events.id = suppliers.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  );
