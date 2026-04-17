@@ -112,6 +112,9 @@ export function useEventSettings(userId: string, userEmail?: string) {
   const publicUrl = normalizedPublicId
     ? `${window.location.origin}/${normalizedPublicId}/gallery`
     : "";
+  const rsvpUrl = normalizedPublicId
+    ? `${window.location.origin}/${normalizedPublicId}/rsvp`
+    : "";
   const publicIdValid = PUBLIC_ID_PATTERN.test(normalizedPublicId);
 
   const updateField = <K extends keyof EventFormState>(
@@ -191,6 +194,18 @@ export function useEventSettings(userId: string, userEmail?: string) {
     link.click();
   };
 
+  const handleDownloadRsvpQr = async () => {
+    if (!rsvpUrl) return;
+    const dataUrl = await QRCode.toDataURL(rsvpUrl, {
+      width: 512,
+      margin: 2,
+    });
+    const link = document.createElement("a");
+    link.href = dataUrl;
+    link.download = `qrcode-rsvp-${normalizedPublicId}.png`;
+    link.click();
+  };
+
   return {
     form,
     updateField,
@@ -200,8 +215,10 @@ export function useEventSettings(userId: string, userEmail?: string) {
     message,
     normalizedPublicId,
     publicUrl,
+    rsvpUrl,
     publicIdValid,
     handleSave,
     handleDownloadQr,
+    handleDownloadRsvpQr,
   };
 }

@@ -24,12 +24,13 @@
 
 ---
 
-## 📋 Fase 2 — RSVP
+## ✅ Fase 2 — RSVP
 
-- [ ] Form RSVP pubblico (nome, presenti Sì/No, numero persone, menu, intolleranze, note)
-- [ ] Tabella `rsvp_entries` su Supabase (event_id FK, RLS)
-- [ ] Dashboard sposi: lista RSVP con conteggi (tot. presenti, preferenze menu)
-- [ ] Export CSV degli RSVP
+- [x] Form RSVP pubblico su pagina dedicata `/:publicId/rsvp` (nome, presenza, n. persone, menu, intolleranze, note)
+- [x] Tabella `rsvp_entries` su Supabase (event_id FK, RLS)
+- [x] QR Code RSVP scaricabile dalla dashboard sposi
+- [x] Dashboard sposi: tab RSVP con lista risposte e conteggi (tot. risposte, presenti + n. persone, assenti)
+- [x] Export CSV degli RSVP
 
 ---
 

@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AuthPage from "./pages/AuthPage";
 import GalleryPage from "./pages/GalleryPage";
+import RsvpPage from "./pages/RsvpPage";
 import LandingPage from "./pages/LandingPage";
 import DashboardPage from "./pages/DashboardPage";
 import UpdatePasswordPage from "./pages/UpdatePasswordPage";
@@ -38,6 +39,7 @@ export default function App() {
         <Route path="/app" element={<DashboardPage />} />
       </Route>
       <Route path="/:publicId/gallery" element={<GalleryPage />} />
+      <Route path="/:publicId/rsvp" element={<RsvpPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

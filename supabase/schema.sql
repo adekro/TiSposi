@@ -125,3 +125,32 @@ create policy "Owners can read own music requests"
         and events.owner_user_id = auth.uid()
     )
   );
+
+-- ── Fase 2: RSVP ────────────────────────────────────────────────────────────
+create table if not exists public.rsvp_entries (
+  id uuid primary key default gen_random_uuid(),
+  event_id uuid not null references public.events (id) on delete cascade,
+  guest_name text not null check (char_length(guest_name) between 1 and 200),
+  attending boolean not null,
+  num_guests integer not null default 1 check (num_guests between 1 and 20),
+  menu_choice text check (menu_choice is null or char_length(menu_choice) <= 200),
+  dietary_restrictions text check (dietary_restrictions is null or char_length(dietary_restrictions) <= 1000),
+  notes text check (notes is null or char_length(notes) <= 1000),
+  created_at timestamptz not null default timezone('utc', now())
+);
+
+create index if not exists idx_rsvp_entries_event_id
+  on public.rsvp_entries (event_id, created_at desc);
+
+alter table public.rsvp_entries enable row level security;
+
+drop policy if exists "Owners can read own rsvp entries" on public.rsvp_entries;
+create policy "Owners can read own rsvp entries"
+  on public.rsvp_entries for select
+  using (
+    exists (
+      select 1 from public.events
+      where events.id = rsvp_entries.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  );

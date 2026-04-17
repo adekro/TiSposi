@@ -51,3 +51,16 @@ export interface EventSettingsRow {
   couple_story: string | null;
   menu: string | null;
 }
+
+// ── Fase 2: RSVP ─────────────────────────────────────────────────────────────
+export interface RsvpEntry {
+  id: string;
+  event_id: string;
+  guest_name: string;
+  attending: boolean;
+  num_guests: number;
+  menu_choice: string | null;
+  dietary_restrictions: string | null;
+  notes: string | null;
+  created_at: string;
+}

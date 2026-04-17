@@ -36,9 +36,11 @@ interface Props {
   message: string;
   normalizedPublicId: string;
   publicUrl: string;
+  rsvpUrl: string;
   publicIdValid: boolean;
   onSave: () => Promise<void>;
   onDownloadQr: () => Promise<void>;
+  onDownloadRsvpQr: () => Promise<void>;
 }
 
 export default function EventSettingsForm({
@@ -50,9 +52,11 @@ export default function EventSettingsForm({
   message,
   normalizedPublicId,
   publicUrl,
+  rsvpUrl,
   publicIdValid,
   onSave,
   onDownloadQr,
+  onDownloadRsvpQr,
 }: Props) {
   const disabled = loading || saving;
 
@@ -313,12 +317,23 @@ export default function EventSettingsForm({
               onClick={() => void onDownloadQr()}
               disabled={!publicIdValid}
             >
-              Scarica QR Code
+              Scarica QR Galleria
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<QrCode2Icon />}
+              onClick={() => void onDownloadRsvpQr()}
+              disabled={!publicIdValid}
+            >
+              Scarica QR RSVP
             </Button>
           </Stack>
 
           {publicUrl ? (
             <Alert severity="info">URL pubblico: {publicUrl}</Alert>
+          ) : null}
+          {rsvpUrl ? (
+            <Alert severity="info">URL RSVP: {rsvpUrl}</Alert>
           ) : null}
         </Stack>
       </CardContent>
