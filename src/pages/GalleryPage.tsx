@@ -13,6 +13,7 @@ import {
 import CameraAltIcon from "@mui/icons-material/CameraAlt";
 import EditIcon from "@mui/icons-material/Edit";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
+import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import { useGallery } from "../hooks/useGallery";
 import { useQueryClient } from "@tanstack/react-query";
 import PhotoGrid from "../components/PhotoGrid";
@@ -20,6 +21,9 @@ import PhotoCapture, {
   type PhotoCaptureHandle,
 } from "../components/PhotoCapture";
 import DedicaDialog from "../components/DedicaDialog";
+import MusicRequestDialog from "../components/MusicRequestDialog";
+import CountdownWidget from "../components/CountdownWidget";
+import WeddingInfoSection from "../components/WeddingInfoSection";
 import PWAInstallBanner from "../components/PWAInstallBanner";
 import LegalFooter from "../components/LegalFooter";
 import { useParams } from "react-router-dom";
@@ -36,6 +40,7 @@ export default function GalleryPage() {
 
   const captureRef = useRef<PhotoCaptureHandle>(null);
   const [dedicaOpen, setDedicaOpen] = useState(false);
+  const [musicOpen, setMusicOpen] = useState(false);
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -61,6 +66,10 @@ export default function GalleryPage() {
   const handleDedicaSubmitted = () => {
     showSnack("Dedica inviata! 💌 Grazie per il tuo messaggio.");
     void queryClient.invalidateQueries({ queryKey: ["gallery", publicId] });
+  };
+
+  const handleMusicSubmitted = () => {
+    showSnack("Richiesta musicale inviata! 🎵 Grazie!");
   };
 
   if (isLoading) {
@@ -154,6 +163,21 @@ export default function GalleryPage() {
         </Typography>
       </Box>
 
+      {/* ── Fase 1: Countdown + Info ── */}
+      {event && (
+        <Container maxWidth="md" sx={{ pt: 3, px: { xs: 1.5, sm: 3 } }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            {event.weddingDate && (
+              <CountdownWidget
+                weddingDate={event.weddingDate}
+                spouses={event.spouses}
+              />
+            )}
+            <WeddingInfoSection event={event} />
+          </Box>
+        </Container>
+      )}
+
       {/* ── Galleria ── */}
       <Container maxWidth="md" sx={{ pt: 2, px: { xs: 1.5, sm: 3 } }}>
         <PhotoGrid items={items} loading={isLoading} />
@@ -176,6 +200,24 @@ export default function GalleryPage() {
           gap: 1.5,
         }}
       >
+        {/* FAB terziario: richiesta musicale */}
+        <Tooltip title="Richiesta musicale" placement="left">
+          <Fab
+            size="medium"
+            onClick={() => setMusicOpen(true)}
+            aria-label="Richiesta musicale"
+            sx={{
+              bgcolor: "background.paper",
+              color: "text.primary",
+              border: `1px solid`,
+              borderColor: "divider",
+              boxShadow: 2,
+            }}
+          >
+            <MusicNoteIcon />
+          </Fab>
+        </Tooltip>
+
         {/* FAB secondario: dedica */}
         <Tooltip title="Scrivi una dedica" placement="left">
           <Fab
@@ -216,6 +258,15 @@ export default function GalleryPage() {
         publicId={publicId}
         onClose={() => setDedicaOpen(false)}
         onSubmitted={handleDedicaSubmitted}
+        onError={(msg) => showSnack(msg, "error")}
+      />
+
+      {/* ── Modal richiesta musicale ── */}
+      <MusicRequestDialog
+        open={musicOpen}
+        publicId={publicId}
+        onClose={() => setMusicOpen(false)}
+        onSubmitted={handleMusicSubmitted}
         onError={(msg) => showSnack(msg, "error")}
       />
 

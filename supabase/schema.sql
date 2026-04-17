@@ -8,9 +8,28 @@ create table if not exists public.events (
   spouses text not null,
   storage_provider text not null check (storage_provider in ('google_drive', 'supabase_db')),
   google_drive_folder_id text,
+  -- Fase 1: wedding page fields
+  wedding_date date,
+  venue_name text,
+  venue_address text,
+  venue_maps_url text,
+  dresscode text,
+  schedule text,
+  couple_story text,
+  menu text,
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now())
 );
+
+-- Migration: add Fase 1 columns if table already exists
+alter table public.events add column if not exists wedding_date date;
+alter table public.events add column if not exists venue_name text;
+alter table public.events add column if not exists venue_address text;
+alter table public.events add column if not exists venue_maps_url text;
+alter table public.events add column if not exists dresscode text;
+alter table public.events add column if not exists schedule text;
+alter table public.events add column if not exists couple_story text;
+alter table public.events add column if not exists menu text;
 
 create table if not exists public.gallery_entries (
   id uuid primary key default gen_random_uuid(),
@@ -77,6 +96,32 @@ create policy "Owners can manage own gallery entries"
       select 1
       from public.events
       where events.id = gallery_entries.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  );
+
+-- ── Fase 1: music requests ──────────────────────────────────────────────────
+create table if not exists public.music_requests (
+  id uuid primary key default gen_random_uuid(),
+  event_id uuid not null references public.events (id) on delete cascade,
+  song text not null check (char_length(song) between 1 and 200),
+  artist text check (artist is null or char_length(artist) <= 200),
+  requested_by text check (requested_by is null or char_length(requested_by) <= 100),
+  created_at timestamptz not null default timezone('utc', now())
+);
+
+create index if not exists idx_music_requests_event_id
+  on public.music_requests (event_id, created_at desc);
+
+alter table public.music_requests enable row level security;
+
+drop policy if exists "Owners can read own music requests" on public.music_requests;
+create policy "Owners can read own music requests"
+  on public.music_requests for select
+  using (
+    exists (
+      select 1 from public.events
+      where events.id = music_requests.event_id
         and events.owner_user_id = auth.uid()
     )
   );

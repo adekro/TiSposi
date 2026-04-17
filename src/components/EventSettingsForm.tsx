@@ -1,4 +1,7 @@
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Alert,
   Button,
   Card,
@@ -10,10 +13,12 @@ import {
   RadioGroup,
   Stack,
   TextField,
+  Typography,
 } from "@mui/material";
 import SaveIcon from "@mui/icons-material/Save";
 import LaunchIcon from "@mui/icons-material/Launch";
 import QrCode2Icon from "@mui/icons-material/QrCode2";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { Link as RouterLink } from "react-router-dom";
 import type { EventFormState } from "../hooks/useEventSettings";
 import { normalizePublicId } from "../hooks/useEventSettings";
@@ -58,6 +63,7 @@ export default function EventSettingsForm({
           {error ? <Alert severity="error">{error}</Alert> : null}
           {message ? <Alert severity="success">{message}</Alert> : null}
 
+          {/* ── Base ── */}
           <TextField
             label="Titolo evento"
             value={form.title}
@@ -134,6 +140,152 @@ export default function EventSettingsForm({
               hosting.
             </Alert>
           )}
+
+          {/* ── Fase 1: Pagina pubblica ── */}
+          <Accordion
+            disableGutters
+            elevation={0}
+            sx={{
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 3,
+              "&:before": { display: "none" },
+            }}
+          >
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography fontWeight={600}>📅 Data del matrimonio</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <TextField
+                label="Data del matrimonio"
+                type="date"
+                value={form.weddingDate}
+                onChange={(e) => updateField("weddingDate", e.target.value)}
+                fullWidth
+                disabled={disabled}
+                InputLabelProps={{ shrink: true }}
+                helperText="Mostrerà un countdown sulla pagina pubblica degli ospiti"
+              />
+            </AccordionDetails>
+          </Accordion>
+
+          <Accordion
+            disableGutters
+            elevation={0}
+            sx={{
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 3,
+              "&:before": { display: "none" },
+            }}
+          >
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography fontWeight={600}>💑 La vostra storia</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <TextField
+                label="Storia della coppia"
+                value={form.coupleStory}
+                onChange={(e) => updateField("coupleStory", e.target.value)}
+                placeholder="Come vi siete conosciuti, quando vi siete fidanzati..."
+                fullWidth
+                multiline
+                minRows={4}
+                disabled={disabled}
+                helperText="Testo libero visibile agli ospiti nella pagina della galleria"
+              />
+            </AccordionDetails>
+          </Accordion>
+
+          <Accordion
+            disableGutters
+            elevation={0}
+            sx={{
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 3,
+              "&:before": { display: "none" },
+            }}
+          >
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography fontWeight={600}>📍 Info logistiche</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Stack spacing={2}>
+                <TextField
+                  label="Nome venue / location"
+                  value={form.venueName}
+                  onChange={(e) => updateField("venueName", e.target.value)}
+                  placeholder="Villa Rossi"
+                  fullWidth
+                  disabled={disabled}
+                />
+                <TextField
+                  label="Indirizzo"
+                  value={form.venueAddress}
+                  onChange={(e) => updateField("venueAddress", e.target.value)}
+                  placeholder="Via Roma 1, Milano"
+                  fullWidth
+                  disabled={disabled}
+                />
+                <TextField
+                  label="Link Google Maps"
+                  value={form.venueMapsUrl}
+                  onChange={(e) => updateField("venueMapsUrl", e.target.value)}
+                  placeholder="https://maps.google.com/..."
+                  fullWidth
+                  disabled={disabled}
+                />
+                <TextField
+                  label="Dress code"
+                  value={form.dresscode}
+                  onChange={(e) => updateField("dresscode", e.target.value)}
+                  placeholder="Elegante, colori pastello..."
+                  fullWidth
+                  disabled={disabled}
+                />
+                <TextField
+                  label="Programma della giornata"
+                  value={form.schedule}
+                  onChange={(e) => updateField("schedule", e.target.value)}
+                  placeholder={`10:00 – Cerimonia\n12:30 – Aperitivo\n14:00 – Pranzo`}
+                  fullWidth
+                  multiline
+                  minRows={4}
+                  disabled={disabled}
+                  helperText="Un'ora per riga o testo libero"
+                />
+              </Stack>
+            </AccordionDetails>
+          </Accordion>
+
+          <Accordion
+            disableGutters
+            elevation={0}
+            sx={{
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 3,
+              "&:before": { display: "none" },
+            }}
+          >
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography fontWeight={600}>🍽️ Menu</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <TextField
+                label="Menu matrimonio"
+                value={form.menu}
+                onChange={(e) => updateField("menu", e.target.value)}
+                placeholder={`Antipasti\n– Prosciutto e melone\n\nPrimo\n– Risotto ai funghi\n\nSecondo\n– Tagliata di manzo`}
+                fullWidth
+                multiline
+                minRows={6}
+                disabled={disabled}
+                helperText="Testo libero visibile agli ospiti"
+              />
+            </AccordionDetails>
+          </Accordion>
 
           <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
             <Button

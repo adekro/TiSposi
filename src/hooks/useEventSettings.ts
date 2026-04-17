@@ -11,6 +11,15 @@ export interface EventFormState {
   publicId: string;
   storageProvider: StorageProvider;
   googleDriveFolderId: string;
+  // Fase 1
+  weddingDate: string;
+  venueName: string;
+  venueAddress: string;
+  venueMapsUrl: string;
+  dresscode: string;
+  schedule: string;
+  coupleStory: string;
+  menu: string;
 }
 
 const defaultState: EventFormState = {
@@ -19,6 +28,14 @@ const defaultState: EventFormState = {
   publicId: "",
   storageProvider: "supabase_db",
   googleDriveFolderId: "",
+  weddingDate: "",
+  venueName: "",
+  venueAddress: "",
+  venueMapsUrl: "",
+  dresscode: "",
+  schedule: "",
+  coupleStory: "",
+  menu: "",
 };
 
 export function normalizePublicId(value: string) {
@@ -51,7 +68,7 @@ export function useEventSettings(userId: string, userEmail?: string) {
     void supabase
       .from("events")
       .select(
-        "id, owner_user_id, public_id, title, spouses, storage_provider, google_drive_folder_id",
+        "id, owner_user_id, public_id, title, spouses, storage_provider, google_drive_folder_id, wedding_date, venue_name, venue_address, venue_maps_url, dresscode, schedule, couple_story, menu",
       )
       .eq("owner_user_id", userId)
       .maybeSingle<EventSettingsRow>()
@@ -69,6 +86,14 @@ export function useEventSettings(userId: string, userEmail?: string) {
             publicId: data.public_id,
             storageProvider: data.storage_provider,
             googleDriveFolderId: data.google_drive_folder_id ?? "",
+            weddingDate: data.wedding_date ?? "",
+            venueName: data.venue_name ?? "",
+            venueAddress: data.venue_address ?? "",
+            venueMapsUrl: data.venue_maps_url ?? "",
+            dresscode: data.dresscode ?? "",
+            schedule: data.schedule ?? "",
+            coupleStory: data.couple_story ?? "",
+            menu: data.menu ?? "",
           });
         } else {
           const defaultPublicId = buildPublicIdFromEmail(userEmail);
@@ -130,6 +155,14 @@ export function useEventSettings(userId: string, userEmail?: string) {
       storage_provider: form.storageProvider,
       google_drive_folder_id:
         form.storageProvider === "google_drive" ? googleDriveFolderId : null,
+      wedding_date: form.weddingDate || null,
+      venue_name: form.venueName.trim() || null,
+      venue_address: form.venueAddress.trim() || null,
+      venue_maps_url: form.venueMapsUrl.trim() || null,
+      dresscode: form.dresscode.trim() || null,
+      schedule: form.schedule.trim() || null,
+      couple_story: form.coupleStory.trim() || null,
+      menu: form.menu.trim() || null,
     };
 
     const { error: upsertError } = await supabase

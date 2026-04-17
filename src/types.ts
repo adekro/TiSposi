@@ -17,6 +17,15 @@ export interface PublicEventSummary {
   title: string;
   spouses: string;
   storageProvider: StorageProvider;
+  // Fase 1: wedding page fields
+  weddingDate?: string | null;
+  venueName?: string | null;
+  venueAddress?: string | null;
+  venueMapsUrl?: string | null;
+  dresscode?: string | null;
+  schedule?: string | null;
+  coupleStory?: string | null;
+  menu?: string | null;
 }
 
 export interface PublicGalleryResponse {
@@ -32,4 +41,13 @@ export interface EventSettingsRow {
   spouses: string;
   storage_provider: StorageProvider;
   google_drive_folder_id: string | null;
+  // Fase 1
+  wedding_date: string | null;
+  venue_name: string | null;
+  venue_address: string | null;
+  venue_maps_url: string | null;
+  dresscode: string | null;
+  schedule: string | null;
+  couple_story: string | null;
+  menu: string | null;
 }
