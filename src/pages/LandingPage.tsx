@@ -42,8 +42,8 @@ export default function LandingPage() {
       }}
     >
       <Container maxWidth="lg">
-        <Stack spacing={6}>
-          <Box sx={{ textAlign: "center", maxWidth: 860, mx: "auto" }}>
+        <Stack spacing={6} alignItems="center">
+          <Box sx={{ textAlign: "center", maxWidth: 860, mx: "auto", width: "100%" }}>
             <Typography
               variant="overline"
               sx={{
@@ -123,7 +123,7 @@ export default function LandingPage() {
             </CardContent>
           </Card>
 
-          <Stack direction={{ xs: "column", md: "row" }} spacing={3}>
+          <Stack direction={{ xs: "column", md: "row" }} spacing={3} sx={{ width: "100%" }}>
             <FeatureCard
               icon={<PhotoLibraryIcon color="primary" fontSize="large" />}
               title="Gallery pubblica"
@@ -141,7 +141,7 @@ export default function LandingPage() {
             />
           </Stack>
 
-          <Stack direction={{ xs: "column", md: "row" }} spacing={3}>
+          <Stack direction={{ xs: "column", md: "row" }} spacing={3} sx={{ width: "100%" }}>
             <FeatureCard
               icon={<PeopleIcon color="primary" fontSize="large" />}
               title="Lista invitati"
@@ -159,7 +159,7 @@ export default function LandingPage() {
             />
           </Stack>
 
-          <Stack direction={{ xs: "column", md: "row" }} spacing={3}>
+          <Stack direction={{ xs: "column", md: "row" }} spacing={3} sx={{ width: "100%" }}>
             <FeatureCard
               icon={<BusinessCenterIcon color="primary" fontSize="large" />}
               title="Gestione fornitori"
@@ -177,7 +177,7 @@ export default function LandingPage() {
             />
           </Stack>
 
-          <LegalFooter />
+          <Box sx={{ width: "100%" }}><LegalFooter /></Box>
         </Stack>
       </Container>
     </Box>
