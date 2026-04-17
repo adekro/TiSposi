@@ -17,6 +17,8 @@ import {
 import SaveIcon from "@mui/icons-material/Save";
 import LogoutIcon from "@mui/icons-material/Logout";
 import LaunchIcon from "@mui/icons-material/Launch";
+import QrCode2Icon from "@mui/icons-material/QrCode2";
+import QRCode from "qrcode";
 import { useEffect, useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
@@ -118,6 +120,18 @@ export default function DashboardPage() {
     ? `${window.location.origin}/${normalizedPublicId}/gallery`
     : "";
   const publicIdValid = PUBLIC_ID_PATTERN.test(normalizedPublicId);
+
+  const handleDownloadQr = async () => {
+    if (!publicUrl) return;
+    const dataUrl = await QRCode.toDataURL(publicUrl, {
+      width: 512,
+      margin: 2,
+    });
+    const link = document.createElement("a");
+    link.href = dataUrl;
+    link.download = `qrcode-${normalizedPublicId}.png`;
+    link.click();
+  };
 
   const handleSave = async () => {
     if (!supabase) {
@@ -327,6 +341,14 @@ export default function DashboardPage() {
                     disabled={!publicIdValid}
                   >
                     Apri gallery pubblica
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<QrCode2Icon />}
+                    onClick={() => void handleDownloadQr()}
+                    disabled={!publicIdValid}
+                  >
+                    Scarica QR Code
                   </Button>
                 </Stack>
 
