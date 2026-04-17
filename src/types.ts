@@ -26,6 +26,13 @@ export interface PublicEventSummary {
   schedule?: string | null;
   coupleStory?: string | null;
   menu?: string | null;
+  // Fase 7: menu strutturato a portate
+  menuAntipasto?: string | null;
+  menuPrimo?: string | null;
+  menuSecondo?: string | null;
+  menuContorno?: string | null;
+  menuDolce?: string | null;
+  menuBevande?: string | null;
 }
 
 export interface PublicGalleryResponse {
@@ -50,6 +57,13 @@ export interface EventSettingsRow {
   schedule: string | null;
   couple_story: string | null;
   menu: string | null;
+  // Fase 7
+  menu_antipasto: string | null;
+  menu_primo: string | null;
+  menu_secondo: string | null;
+  menu_contorno: string | null;
+  menu_dolce: string | null;
+  menu_bevande: string | null;
 }
 
 // ── Fase 2: RSVP ─────────────────────────────────────────────────────────────

@@ -80,12 +80,12 @@
 
 ---
 
-## 🔜 Fase 7 — Menu strutturato a portate
+## ✅ Fase 7 — Menu strutturato a portate
 
-- [ ] **Schema SQL**: aggiungere colonne strutturate a `public.events` (es. `menu_courses jsonb` o colonne distinte: `menu_antipasto`, `menu_primo`, `menu_secondo`, `menu_contorno`, `menu_dolce`, `menu_bevande`) mantenendo retrocompatibilità con il campo `menu` testo libero
-- [ ] **Dashboard sposi — form menu**: sostituire/affiancare il campo testo `menu` con un template a portate (Antipasto, Primo, Secondo, Contorno, Dolce, Bevande/Vini, Note) con campo testo per ciascuna
-- [ ] **GalleryPage — visualizzazione menu**: mostrare il menu come elenco di portate formattato, con fallback al testo libero se le portate strutturate sono vuote
-- [ ] **Migration SQL** per i nuovi campi
+- [x] **Schema SQL**: aggiunte colonne `menu_antipasto`, `menu_primo`, `menu_secondo`, `menu_contorno`, `menu_dolce`, `menu_bevande` (text) a `public.events` con migration idempotente; campo `menu` mantenuto per retrocompatibilità
+- [x] **Dashboard sposi — form menu**: il campo testo unico `menu` sostituito con un template a portate (Antipasto, Primo piatto, Secondo piatto, Contorno, Dolce, Bevande e vini, Note); ciascuno con campo multiline dedicato
+- [x] **GalleryPage — visualizzazione menu**: `WeddingInfoSection` mostra il menu come elenco di portate formattate per sezione; fallback al testo libero se le portate strutturate sono tutte vuote
+- [x] **Migration SQL** idempotente (`alter table … add column if not exists`) per i nuovi campi
 
 ---
 

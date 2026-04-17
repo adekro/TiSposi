@@ -20,6 +20,13 @@ export interface EventFormState {
   schedule: string;
   coupleStory: string;
   menu: string;
+  // Fase 7
+  menuAntipasto: string;
+  menuPrimo: string;
+  menuSecondo: string;
+  menuContorno: string;
+  menuDolce: string;
+  menuBevande: string;
 }
 
 const defaultState: EventFormState = {
@@ -36,6 +43,12 @@ const defaultState: EventFormState = {
   schedule: "",
   coupleStory: "",
   menu: "",
+  menuAntipasto: "",
+  menuPrimo: "",
+  menuSecondo: "",
+  menuContorno: "",
+  menuDolce: "",
+  menuBevande: "",
 };
 
 export function normalizePublicId(value: string) {
@@ -69,7 +82,7 @@ export function useEventSettings(userId: string, userEmail?: string) {
     void supabase
       .from("events")
       .select(
-        "id, owner_user_id, public_id, title, spouses, storage_provider, google_drive_folder_id, wedding_date, venue_name, venue_address, venue_maps_url, dresscode, schedule, couple_story, menu",
+        "id, owner_user_id, public_id, title, spouses, storage_provider, google_drive_folder_id, wedding_date, venue_name, venue_address, venue_maps_url, dresscode, schedule, couple_story, menu, menu_antipasto, menu_primo, menu_secondo, menu_contorno, menu_dolce, menu_bevande",
       )
       .eq("owner_user_id", userId)
       .maybeSingle<EventSettingsRow>()
@@ -96,6 +109,12 @@ export function useEventSettings(userId: string, userEmail?: string) {
             schedule: data.schedule ?? "",
             coupleStory: data.couple_story ?? "",
             menu: data.menu ?? "",
+            menuAntipasto: data.menu_antipasto ?? "",
+            menuPrimo: data.menu_primo ?? "",
+            menuSecondo: data.menu_secondo ?? "",
+            menuContorno: data.menu_contorno ?? "",
+            menuDolce: data.menu_dolce ?? "",
+            menuBevande: data.menu_bevande ?? "",
           });
         } else {
           const defaultPublicId = buildPublicIdFromEmail(userEmail);
@@ -168,6 +187,12 @@ export function useEventSettings(userId: string, userEmail?: string) {
       schedule: form.schedule.trim() || null,
       couple_story: form.coupleStory.trim() || null,
       menu: form.menu.trim() || null,
+      menu_antipasto: form.menuAntipasto.trim() || null,
+      menu_primo: form.menuPrimo.trim() || null,
+      menu_secondo: form.menuSecondo.trim() || null,
+      menu_contorno: form.menuContorno.trim() || null,
+      menu_dolce: form.menuDolce.trim() || null,
+      menu_bevande: form.menuBevande.trim() || null,
     };
 
     const { error: upsertError } = await supabase

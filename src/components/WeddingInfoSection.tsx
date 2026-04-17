@@ -45,7 +45,18 @@ export default function WeddingInfoSection({ event }: Props) {
   const hasInfo = Boolean(
     event.venueName || event.venueAddress || event.dresscode || event.schedule,
   );
-  const hasMenu = Boolean(event.menu?.trim());
+
+  // Menu strutturato (Fase 7) o fallback testo libero
+  const menuCourses = [
+    { label: "Antipasto", value: event.menuAntipasto },
+    { label: "Primo piatto", value: event.menuPrimo },
+    { label: "Secondo piatto", value: event.menuSecondo },
+    { label: "Contorno", value: event.menuContorno },
+    { label: "Dolce", value: event.menuDolce },
+    { label: "Bevande e vini", value: event.menuBevande },
+  ].filter((c) => c.value?.trim());
+  const hasStructuredMenu = menuCourses.length > 0;
+  const hasMenu = hasStructuredMenu || Boolean(event.menu?.trim());
 
   const tabs: Array<{ label: string; emoji: string }> = [];
   if (hasCoupleStory) tabs.push({ label: "La nostra storia", emoji: "💑" });
@@ -154,8 +165,31 @@ export default function WeddingInfoSection({ event }: Props) {
               </Box>
             )}
 
-            {type === "menu" && event.menu && (
-              <PreformattedText text={event.menu} />
+            {type === "menu" && (
+              <>
+                {hasStructuredMenu ? (
+                  <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                    {menuCourses.map((course) => (
+                      <Box key={course.label}>
+                        <Typography variant="subtitle2" color="primary" gutterBottom>
+                          {course.label}
+                        </Typography>
+                        <PreformattedText text={course.value!} />
+                      </Box>
+                    ))}
+                    {event.menu?.trim() && (
+                      <Box>
+                        <Typography variant="subtitle2" color="primary" gutterBottom>
+                          Note
+                        </Typography>
+                        <PreformattedText text={event.menu} />
+                      </Box>
+                    )}
+                  </Box>
+                ) : (
+                  event.menu && <PreformattedText text={event.menu} />
+                )}
+              </>
             )}
           </TabPanel>
         ))}

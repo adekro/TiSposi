@@ -17,6 +17,13 @@ create table if not exists public.events (
   schedule text,
   couple_story text,
   menu text,
+  -- Fase 7: menu strutturato a portate
+  menu_antipasto text,
+  menu_primo text,
+  menu_secondo text,
+  menu_contorno text,
+  menu_dolce text,
+  menu_bevande text,
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now())
 );
@@ -30,6 +37,14 @@ alter table public.events add column if not exists dresscode text;
 alter table public.events add column if not exists schedule text;
 alter table public.events add column if not exists couple_story text;
 alter table public.events add column if not exists menu text;
+
+-- Migration: Fase 7 - menu strutturato a portate
+alter table public.events add column if not exists menu_antipasto text;
+alter table public.events add column if not exists menu_primo text;
+alter table public.events add column if not exists menu_secondo text;
+alter table public.events add column if not exists menu_contorno text;
+alter table public.events add column if not exists menu_dolce text;
+alter table public.events add column if not exists menu_bevande text;
 
 create table if not exists public.gallery_entries (
   id uuid primary key default gen_random_uuid(),

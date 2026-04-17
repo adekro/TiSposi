@@ -101,6 +101,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         schedule: event.schedule,
         coupleStory: event.couple_story,
         menu: event.menu,
+        menuAntipasto: event.menu_antipasto,
+        menuPrimo: event.menu_primo,
+        menuSecondo: event.menu_secondo,
+        menuContorno: event.menu_contorno,
+        menuDolce: event.menu_dolce,
+        menuBevande: event.menu_bevande,
       },
       items,
     };

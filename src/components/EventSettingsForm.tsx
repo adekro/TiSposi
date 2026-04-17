@@ -227,17 +227,79 @@ export default function EventSettingsForm({
               <Typography fontWeight={600}>🍽️ Menu</Typography>
             </AccordionSummary>
             <AccordionDetails>
-              <TextField
-                label="Menu matrimonio"
-                value={form.menu}
-                onChange={(e) => updateField("menu", e.target.value)}
-                placeholder={`Antipasti\n– Prosciutto e melone\n\nPrimo\n– Risotto ai funghi\n\nSecondo\n– Tagliata di manzo`}
-                fullWidth
-                multiline
-                minRows={6}
-                disabled={disabled}
-                helperText="Testo libero visibile agli ospiti"
-              />
+              <Stack spacing={2}>
+                <TextField
+                  label="Antipasto"
+                  value={form.menuAntipasto}
+                  onChange={(e) => updateField("menuAntipasto", e.target.value)}
+                  placeholder="Prosciutto e melone, bruschette al pomodoro..."
+                  fullWidth
+                  multiline
+                  minRows={2}
+                  disabled={disabled}
+                />
+                <TextField
+                  label="Primo piatto"
+                  value={form.menuPrimo}
+                  onChange={(e) => updateField("menuPrimo", e.target.value)}
+                  placeholder="Risotto ai funghi porcini..."
+                  fullWidth
+                  multiline
+                  minRows={2}
+                  disabled={disabled}
+                />
+                <TextField
+                  label="Secondo piatto"
+                  value={form.menuSecondo}
+                  onChange={(e) => updateField("menuSecondo", e.target.value)}
+                  placeholder="Tagliata di manzo al rosmarino..."
+                  fullWidth
+                  multiline
+                  minRows={2}
+                  disabled={disabled}
+                />
+                <TextField
+                  label="Contorno"
+                  value={form.menuContorno}
+                  onChange={(e) => updateField("menuContorno", e.target.value)}
+                  placeholder="Patate al forno, insalata mista..."
+                  fullWidth
+                  multiline
+                  minRows={2}
+                  disabled={disabled}
+                />
+                <TextField
+                  label="Dolce"
+                  value={form.menuDolce}
+                  onChange={(e) => updateField("menuDolce", e.target.value)}
+                  placeholder="Torta nuziale, cannoli siciliani..."
+                  fullWidth
+                  multiline
+                  minRows={2}
+                  disabled={disabled}
+                />
+                <TextField
+                  label="Bevande e vini"
+                  value={form.menuBevande}
+                  onChange={(e) => updateField("menuBevande", e.target.value)}
+                  placeholder="Prosecco, Barolo, acqua minerale..."
+                  fullWidth
+                  multiline
+                  minRows={2}
+                  disabled={disabled}
+                />
+                <TextField
+                  label="Note aggiuntive"
+                  value={form.menu}
+                  onChange={(e) => updateField("menu", e.target.value)}
+                  placeholder="Menu vegetariano disponibile su richiesta..."
+                  fullWidth
+                  multiline
+                  minRows={2}
+                  disabled={disabled}
+                  helperText="Campo opzionale per note generali o menù alternativo"
+                />
+              </Stack>
             </AccordionDetails>
           </Accordion>
 
