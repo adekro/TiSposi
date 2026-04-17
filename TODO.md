@@ -43,8 +43,8 @@
 
 ---
 
-## 📋 Fase 4 — Platform
+## ✅ Fase 4 — Platform
 
-- [ ] **Statistiche**: visite galleria, foto caricate, RSVP ricevuti
-- [ ] **Export galleria**: download ZIP di tutte le foto
-- [ ] **Gestione Media**: eliminare singolarmente foto caricate e dediche da dashboard sposi 
+- [x] **Statistiche**: visite galleria, foto caricate, dediche, RSVP ricevuti, richieste musicali, invitati
+- [x] **Export galleria**: download ZIP di tutte le foto (`GET /api/gallery-export` con JWT)
+- [x] **Gestione Media**: eliminare singolarmente foto e dediche dalla dashboard sposi (`DELETE /api/delete-entry` con JWT)

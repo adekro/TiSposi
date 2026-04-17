@@ -31,6 +31,8 @@ import ChecklistTab from "../components/ChecklistTab";
 import GuestListTab from "../components/GuestListTab";
 import BudgetTab from "../components/BudgetTab";
 import SuppliersTab from "../components/SuppliersTab";
+import StatisticsTab from "../components/StatisticsTab";
+import MediaTab from "../components/MediaTab";
 
 export default function DashboardPage() {
   const { user, signOut, configError } = useAuth();
@@ -141,6 +143,8 @@ export default function DashboardPage() {
                     : "Fornitori"
                 }
               />
+              <Tab label="Statistiche" />
+              <Tab label="Media" />
             </Tabs>
           </Box>
 
@@ -248,6 +252,8 @@ export default function DashboardPage() {
           {tab === 3 && <GuestListTab hook={guestListHook} />}
           {tab === 4 && <BudgetTab hook={budgetHook} />}
           {tab === 5 && <SuppliersTab hook={suppliersHook} />}
+          {tab === 6 && <StatisticsTab userId={user.id} />}
+          {tab === 7 && <MediaTab userId={user.id} />}
         </Stack>
       </Container>
     </Box>

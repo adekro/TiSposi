@@ -300,3 +300,15 @@ create policy "Owners can manage suppliers"
         and events.owner_user_id = auth.uid()
     )
   );
+
+-- ── Fase 4: Platform ─────────────────────────────────────────────────────────
+
+alter table public.events add column if not exists visit_count integer not null default 0;
+
+create or replace function public.increment_event_visits(p_event_id uuid)
+returns void
+language sql
+security definer
+as $$
+  update public.events set visit_count = visit_count + 1 where id = p_event_id;
+$$;

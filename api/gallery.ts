@@ -30,6 +30,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       storageProvider: event.storage_provider,
     });
 
+    // Incrementa visit_count in modo asincrono (fire-and-forget)
+    void getServiceSupabaseClient().rpc("increment_event_visits", {
+      p_event_id: event.id,
+    });
+
     let items: GalleryItem[] = [];
 
     if (event.storage_provider === "google_drive") {

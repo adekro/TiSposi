@@ -126,3 +126,23 @@ export async function uploadDrivePhoto(
     timestamp: uploaded.data.createdTime,
   };
 }
+
+export async function deleteDriveFile(fileId: string): Promise<void> {
+  const drive = getDriveClient();
+  await drive.files.delete({ fileId });
+}
+
+export async function downloadDrivePhotoBuffer(
+  fileId: string,
+  name: string,
+): Promise<{ name: string; buffer: Buffer }> {
+  const drive = getDriveClient();
+  const response = await drive.files.get(
+    { fileId, alt: "media" },
+    { responseType: "arraybuffer" },
+  );
+  return {
+    name,
+    buffer: Buffer.from(response.data as ArrayBuffer),
+  };
+}
