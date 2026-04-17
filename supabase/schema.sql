@@ -36,6 +36,7 @@ create table if not exists public.gallery_entries (
   event_id uuid not null references public.events (id) on delete cascade,
   type text not null check (type in ('photo', 'dedica')),
   text_content text,
+  author_name text,
   photo_base64 text,
   photo_mime_type text,
   created_at timestamptz not null default timezone('utc', now()),
@@ -48,6 +49,9 @@ create table if not exists public.gallery_entries (
 
 create index if not exists idx_gallery_entries_event_created_at
   on public.gallery_entries (event_id, created_at desc);
+
+-- Migration: add Fase 5 column if table already exists
+alter table public.gallery_entries add column if not exists author_name text;
 
 alter table public.events enable row level security;
 alter table public.gallery_entries enable row level security;

@@ -52,8 +52,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // ── Dedica testuale (JSON) ────────────────────────────────────────
     if (contentType === "application/json") {
       const rawBody = await readRawBody(req);
-      const body = JSON.parse(rawBody.toString("utf8")) as { testo?: unknown };
+      const body = JSON.parse(rawBody.toString("utf8")) as {
+        testo?: unknown;
+        autoreName?: unknown;
+      };
       const testo = typeof body.testo === "string" ? body.testo.trim() : "";
+      const autoreName =
+        typeof body.autoreName === "string"
+          ? body.autoreName.trim().slice(0, 100)
+          : null;
       if (testo.length < 2 || testo.length > 500) {
         return res
           .status(400)
@@ -81,6 +88,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           event_id: event.id,
           type: "dedica",
           text_content: testo,
+          author_name: autoreName ?? null,
         })
         .select("id, created_at")
         .single();

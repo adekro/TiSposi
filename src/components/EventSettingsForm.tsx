@@ -6,23 +6,16 @@ import {
   Button,
   Card,
   CardContent,
-  FormControl,
-  FormControlLabel,
-  FormLabel,
-  Radio,
-  RadioGroup,
+  Link,
   Stack,
   TextField,
   Typography,
 } from "@mui/material";
 import SaveIcon from "@mui/icons-material/Save";
-import LaunchIcon from "@mui/icons-material/Launch";
 import QrCode2Icon from "@mui/icons-material/QrCode2";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { Link as RouterLink } from "react-router-dom";
 import type { EventFormState } from "../hooks/useEventSettings";
 import { normalizePublicId } from "../hooks/useEventSettings";
-import type { StorageProvider } from "../types";
 
 interface Props {
   form: EventFormState;
@@ -101,49 +94,6 @@ export default function EventSettingsForm({
             fullWidth
             disabled={disabled}
           />
-
-          <FormControl>
-            <FormLabel>Provider contenuti</FormLabel>
-            <RadioGroup
-              value={form.storageProvider}
-              onChange={(e) =>
-                updateField(
-                  "storageProvider",
-                  e.target.value as StorageProvider,
-                )
-              }
-            >
-              <FormControlLabel
-                value="supabase_db"
-                control={<Radio />}
-                label="Supabase DB (foto base64 e dediche nel database)"
-              />
-              <FormControlLabel
-                value="google_drive"
-                control={<Radio />}
-                label="Google Drive (media su Drive, configurazione evento su Supabase)"
-              />
-            </RadioGroup>
-          </FormControl>
-
-          {form.storageProvider === "google_drive" ? (
-            <TextField
-              label="Cartella Google Drive"
-              value={form.googleDriveFolderId}
-              onChange={(e) =>
-                updateField("googleDriveFolderId", e.target.value)
-              }
-              placeholder="ID cartella"
-              fullWidth
-              disabled={disabled}
-            />
-          ) : (
-            <Alert severity="warning">
-              In questa modalita le foto vengono memorizzate come base64 nel
-              database Supabase. Imposta limiti payload stretti sul piano di
-              hosting.
-            </Alert>
-          )}
 
           {/* ── Fase 1: Pagina pubblica ── */}
           <Accordion
@@ -301,17 +251,6 @@ export default function EventSettingsForm({
               {saving ? "Salvataggio..." : "Salva configurazione"}
             </Button>
             <Button
-              component={RouterLink}
-              to={normalizedPublicId ? `/${normalizedPublicId}/gallery` : "#"}
-              target="_blank"
-              rel="noreferrer"
-              variant="outlined"
-              startIcon={<LaunchIcon />}
-              disabled={!publicIdValid}
-            >
-              Apri gallery pubblica
-            </Button>
-            <Button
               variant="outlined"
               startIcon={<QrCode2Icon />}
               onClick={() => void onDownloadQr()}
@@ -330,10 +269,20 @@ export default function EventSettingsForm({
           </Stack>
 
           {publicUrl ? (
-            <Alert severity="info">URL pubblico: {publicUrl}</Alert>
+            <Alert severity="info">
+              URL galleria:{" "}
+              <Link href={publicUrl} target="_blank" rel="noreferrer">
+                {publicUrl}
+              </Link>
+            </Alert>
           ) : null}
           {rsvpUrl ? (
-            <Alert severity="info">URL RSVP: {rsvpUrl}</Alert>
+            <Alert severity="info">
+              URL RSVP:{" "}
+              <Link href={rsvpUrl} target="_blank" rel="noreferrer">
+                {rsvpUrl}
+              </Link>
+            </Alert>
           ) : null}
         </Stack>
       </CardContent>

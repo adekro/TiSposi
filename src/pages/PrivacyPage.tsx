@@ -59,7 +59,7 @@ export default function PrivacyPage() {
           Privacy Policy
         </Typography>
         <Typography color="text.secondary" sx={{ mb: 4 }}>
-          Ultimo aggiornamento: 15 aprile 2026
+          Ultimo aggiornamento: 17 aprile 2026
         </Typography>
 
         <Stack spacing={4} divider={<Divider />}>
@@ -86,13 +86,32 @@ export default function PrivacyPage() {
               </Li>
               <Li>
                 <strong>Dati dell'evento</strong>: nome dell'evento, nomi degli
-                sposi, parametro pubblico. Finalità: configurazione e
-                visualizzazione della galleria pubblica.
+                sposi, parametro pubblico, data matrimonio, informazioni sulla
+                location, dress code, programma, menu e storia della coppia.
+                Finalità: configurazione e visualizzazione della pagina pubblica
+                dell'evento.
               </Li>
               <Li>
                 <strong>Contenuti caricati dagli utenti</strong>: fotografie e
-                messaggi (dediche) condivisi nell'ambito dell'evento. Le
-                fotografie possono contenere immagini di persone fisiche.
+                messaggi (dediche, con nome opzionale dell'autore) condivisi
+                nell'ambito dell'evento. Le fotografie possono contenere
+                immagini di persone fisiche.
+              </Li>
+              <Li>
+                <strong>Dati RSVP degli ospiti</strong>: nome, stato di
+                presenza, numero di accompagnatori, scelta menu, intolleranze
+                alimentari e note libere trasmessi dagli ospiti tramite il form
+                RSVP pubblico.
+              </Li>
+              <Li>
+                <strong>Lista invitati</strong>: nome, email, telefono, tavolo
+                assegnato e stato RSVP inseriti dagli sposi nella dashboard
+                riservata.
+              </Li>
+              <Li>
+                <strong>Dati fornitori</strong>: nome, categoria, contatti,
+                importo contrattuale e stato del contratto inseriti dagli sposi
+                a fini organizzativi.
               </Li>
             </Box>
             <Typography sx={{ mb: 1 }}>
@@ -100,6 +119,10 @@ export default function PrivacyPage() {
             </Typography>
             <Box component="ul" sx={{ pl: 3, mt: 0 }}>
               <Li>Gestione dell'account e dell'area riservata degli sposi.</Li>
+              <Li>
+                Raccolta delle conferme di presenza (RSVP) degli ospiti e
+                gestione organizzativa dell'evento.
+              </Li>
               <Li>
                 Condivisione di contenuti (foto, dediche) tra gli invitati
                 dell'evento.
@@ -145,10 +168,11 @@ export default function PrivacyPage() {
             <Typography>
               I dati personali sono conservati per tutta la durata del rapporto
               e per un periodo massimo di <strong>12 mesi</strong> dalla
-              cancellazione dell'account. I contenuti fotografici sono
-              conservati per la durata dell'evento configurata dagli sposi, e
-              comunque non oltre 12 mesi dall'ultimo accesso dell'account
-              titolare.
+              cancellazione dell'account. I dati RSVP degli ospiti, la lista
+              invitati e i dati fornitori sono conservati per la stessa durata
+              dell'account titolare. I contenuti fotografici sono conservati per
+              la durata dell'evento configurata dagli sposi, e comunque non
+              oltre 12 mesi dall'ultimo accesso dell'account titolare.
             </Typography>
           </Section>
 
@@ -176,6 +200,8 @@ export default function PrivacyPage() {
               <Li>Ottenere la limitazione del trattamento (art. 18).</Li>
               <Li>
                 Ricevere i dati in formato strutturato — portabilità (art. 20).
+                La piattaforma mette a disposizione la funzione di export CSV
+                degli RSVP e il download ZIP della galleria (foto e dediche).
               </Li>
               <Li>Opporti al trattamento (art. 21).</Li>
               <Li>

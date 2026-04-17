@@ -52,6 +52,7 @@ function buildPublicIdFromEmail(email?: string) {
 
 export function useEventSettings(userId: string, userEmail?: string) {
   const [form, setForm] = useState<EventFormState>(defaultState);
+  const [eventId, setEventId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -80,6 +81,7 @@ export function useEventSettings(userId: string, userEmail?: string) {
         }
 
         if (data) {
+          setEventId(data.id);
           setForm({
             title: data.title,
             spouses: data.spouses,
@@ -184,7 +186,10 @@ export function useEventSettings(userId: string, userEmail?: string) {
 
   const handleDownloadQr = async () => {
     if (!publicUrl) return;
-    const dataUrl = await QRCode.toDataURL(publicUrl, {
+    const qrUrl = eventId
+      ? `${window.location.origin}/e/${eventId}`
+      : publicUrl;
+    const dataUrl = await QRCode.toDataURL(qrUrl, {
       width: 512,
       margin: 2,
     });
@@ -196,7 +201,10 @@ export function useEventSettings(userId: string, userEmail?: string) {
 
   const handleDownloadRsvpQr = async () => {
     if (!rsvpUrl) return;
-    const dataUrl = await QRCode.toDataURL(rsvpUrl, {
+    const qrRsvpUrl = eventId
+      ? `${window.location.origin}/e/${eventId}/rsvp`
+      : rsvpUrl;
+    const dataUrl = await QRCode.toDataURL(qrRsvpUrl, {
       width: 512,
       margin: 2,
     });
@@ -213,6 +221,7 @@ export function useEventSettings(userId: string, userEmail?: string) {
     saving,
     error,
     message,
+    eventId,
     normalizedPublicId,
     publicUrl,
     rsvpUrl,

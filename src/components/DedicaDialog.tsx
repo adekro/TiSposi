@@ -31,6 +31,7 @@ export default function DedicaDialog({
   onError,
 }: DedicaDialogProps) {
   const [testo, setTesto] = useState("");
+  const [nome, setNome] = useState("");
   const [loading, setLoading] = useState(false);
   const [touched, setTouched] = useState(false);
 
@@ -54,12 +55,16 @@ export default function DedicaDialog({
 
     setLoading(true);
     try {
+      const nomeTrimmed = nome.trim();
       const res = await fetch(
         `/api/upload?publicId=${encodeURIComponent(publicId)}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ testo: sanitized }),
+          body: JSON.stringify({
+            testo: sanitized,
+            ...(nomeTrimmed ? { autoreName: nomeTrimmed } : {}),
+          }),
         },
       );
       if (!res.ok) {
@@ -67,6 +72,7 @@ export default function DedicaDialog({
         throw new Error(data.error ?? "Errore nel server");
       }
       setTesto("");
+      setNome("");
       setTouched(false);
       onSubmitted();
       onClose();
@@ -84,6 +90,7 @@ export default function DedicaDialog({
   const handleClose = () => {
     if (loading) return;
     setTesto("");
+    setNome("");
     setTouched(false);
     onClose();
   };
@@ -125,6 +132,15 @@ export default function DedicaDialog({
           }
           inputProps={{ maxLength: MAX_LEN + 10 }}
           disabled={loading}
+        />
+        <TextField
+          fullWidth
+          placeholder="Il tuo nome (opzionale)"
+          value={nome}
+          onChange={(e) => setNome(e.target.value)}
+          inputProps={{ maxLength: 100 }}
+          disabled={loading}
+          sx={{ mt: 2 }}
         />
       </DialogContent>
       <DialogActions sx={{ px: 2, pb: 2 }}>

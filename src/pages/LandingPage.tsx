@@ -9,8 +9,13 @@ import {
   Typography,
 } from "@mui/material";
 import CelebrationIcon from "@mui/icons-material/Celebration";
-import DashboardCustomizeIcon from "@mui/icons-material/DashboardCustomize";
 import PhotoLibraryIcon from "@mui/icons-material/PhotoLibrary";
+import HowToRegIcon from "@mui/icons-material/HowToReg";
+import PeopleIcon from "@mui/icons-material/People";
+import ChecklistIcon from "@mui/icons-material/Checklist";
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
+import BusinessCenterIcon from "@mui/icons-material/BusinessCenter";
+import BarChartIcon from "@mui/icons-material/BarChart";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
@@ -57,16 +62,17 @@ export default function LandingPage() {
                 lineHeight: 0.95,
               }}
             >
-              Crea la tua landing, gestisci l'evento e condividi una gallery
-              pubblica.
+              Tutto quello che serve per il vostro matrimonio, in un unico
+              posto.
             </Typography>
             <Typography
               variant="h6"
               color="text.secondary"
               sx={{ mt: 3, maxWidth: 720, mx: "auto" }}
             >
-              Iscrizione, area riservata per gli sposi e route pubblica dedicata
-              per gli invitati: tutto nello stesso flusso.
+              RSVP online, galleria pubblica, lista invitati, checklist,
+              budget, fornitori e statistiche — tutto integrato in
+              un'unica piattaforma riservata agli sposi.
             </Typography>
             <Stack
               direction={{ xs: "column", sm: "row" }}
@@ -96,7 +102,7 @@ export default function LandingPage() {
           >
             <CardContent sx={{ p: { xs: 3, md: 4 } }}>
               <Typography variant="h5" sx={{ mb: 1 }}>
-                Hai gia il link evento?
+                Hai già il link evento?
               </Typography>
               <Typography color="text.secondary" sx={{ mb: 3 }}>
                 Inserisci il parametro pubblico scelto dagli sposi e apri subito
@@ -119,19 +125,55 @@ export default function LandingPage() {
 
           <Stack direction={{ xs: "column", md: "row" }} spacing={3}>
             <FeatureCard
-              icon={<CelebrationIcon color="primary" fontSize="large" />}
-              title="Landing + signup"
-              body="La home diventa la pagina pubblica del prodotto, con invito all'iscrizione e accesso centralizzato."
+              icon={<PhotoLibraryIcon color="primary" fontSize="large" />}
+              title="Gallery pubblica"
+              body="Gli invitati caricano foto, scrivono dediche e sfogliano la galleria dell'evento dal proprio smartphone."
             />
             <FeatureCard
-              icon={<DashboardCustomizeIcon color="primary" fontSize="large" />}
-              title="Area riservata"
-              body="Gli sposi salvano titolo evento, nomi, parametro pubblico e provider dei contenuti da un'unica dashboard."
+              icon={<HowToRegIcon color="primary" fontSize="large" />}
+              title="RSVP online"
+              body="Raccoglie le conferme di presenza con scelta menu, intolleranze e note. Export CSV immediato."
+            />
+            <FeatureCard
+              icon={<CelebrationIcon color="primary" fontSize="large" />}
+              title="Pagina evento"
+              body="Countdown, storia della coppia, informazioni sulla location, dress code e programma della giornata."
+            />
+          </Stack>
+
+          <Stack direction={{ xs: "column", md: "row" }} spacing={3}>
+            <FeatureCard
+              icon={<PeopleIcon color="primary" fontSize="large" />}
+              title="Lista invitati"
+              body="Gestisci nome, contatti, tavolo assegnato e stato RSVP di ogni invitato direttamente dalla dashboard."
+            />
+            <FeatureCard
+              icon={<ChecklistIcon color="primary" fontSize="large" />}
+              title="Checklist"
+              body="Checklist pre-compilata con scadenze dalla firma del contratto al giorno del matrimonio."
+            />
+            <FeatureCard
+              icon={<AccountBalanceWalletIcon color="primary" fontSize="large" />}
+              title="Budget tracker"
+              body="Tieni traccia di ogni voce di spesa con importo previsto e reale, suddiviso per categoria."
+            />
+          </Stack>
+
+          <Stack direction={{ xs: "column", md: "row" }} spacing={3}>
+            <FeatureCard
+              icon={<BusinessCenterIcon color="primary" fontSize="large" />}
+              title="Gestione fornitori"
+              body="Centralizza nome, categoria, contatti, importo e stato contratto di ogni fornitore."
+            />
+            <FeatureCard
+              icon={<BarChartIcon color="primary" fontSize="large" />}
+              title="Statistiche"
+              body="Visite galleria, foto caricate, dediche, RSVP ricevuti e richieste musicali in tempo reale."
             />
             <FeatureCard
               icon={<PhotoLibraryIcon color="primary" fontSize="large" />}
-              title="Gallery pubblica"
-              body="Gli invitati usano una route dedicata dell'evento per vedere foto, caricarne di nuove e scrivere dediche."
+              title="Gestione media"
+              body="Elimina singolarmente foto e dediche dalla dashboard. Scarica tutte le foto in ZIP con dediche incluse."
             />
           </Stack>
 

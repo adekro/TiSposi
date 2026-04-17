@@ -59,7 +59,7 @@ export default function CookiePage() {
           Cookie Policy
         </Typography>
         <Typography color="text.secondary" sx={{ mb: 4 }}>
-          Ultimo aggiornamento: 15 aprile 2026
+          Ultimo aggiornamento: 17 aprile 2026
         </Typography>
 
         <Stack spacing={4} divider={<Divider />}>

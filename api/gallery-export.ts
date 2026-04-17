@@ -114,11 +114,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
+  // ── Dediche (sempre da Supabase, indipendentemente dal provider) ──────────
+  const { data: dediche } = await supabase
+    .from("gallery_entries")
+    .select("id, text_content, author_name, created_at")
+    .eq("event_id", event.id)
+    .eq("type", "dedica")
+    .order("created_at", { ascending: true });
+
+  if (dediche && dediche.length > 0) {
+    const lines: string[] = ["# Dediche\n"];
+    dediche.forEach((d, i) => {
+      const data = new Date(d.created_at as string).toLocaleDateString(
+        "it-IT",
+        { day: "2-digit", month: "long", year: "numeric" },
+      );
+      const autore = (d.author_name as string | null)?.trim() || "Anonimo";
+      lines.push(`## ${i + 1}. ${data}`);
+      lines.push(`**Autore**: ${autore}\n`);
+      lines.push(`> ${(d.text_content as string).replace(/\n/g, "\n> ")}\n`);
+      lines.push("---\n");
+    });
+    zip.file("dediche.md", lines.join("\n"));
+  }
+
   const zipBuffer = await zip.generateAsync({
     type: "nodebuffer",
     compression: "STORE",
   });
-
   res.setHeader("Content-Type", "application/zip");
   res.setHeader(
     "Content-Disposition",

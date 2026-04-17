@@ -59,19 +59,56 @@ export default function TerminiPage() {
           Termini e Condizioni
         </Typography>
         <Typography color="text.secondary" sx={{ mb: 4 }}>
-          Ultimo aggiornamento: 15 aprile 2026
+          Ultimo aggiornamento: 17 aprile 2026
         </Typography>
 
         <Stack spacing={4} divider={<Divider />}>
           <Section title="1. Descrizione del servizio">
-            <Typography>
-              TiSposi è una piattaforma web che consente agli sposi di creare
-              un'area riservata per gestire il proprio evento matrimoniale,
-              configurare una galleria pubblica e permettere agli invitati di
-              caricare foto e scrivere dediche. Il servizio è fornito da{" "}
+            <Typography sx={{ mb: 1 }}>
+              TiSposi è una piattaforma web per la gestione completa di eventi
+              matrimoniali. Il servizio è fornito da{" "}
               <strong>Emanuele Croce</strong>, C.F. CRCMNL88R04M109R, Via
               Fratelli Rosselli 84, 27058 Voghera (PV).
             </Typography>
+            <Typography sx={{ mb: 1 }}>Le funzionalità comprendono:</Typography>
+            <Box component="ul" sx={{ pl: 3, mt: 0 }}>
+              <Li>
+                <strong>Galleria pubblica</strong>: caricamento foto e invio
+                dediche da parte degli ospiti, con visualizzazione pubblica
+                tramite QR Code o link condiviso.
+              </Li>
+              <Li>
+                <strong>RSVP online</strong>: raccolta conferme di presenza con
+                scelta menu, intolleranze alimentari e note. Export CSV
+                disponibile.
+              </Li>
+              <Li>
+                <strong>Dashboard sposi</strong>: area riservata per la
+                configurazione dell'evento (data, location, dress code, menu,
+                storia della coppia, programma).
+              </Li>
+              <Li>
+                <strong>Lista invitati</strong>: gestione dei nominativi,
+                contatti, tavoli assegnati e stato RSVP.
+              </Li>
+              <Li>
+                <strong>Checklist matrimonio</strong>: lista attività
+                pre-compilata con scadenze progressive fino al giorno del
+                matrimonio.
+              </Li>
+              <Li>
+                <strong>Budget tracker</strong>: monitoraggio delle voci di
+                spesa per categoria con importo previsto e reale.
+              </Li>
+              <Li>
+                <strong>Gestione fornitori</strong>: anagrafica fornitori con
+                stato contratto e pagamento.
+              </Li>
+              <Li>
+                <strong>Statistiche e gestione media</strong>: visualizzazione
+                analytics, eliminazione contenuti e download ZIP della galleria.
+              </Li>
+            </Box>
           </Section>
 
           <Section title="2. Accettazione delle condizioni">
@@ -111,9 +148,10 @@ export default function TerminiPage() {
 
           <Section title="4. Contenuti caricati dagli utenti">
             <Typography sx={{ mb: 1 }}>
-              Gli utenti possono caricare fotografie e testi (dediche)
-              nell'ambito della galleria dell'evento. In tal senso l'utente
-              dichiara e garantisce che:
+              Gli utenti possono caricare fotografie e testi (dediche, con nome
+              opzionale) nell'ambito della galleria dell'evento. Gli ospiti
+              possono inoltre inviare i propri dati di presenza tramite il form
+              RSVP pubblico. In tal senso l'utente dichiara e garantisce che:
             </Typography>
             <Box component="ul" sx={{ pl: 3, mt: 0, mb: 2 }}>
               <Li>
