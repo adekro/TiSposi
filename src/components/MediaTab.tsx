@@ -19,9 +19,11 @@ import {
   Tabs,
   Typography,
 } from "@mui/material";
+import Link from "@mui/material/Link";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import type { GalleryItem, MusicRequest } from "../types";
 import { useDashboardGallery } from "../hooks/useDashboardGallery";
 
@@ -196,33 +198,52 @@ function MusicCard({ item, onApprove, onDelete, isApproving, isDeleting }: Music
           )}
         </Box>
       </CardContent>
-      <CardActions sx={{ justifyContent: "flex-end", gap: 0.5, px: 1, py: 0.5 }}>
-        {!item.approved && (
+      <CardActions sx={{ justifyContent: "space-between", gap: 0.5, px: 1.5, py: 0.5 }}>
+        <Link
+          href={`https://open.spotify.com/search/${encodeURIComponent([item.song, item.artist].filter(Boolean).join(" "))}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          underline="none"
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 0.5,
+            fontSize: "0.75rem",
+            fontWeight: 600,
+            color: "#1DB954",
+          }}
+        >
+          Spotify
+          <OpenInNewIcon sx={{ fontSize: 13 }} />
+        </Link>
+        <Box sx={{ display: "flex", gap: 0.5 }}>
+          {!item.approved && (
+            <Button
+              size="small"
+              color="success"
+              startIcon={
+                isApproving ? (
+                  <CircularProgress size={14} color="inherit" />
+                ) : (
+                  <CheckCircleIcon fontSize="small" />
+                )
+              }
+              onClick={() => onApprove(item)}
+              disabled={isApproving || isDeleting}
+            >
+              Aggiungi alla playlist
+            </Button>
+          )}
           <Button
             size="small"
-            color="success"
-            startIcon={
-              isApproving ? (
-                <CircularProgress size={14} color="inherit" />
-              ) : (
-                <CheckCircleIcon fontSize="small" />
-              )
-            }
-            onClick={() => onApprove(item)}
+            color="error"
+            startIcon={<DeleteIcon fontSize="small" />}
+            onClick={() => onDelete(item)}
             disabled={isApproving || isDeleting}
           >
-            Aggiungi alla playlist
+            Elimina
           </Button>
-        )}
-        <Button
-          size="small"
-          color="error"
-          startIcon={<DeleteIcon fontSize="small" />}
-          onClick={() => onDelete(item)}
-          disabled={isApproving || isDeleting}
-        >
-          Elimina
-        </Button>
+        </Box>
       </CardActions>
     </Card>
   );
