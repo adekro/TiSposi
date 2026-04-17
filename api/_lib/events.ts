@@ -24,6 +24,15 @@ export interface EventRecord {
   menu_contorno: string | null;
   menu_dolce: string | null;
   menu_bevande: string | null;
+  // Fase 8
+  ceremony_venue_name: string | null;
+  ceremony_venue_address: string | null;
+  ceremony_venue_maps_url: string | null;
+  ceremony_time: string | null;
+  reception_venue_name: string | null;
+  reception_venue_address: string | null;
+  reception_venue_maps_url: string | null;
+  reception_time: string | null;
 }
 
 export async function getEventByPublicId(publicId: string) {
@@ -34,7 +43,7 @@ export async function getEventByPublicId(publicId: string) {
   const { data, error } = await supabase
     .from("events")
     .select(
-      "id, public_id, title, spouses, storage_provider, google_drive_folder_id, wedding_date, venue_name, venue_address, venue_maps_url, dresscode, schedule, couple_story, menu, menu_antipasto, menu_primo, menu_secondo, menu_contorno, menu_dolce, menu_bevande",
+      "id, public_id, title, spouses, storage_provider, google_drive_folder_id, wedding_date, venue_name, venue_address, venue_maps_url, dresscode, schedule, couple_story, menu, menu_antipasto, menu_primo, menu_secondo, menu_contorno, menu_dolce, menu_bevande, ceremony_venue_name, ceremony_venue_address, ceremony_venue_maps_url, ceremony_time, reception_venue_name, reception_venue_address, reception_venue_maps_url, reception_time",
     )
     .eq("public_id", normalized)
     .maybeSingle<EventRecord>();

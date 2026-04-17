@@ -6,6 +6,7 @@ import {
   Button,
   Card,
   CardContent,
+  Divider,
   Link,
   Stack,
   TextField,
@@ -166,30 +167,98 @@ export default function EventSettingsForm({
             </AccordionSummary>
             <AccordionDetails>
               <Stack spacing={2}>
+                <Typography variant="subtitle2" color="primary">
+                  🕍 Cerimonia
+                </Typography>
                 <TextField
-                  label="Nome venue / location"
-                  value={form.venueName}
-                  onChange={(e) => updateField("venueName", e.target.value)}
+                  label="Nome chiesa / luogo cerimonia"
+                  value={form.ceremonyVenueName}
+                  onChange={(e) =>
+                    updateField("ceremonyVenueName", e.target.value)
+                  }
+                  placeholder="Basilica di Santa Maria"
+                  fullWidth
+                  disabled={disabled}
+                />
+                <TextField
+                  label="Indirizzo cerimonia"
+                  value={form.ceremonyVenueAddress}
+                  onChange={(e) =>
+                    updateField("ceremonyVenueAddress", e.target.value)
+                  }
+                  placeholder="Piazza Duomo 1, Milano"
+                  fullWidth
+                  disabled={disabled}
+                />
+                <TextField
+                  label="Link Google Maps — cerimonia"
+                  value={form.ceremonyVenueMapsUrl}
+                  onChange={(e) =>
+                    updateField("ceremonyVenueMapsUrl", e.target.value)
+                  }
+                  placeholder="https://maps.google.com/..."
+                  fullWidth
+                  disabled={disabled}
+                />
+                <TextField
+                  label="Orario cerimonia"
+                  value={form.ceremonyTime}
+                  onChange={(e) =>
+                    updateField("ceremonyTime", e.target.value)
+                  }
+                  placeholder="ore 10:30"
+                  fullWidth
+                  disabled={disabled}
+                />
+
+                <Divider sx={{ my: 1 }} />
+
+                <Typography variant="subtitle2" color="primary">
+                  🎉 Ricevimento
+                </Typography>
+                <TextField
+                  label="Nome venue / location ricevimento"
+                  value={form.receptionVenueName}
+                  onChange={(e) =>
+                    updateField("receptionVenueName", e.target.value)
+                  }
                   placeholder="Villa Rossi"
                   fullWidth
                   disabled={disabled}
                 />
                 <TextField
-                  label="Indirizzo"
-                  value={form.venueAddress}
-                  onChange={(e) => updateField("venueAddress", e.target.value)}
+                  label="Indirizzo ricevimento"
+                  value={form.receptionVenueAddress}
+                  onChange={(e) =>
+                    updateField("receptionVenueAddress", e.target.value)
+                  }
                   placeholder="Via Roma 1, Milano"
                   fullWidth
                   disabled={disabled}
                 />
                 <TextField
-                  label="Link Google Maps"
-                  value={form.venueMapsUrl}
-                  onChange={(e) => updateField("venueMapsUrl", e.target.value)}
+                  label="Link Google Maps — ricevimento"
+                  value={form.receptionVenueMapsUrl}
+                  onChange={(e) =>
+                    updateField("receptionVenueMapsUrl", e.target.value)
+                  }
                   placeholder="https://maps.google.com/..."
                   fullWidth
                   disabled={disabled}
                 />
+                <TextField
+                  label="Orario ricevimento"
+                  value={form.receptionTime}
+                  onChange={(e) =>
+                    updateField("receptionTime", e.target.value)
+                  }
+                  placeholder="ore 13:00"
+                  fullWidth
+                  disabled={disabled}
+                />
+
+                <Divider sx={{ my: 1 }} />
+
                 <TextField
                   label="Dress code"
                   value={form.dresscode}

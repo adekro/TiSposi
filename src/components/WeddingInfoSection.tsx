@@ -42,9 +42,20 @@ export default function WeddingInfoSection({ event }: Props) {
   const [tab, setTab] = useState(0);
 
   const hasCoupleStory = Boolean(event.coupleStory?.trim());
-  const hasInfo = Boolean(
+
+  const hasCeremony = Boolean(
+    event.ceremonyVenueName || event.ceremonyVenueAddress || event.ceremonyTime,
+  );
+  const hasReception = Boolean(
+    event.receptionVenueName ||
+      event.receptionVenueAddress ||
+      event.receptionTime,
+  );
+  const hasLegacyVenue = Boolean(
     event.venueName || event.venueAddress || event.dresscode || event.schedule,
   );
+  const hasInfo =
+    hasCeremony || hasReception || hasLegacyVenue;
 
   // Menu strutturato (Fase 7) o fallback testo libero
   const menuCourses = [
@@ -103,14 +114,89 @@ export default function WeddingInfoSection({ event }: Props) {
             )}
 
             {type === "info" && (
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-                {event.venueName && (
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+                {/* Blocco Cerimonia */}
+                {hasCeremony && (
                   <Box>
-                    <Typography
-                      variant="subtitle2"
-                      color="primary"
-                      gutterBottom
-                    >
+                    <Typography variant="subtitle2" color="primary" gutterBottom>
+                      🕍 Cerimonia
+                    </Typography>
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}>
+                      {event.ceremonyVenueName && (
+                        <Typography variant="body2">
+                          {event.ceremonyVenueName}
+                        </Typography>
+                      )}
+                      {event.ceremonyVenueAddress && (
+                        <Typography variant="body2" color="text.secondary">
+                          {event.ceremonyVenueAddress}
+                        </Typography>
+                      )}
+                      {event.ceremonyTime && (
+                        <Typography variant="body2" color="text.secondary">
+                          ⏰ {event.ceremonyTime}
+                        </Typography>
+                      )}
+                      {event.ceremonyVenueMapsUrl && (
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          startIcon={<LocationOnIcon />}
+                          href={event.ceremonyVenueMapsUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          sx={{ mt: 0.5, alignSelf: "flex-start" }}
+                        >
+                          Apri in Maps
+                        </Button>
+                      )}
+                    </Box>
+                  </Box>
+                )}
+
+                {/* Blocco Ricevimento */}
+                {hasReception && (
+                  <Box>
+                    <Typography variant="subtitle2" color="primary" gutterBottom>
+                      🎉 Ricevimento
+                    </Typography>
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}>
+                      {event.receptionVenueName && (
+                        <Typography variant="body2">
+                          {event.receptionVenueName}
+                        </Typography>
+                      )}
+                      {event.receptionVenueAddress && (
+                        <Typography variant="body2" color="text.secondary">
+                          {event.receptionVenueAddress}
+                        </Typography>
+                      )}
+                      {event.receptionTime && (
+                        <Typography variant="body2" color="text.secondary">
+                          ⏰ {event.receptionTime}
+                        </Typography>
+                      )}
+                      {event.receptionVenueMapsUrl && (
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          startIcon={<LocationOnIcon />}
+                          href={event.receptionVenueMapsUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          sx={{ mt: 0.5, alignSelf: "flex-start" }}
+                        >
+                          Apri in Maps
+                        </Button>
+                      )}
+                    </Box>
+                  </Box>
+                )}
+
+                {/* Fallback legacy: solo venue_name senza i nuovi campi */}
+                {!hasCeremony && !hasReception && event.venueName && (
+                  <Box>
+                    <Typography variant="subtitle2" color="primary" gutterBottom>
                       Location
                     </Typography>
                     <Typography variant="body2">{event.venueName}</Typography>
@@ -137,11 +223,7 @@ export default function WeddingInfoSection({ event }: Props) {
 
                 {event.dresscode && (
                   <Box>
-                    <Typography
-                      variant="subtitle2"
-                      color="primary"
-                      gutterBottom
-                    >
+                    <Typography variant="subtitle2" color="primary" gutterBottom>
                       Dress code
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
@@ -152,11 +234,7 @@ export default function WeddingInfoSection({ event }: Props) {
 
                 {event.schedule && (
                   <Box>
-                    <Typography
-                      variant="subtitle2"
-                      color="primary"
-                      gutterBottom
-                    >
+                    <Typography variant="subtitle2" color="primary" gutterBottom>
                       Programma
                     </Typography>
                     <PreformattedText text={event.schedule} />

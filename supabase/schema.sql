@@ -24,6 +24,15 @@ create table if not exists public.events (
   menu_contorno text,
   menu_dolce text,
   menu_bevande text,
+  -- Fase 8: info logistiche multi-luogo
+  ceremony_venue_name text,
+  ceremony_venue_address text,
+  ceremony_venue_maps_url text,
+  ceremony_time text,
+  reception_venue_name text,
+  reception_venue_address text,
+  reception_venue_maps_url text,
+  reception_time text,
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now())
 );
@@ -45,6 +54,16 @@ alter table public.events add column if not exists menu_secondo text;
 alter table public.events add column if not exists menu_contorno text;
 alter table public.events add column if not exists menu_dolce text;
 alter table public.events add column if not exists menu_bevande text;
+
+-- Migration: Fase 8 - info logistiche multi-luogo
+alter table public.events add column if not exists ceremony_venue_name text;
+alter table public.events add column if not exists ceremony_venue_address text;
+alter table public.events add column if not exists ceremony_venue_maps_url text;
+alter table public.events add column if not exists ceremony_time text;
+alter table public.events add column if not exists reception_venue_name text;
+alter table public.events add column if not exists reception_venue_address text;
+alter table public.events add column if not exists reception_venue_maps_url text;
+alter table public.events add column if not exists reception_time text;
 
 create table if not exists public.gallery_entries (
   id uuid primary key default gen_random_uuid(),

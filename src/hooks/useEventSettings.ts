@@ -27,6 +27,15 @@ export interface EventFormState {
   menuContorno: string;
   menuDolce: string;
   menuBevande: string;
+  // Fase 8
+  ceremonyVenueName: string;
+  ceremonyVenueAddress: string;
+  ceremonyVenueMapsUrl: string;
+  ceremonyTime: string;
+  receptionVenueName: string;
+  receptionVenueAddress: string;
+  receptionVenueMapsUrl: string;
+  receptionTime: string;
 }
 
 const defaultState: EventFormState = {
@@ -49,6 +58,14 @@ const defaultState: EventFormState = {
   menuContorno: "",
   menuDolce: "",
   menuBevande: "",
+  ceremonyVenueName: "",
+  ceremonyVenueAddress: "",
+  ceremonyVenueMapsUrl: "",
+  ceremonyTime: "",
+  receptionVenueName: "",
+  receptionVenueAddress: "",
+  receptionVenueMapsUrl: "",
+  receptionTime: "",
 };
 
 export function normalizePublicId(value: string) {
@@ -82,7 +99,7 @@ export function useEventSettings(userId: string, userEmail?: string) {
     void supabase
       .from("events")
       .select(
-        "id, owner_user_id, public_id, title, spouses, storage_provider, google_drive_folder_id, wedding_date, venue_name, venue_address, venue_maps_url, dresscode, schedule, couple_story, menu, menu_antipasto, menu_primo, menu_secondo, menu_contorno, menu_dolce, menu_bevande",
+        "id, owner_user_id, public_id, title, spouses, storage_provider, google_drive_folder_id, wedding_date, venue_name, venue_address, venue_maps_url, dresscode, schedule, couple_story, menu, menu_antipasto, menu_primo, menu_secondo, menu_contorno, menu_dolce, menu_bevande, ceremony_venue_name, ceremony_venue_address, ceremony_venue_maps_url, ceremony_time, reception_venue_name, reception_venue_address, reception_venue_maps_url, reception_time",
       )
       .eq("owner_user_id", userId)
       .maybeSingle<EventSettingsRow>()
@@ -115,6 +132,14 @@ export function useEventSettings(userId: string, userEmail?: string) {
             menuContorno: data.menu_contorno ?? "",
             menuDolce: data.menu_dolce ?? "",
             menuBevande: data.menu_bevande ?? "",
+            ceremonyVenueName: data.ceremony_venue_name ?? "",
+            ceremonyVenueAddress: data.ceremony_venue_address ?? "",
+            ceremonyVenueMapsUrl: data.ceremony_venue_maps_url ?? "",
+            ceremonyTime: data.ceremony_time ?? "",
+            receptionVenueName: data.reception_venue_name ?? "",
+            receptionVenueAddress: data.reception_venue_address ?? "",
+            receptionVenueMapsUrl: data.reception_venue_maps_url ?? "",
+            receptionTime: data.reception_time ?? "",
           });
         } else {
           const defaultPublicId = buildPublicIdFromEmail(userEmail);
@@ -193,6 +218,14 @@ export function useEventSettings(userId: string, userEmail?: string) {
       menu_contorno: form.menuContorno.trim() || null,
       menu_dolce: form.menuDolce.trim() || null,
       menu_bevande: form.menuBevande.trim() || null,
+      ceremony_venue_name: form.ceremonyVenueName.trim() || null,
+      ceremony_venue_address: form.ceremonyVenueAddress.trim() || null,
+      ceremony_venue_maps_url: form.ceremonyVenueMapsUrl.trim() || null,
+      ceremony_time: form.ceremonyTime.trim() || null,
+      reception_venue_name: form.receptionVenueName.trim() || null,
+      reception_venue_address: form.receptionVenueAddress.trim() || null,
+      reception_venue_maps_url: form.receptionVenueMapsUrl.trim() || null,
+      reception_time: form.receptionTime.trim() || null,
     };
 
     const { error: upsertError } = await supabase

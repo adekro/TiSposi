@@ -33,6 +33,15 @@ export interface PublicEventSummary {
   menuContorno?: string | null;
   menuDolce?: string | null;
   menuBevande?: string | null;
+  // Fase 8: info logistiche multi-luogo
+  ceremonyVenueName?: string | null;
+  ceremonyVenueAddress?: string | null;
+  ceremonyVenueMapsUrl?: string | null;
+  ceremonyTime?: string | null;
+  receptionVenueName?: string | null;
+  receptionVenueAddress?: string | null;
+  receptionVenueMapsUrl?: string | null;
+  receptionTime?: string | null;
 }
 
 export interface PublicGalleryResponse {
@@ -64,6 +73,15 @@ export interface EventSettingsRow {
   menu_contorno: string | null;
   menu_dolce: string | null;
   menu_bevande: string | null;
+  // Fase 8
+  ceremony_venue_name: string | null;
+  ceremony_venue_address: string | null;
+  ceremony_venue_maps_url: string | null;
+  ceremony_time: string | null;
+  reception_venue_name: string | null;
+  reception_venue_address: string | null;
+  reception_venue_maps_url: string | null;
+  reception_time: string | null;
 }
 
 // ── Fase 2: RSVP ─────────────────────────────────────────────────────────────
