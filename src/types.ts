@@ -78,6 +78,16 @@ export interface ChecklistItem {
 
 export type RsvpStatus = "pending" | "confirmed" | "declined";
 
+// ── Fase 6: Music Requests ────────────────────────────────────────────────────
+export interface MusicRequest {
+  id: string;
+  song: string;
+  artist: string | null;
+  requestedBy: string | null;
+  createdAt: string;
+  approved: boolean;
+}
+
 export interface GuestEntry {
   id: string;
   event_id: string;

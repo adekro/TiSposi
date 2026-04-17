@@ -18,6 +18,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: "Parametro id mancante" });
   }
 
+  const entryType =
+    typeof req.query.type === "string" ? req.query.type.trim() : "gallery";
+
   const supabase = getServiceSupabaseClient();
 
   // Verifica JWT
@@ -38,6 +41,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (eventErr || !event) {
     return res.status(404).json({ error: "Evento non trovato" });
+  }
+
+  if (entryType === "music") {
+    const { error: deleteErr } = await supabase
+      .from("music_requests")
+      .delete()
+      .eq("id", entryId)
+      .eq("event_id", event.id);
+
+    if (deleteErr) {
+      console.error("[delete-entry] Music DB error:", deleteErr.message);
+      return res.status(500).json({ error: "Errore durante l'eliminazione" });
+    }
+    return res.status(204).end();
   }
 
   if (event.storage_provider === "supabase_db") {

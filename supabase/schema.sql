@@ -117,6 +117,12 @@ create table if not exists public.music_requests (
 create index if not exists idx_music_requests_event_id
   on public.music_requests (event_id, created_at desc);
 
+-- Migration: Fase 6 - campo approvazione richieste musicali
+alter table public.music_requests add column if not exists approved boolean not null default false;
+
+create index if not exists idx_music_requests_event_approved
+  on public.music_requests (event_id, approved, created_at asc);
+
 alter table public.music_requests enable row level security;
 
 drop policy if exists "Owners can read own music requests" on public.music_requests;

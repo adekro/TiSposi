@@ -15,6 +15,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import { useGallery } from "../hooks/useGallery";
+import { useMusicRequests } from "../hooks/useMusicRequests";
 import { useQueryClient } from "@tanstack/react-query";
 import PhotoGrid from "../components/PhotoGrid";
 import PhotoCapture, {
@@ -22,6 +23,7 @@ import PhotoCapture, {
 } from "../components/PhotoCapture";
 import DedicaDialog from "../components/DedicaDialog";
 import MusicRequestDialog from "../components/MusicRequestDialog";
+import PlaylistSection from "../components/PlaylistSection";
 import CountdownWidget from "../components/CountdownWidget";
 import WeddingInfoSection from "../components/WeddingInfoSection";
 import PWAInstallBanner from "../components/PWAInstallBanner";
@@ -33,6 +35,8 @@ export default function GalleryPage() {
   const theme = useTheme();
   const queryClient = useQueryClient();
   const { data, isLoading, isFetching, error } = useGallery(publicId);
+  const { data: musicItems = [], isLoading: musicLoading } =
+    useMusicRequests(publicId);
 
   console.log("GalleryPage render", { publicId, data, isLoading, error });
   const items = data?.items ?? [];
@@ -157,6 +161,7 @@ export default function GalleryPage() {
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>
           📸 {items.filter((i) => i.type === "photo").length} foto · ✏️{" "}
           {items.filter((i) => i.type === "dedica").length} dediche
+          {musicItems.length > 0 && ` · 🎵 ${musicItems.length} in playlist`}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
           Condividi questa pagina con gli invitati: /{event?.publicId}/gallery
@@ -181,6 +186,21 @@ export default function GalleryPage() {
       {/* ── Galleria ── */}
       <Container maxWidth="md" sx={{ pt: 2, px: { xs: 1.5, sm: 3 } }}>
         <PhotoGrid items={items} loading={isLoading} />
+      </Container>
+
+      {/* ── Playlist ── */}
+      <Container maxWidth="md" sx={{ pt: 3, px: { xs: 1.5, sm: 3 } }}>
+        <Typography
+          variant="h6"
+          sx={{
+            fontFamily: '"Playfair Display", serif',
+            mb: 2,
+            color: theme.palette.text.primary,
+          }}
+        >
+          🎵 Playlist
+        </Typography>
+        <PlaylistSection items={musicItems} loading={musicLoading} />
       </Container>
 
       {/* ── Footer legale ── */}

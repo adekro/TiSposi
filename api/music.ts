@@ -2,11 +2,56 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { getEventByPublicId } from "./_lib/events.js";
 import { getServiceSupabaseClient } from "./_lib/supabase.js";
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+interface MusicRequestRow {
+  id: string;
+  song: string;
+  artist: string | null;
+  requested_by: string | null;
+  created_at: string;
+  approved: boolean;
+}
+
+async function handleGet(req: VercelRequest, res: VercelResponse) {
+  const publicId =
+    typeof req.query.publicId === "string" ? req.query.publicId : "";
+  if (!publicId.trim()) {
+    return res.status(400).json({ error: "Parametro publicId mancante" });
   }
 
+  try {
+    const event = await getEventByPublicId(publicId);
+    if (!event) {
+      return res.status(404).json({ error: "Evento non trovato" });
+    }
+
+    const supabase = getServiceSupabaseClient();
+    const { data, error } = await supabase
+      .from("music_requests")
+      .select("id, song, artist, requested_by, created_at, approved")
+      .eq("event_id", event.id)
+      .eq("approved", true)
+      .order("created_at", { ascending: true })
+      .returns<MusicRequestRow[]>();
+
+    if (error) throw new Error(error.message);
+
+    const items = (data ?? []).map((r) => ({
+      id: r.id,
+      song: r.song,
+      artist: r.artist,
+      requestedBy: r.requested_by,
+      createdAt: r.created_at,
+      approved: r.approved,
+    }));
+
+    return res.status(200).json({ items });
+  } catch (err) {
+    console.error("[music GET] Errore:", err);
+    return res.status(500).json({ error: "Errore interno del server" });
+  }
+}
+
+async function handlePost(req: VercelRequest, res: VercelResponse) {
   const publicId =
     typeof req.query.publicId === "string" ? req.query.publicId : "";
   if (!publicId.trim()) {
@@ -66,4 +111,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     console.error("[music] Errore:", err);
     return res.status(500).json({ error: "Errore interno del server" });
   }
+}
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (req.method === "GET") return handleGet(req, res);
+  if (req.method === "POST") return handlePost(req, res);
+  return res.status(405).json({ error: "Method not allowed" });
 }

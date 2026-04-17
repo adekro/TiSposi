@@ -62,3 +62,36 @@
 - [x] **Configurazione evento — pulizia UI**: rimosso pulsante "Apri gallery pubblica"; URL galleria e RSVP resi cliccabili come link; rimossa selezione provider Google Drive dall'interfaccia (backend Gdrive rimane funzionante).
 
 - [x] **QR Code stabili — redirect per eventId**: nuovo endpoint `GET /api/event-redirect?eventId=` + componente `EventRedirectPage`; rotte `/e/:eventId` e `/e/:eventId/rsvp` in `App.tsx`; i QR code scaricati dalla dashboard usano ora l'URL stabile `/e/{eventId}` invece di `/{publicId}/gallery`.
+
+---
+
+## ✅ Fase 6 — Playlist pubblica nei Media
+
+- [x] **Campo `approved`** su `music_requests` (migration SQL idempotente + index)
+- [x] **GET `/api/music`**: restituisce solo canzoni con `approved = true`, ordinate per data; nessuna auth richiesta (pubblica)
+- [x] **PATCH `/api/music-approve`**: nuovo endpoint; verifica JWT + ownership; imposta `approved = true` sulla richiesta musicale
+- [x] **DELETE `/api/delete-entry?type=music`**: esteso con param `type=music` per cancellare da `music_requests` con check ownership
+- [x] **`MusicRequest` interface** in `src/types.ts` (`id, song, artist, requestedBy, createdAt, approved`)
+- [x] **Hook `useMusicRequests`**: `useQuery` con polling 30s su `GET /api/music?publicId=...` (solo canzoni approvate)
+- [x] **Estensione `useDashboardGallery`**: fetch di tutte le richieste musicali (via Supabase client + RLS), `approveMusicEntry`, `deleteMusicEntry`
+- [x] **Componente `PlaylistSection`**: lista card con canzone, artista, "suggerita da", link "Spotify" deep-link (`open.spotify.com/search/...`), empty state
+- [x] **`GalleryPage`**: sezione "🎵 Playlist" sotto PhotoGrid con `PlaylistSection` (solo canzoni approvate); contatore Hero aggiornato
+- [x] **`MediaTab`**: 3° sub-tab "Richieste" con `MusicCard` (badge "In playlist" se approved, pulsante "Aggiungi alla playlist" verde + "Elimina" rosso) e dialog conferma eliminazione
+
+---
+
+## 🔜 Fase 7 — Menu strutturato a portate
+
+- [ ] **Schema SQL**: aggiungere colonne strutturate a `public.events` (es. `menu_courses jsonb` o colonne distinte: `menu_antipasto`, `menu_primo`, `menu_secondo`, `menu_contorno`, `menu_dolce`, `menu_bevande`) mantenendo retrocompatibilità con il campo `menu` testo libero
+- [ ] **Dashboard sposi — form menu**: sostituire/affiancare il campo testo `menu` con un template a portate (Antipasto, Primo, Secondo, Contorno, Dolce, Bevande/Vini, Note) con campo testo per ciascuna
+- [ ] **GalleryPage — visualizzazione menu**: mostrare il menu come elenco di portate formattato, con fallback al testo libero se le portate strutturate sono vuote
+- [ ] **Migration SQL** per i nuovi campi
+
+---
+
+## 🔜 Fase 8 — Info logistiche multi-luogo
+
+- [ ] **Schema SQL**: aggiungere campi dedicati per il luogo della cerimonia (`ceremony_venue_name`, `ceremony_venue_address`, `ceremony_venue_maps_url`, `ceremony_time`) e per il luogo del ricevimento (`reception_venue_name`, `reception_venue_address`, `reception_venue_maps_url`, `reception_time`), mantenendo i campi generici `venue_*` esistenti per retrocompatibilità
+- [ ] **Dashboard sposi — form logistica**: suddividere la sezione "Informazioni evento" in due schede/blocchi distinti: "Cerimonia" e "Ricevimento", ciascuno con nome luogo, indirizzo, link Maps e orario
+- [ ] **GalleryPage — visualizzazione logistica**: mostrare le due location come card/sezioni separate nell'`WeddingInfoSection`, con mappa/link dedicati per ciascuna
+- [ ] **Migration SQL** per i nuovi campi
