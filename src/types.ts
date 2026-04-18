@@ -96,6 +96,12 @@ export interface RsvpEntry {
   dietary_restrictions: string | null;
   notes: string | null;
   created_at: string;
+  // Fase 13: logistica ospiti
+  arrival_method: "auto" | "treno" | "aereo" | "altro" | null;
+  needs_parking: boolean;
+  needs_shuttle: boolean;
+  needs_accommodation: boolean;
+  accommodation_notes: string | null;
 }
 
 // ── Fase 3: Wedding Planning ──────────────────────────────────────────────────

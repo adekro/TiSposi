@@ -5,11 +5,14 @@ import {
   Alert,
   Box,
   Button,
+  Checkbox,
   CircularProgress,
   Container,
+  Divider,
   FormControl,
   FormControlLabel,
   FormLabel,
+  Paper,
   Radio,
   RadioGroup,
   Stack,
@@ -35,8 +38,12 @@ export default function RsvpPage() {
   const [numGuests, setNumGuests] = useState("1");
   const [menuChoice, setMenuChoice] = useState("");
   const [dietaryRestrictions, setDietaryRestrictions] = useState("");
-  const [notes, setNotes] = useState("");
-
+  const [notes, setNotes] = useState("");  // Fase 13: logistica
+  const [arrivalMethod, setArrivalMethod] = useState<"auto" | "treno" | "aereo" | "altro" | "">("")
+  const [needsParking, setNeedsParking] = useState(false);
+  const [needsShuttle, setNeedsShuttle] = useState(false);
+  const [needsAccommodation, setNeedsAccommodation] = useState(false);
+  const [accommodationNotes, setAccommodationNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
@@ -77,6 +84,14 @@ export default function RsvpPage() {
           dietaryRestrictions: dietaryRestrictions.trim() ? sanitize(dietaryRestrictions.trim()) : null,
           notes: notes.trim() ? sanitize(notes.trim()) : null,
           guestId: guestIdParam || null,
+          arrivalMethod: isAttending && arrivalMethod ? arrivalMethod : null,
+          needsParking: isAttending ? needsParking : false,
+          needsShuttle: isAttending ? needsShuttle : false,
+          needsAccommodation: isAttending ? needsAccommodation : false,
+          accommodationNotes:
+            isAttending && needsAccommodation && accommodationNotes.trim()
+              ? sanitize(accommodationNotes.trim())
+              : null,
         }),
       });
 
@@ -150,7 +165,17 @@ export default function RsvpPage() {
               <FormLabel>Presenz a</FormLabel>
               <RadioGroup
                 value={attending}
-                onChange={(e) => setAttending(e.target.value as "yes" | "no")}
+                onChange={(e) => {
+                  const val = e.target.value as "yes" | "no";
+                  setAttending(val);
+                  if (val === "no") {
+                    setArrivalMethod("");
+                    setNeedsParking(false);
+                    setNeedsShuttle(false);
+                    setNeedsAccommodation(false);
+                    setAccommodationNotes("");
+                  }
+                }}
               >
                 <FormControlLabel
                   value="yes"
@@ -187,6 +212,82 @@ export default function RsvpPage() {
                   disabled={loading}
                   inputProps={{ maxLength: 200 }}
                 />
+
+                {/* ── Sezione logistica ── */}
+                <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2 }}>
+                  <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 1.5 }}>
+                    Come arrivi?
+                  </Typography>
+                  <Divider sx={{ mb: 2 }} />
+
+                  <FormControl disabled={loading} fullWidth sx={{ mb: 2 }}>
+                    <FormLabel sx={{ mb: 1, fontSize: 14 }}>Mezzo di trasporto (opzionale)</FormLabel>
+                    <RadioGroup
+                      row
+                      value={arrivalMethod}
+                      onChange={(e) => setArrivalMethod(e.target.value as "auto" | "treno" | "aereo" | "altro")}
+                    >
+                      <FormControlLabel value="auto"  control={<Radio size="small" />} label="Auto 🚗" />
+                      <FormControlLabel value="treno" control={<Radio size="small" />} label="Treno 🚂" />
+                      <FormControlLabel value="aereo" control={<Radio size="small" />} label="Aereo ✈️" />
+                      <FormControlLabel value="altro" control={<Radio size="small" />} label="Altro" />
+                    </RadioGroup>
+                  </FormControl>
+
+                  <Stack spacing={0.5}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={needsParking}
+                          onChange={(e) => setNeedsParking(e.target.checked)}
+                          disabled={loading}
+                          size="small"
+                        />
+                      }
+                      label="Ho bisogno di un posto auto 🅿️"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={needsShuttle}
+                          onChange={(e) => setNeedsShuttle(e.target.checked)}
+                          disabled={loading}
+                          size="small"
+                        />
+                      }
+                      label="Ho bisogno della navetta / transfer 🚌"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={needsAccommodation}
+                          onChange={(e) => {
+                            setNeedsAccommodation(e.target.checked);
+                            if (!e.target.checked) setAccommodationNotes("");
+                          }}
+                          disabled={loading}
+                          size="small"
+                        />
+                      }
+                      label="Ho bisogno di indicazioni per l'alloggio 🏨"
+                    />
+                  </Stack>
+
+                  {needsAccommodation && (
+                    <TextField
+                      label="Note alloggio (opzionale)"
+                      value={accommodationNotes}
+                      onChange={(e) => setAccommodationNotes(e.target.value)}
+                      placeholder="Es. numero di notti, necessità particolari..."
+                      fullWidth
+                      multiline
+                      minRows={2}
+                      disabled={loading}
+                      inputProps={{ maxLength: 500 }}
+                      sx={{ mt: 2 }}
+                    />
+                  )}
+                </Paper>
               </>
             )}
 

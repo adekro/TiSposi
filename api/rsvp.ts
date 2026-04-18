@@ -42,6 +42,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const guestId =
       guestIdRaw && UUID_RE.test(guestIdRaw) ? guestIdRaw : null;
 
+    const ARRIVAL_METHODS = ["auto", "treno", "aereo", "altro"] as const;
+    type ArrivalMethod = typeof ARRIVAL_METHODS[number];
+    const arrivalMethodRaw =
+      typeof body?.arrivalMethod === "string" ? body.arrivalMethod.trim() : null;
+    const arrivalMethod: ArrivalMethod | null =
+      arrivalMethodRaw && (ARRIVAL_METHODS as readonly string[]).includes(arrivalMethodRaw)
+        ? (arrivalMethodRaw as ArrivalMethod)
+        : null;
+    const needsParking =
+      typeof body?.needsParking === "boolean" ? body.needsParking : false;
+    const needsShuttle =
+      typeof body?.needsShuttle === "boolean" ? body.needsShuttle : false;
+    const needsAccommodation =
+      typeof body?.needsAccommodation === "boolean" ? body.needsAccommodation : false;
+    const accommodationNotes =
+      typeof body?.accommodationNotes === "string"
+        ? body.accommodationNotes.trim()
+        : null;
+
     if (!guestName || guestName.length < 1 || guestName.length > 200) {
       return res
         .status(400)
@@ -78,6 +97,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .json({ error: "Le note non possono superare 1000 caratteri." });
     }
 
+    if (accommodationNotes && accommodationNotes.length > 500) {
+      return res
+        .status(400)
+        .json({ error: "Le note alloggio non possono superare 500 caratteri." });
+    }
+
     const supabase = getServiceSupabaseClient();
     const { error: insertError } = await supabase.from("rsvp_entries").insert({
       event_id: event.id,
@@ -88,6 +113,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       dietary_restrictions: dietaryRestrictions || null,
       notes: notes || null,
       guest_id: guestId || null,
+      arrival_method: attending ? arrivalMethod : null,
+      needs_parking: attending ? needsParking : false,
+      needs_shuttle: attending ? needsShuttle : false,
+      needs_accommodation: attending ? needsAccommodation : false,
+      accommodation_notes: attending && needsAccommodation ? accommodationNotes : null,
     });
 
     if (insertError) {

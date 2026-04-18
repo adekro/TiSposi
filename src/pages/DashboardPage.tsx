@@ -5,6 +5,7 @@ import {
   Button,
   Chip,
   Container,
+  Divider,
   Paper,
   Stack,
   Tab,
@@ -46,6 +47,7 @@ export default function DashboardPage() {
   const budgetHook = useBudget(user?.id ?? "");
   const suppliersHook = useSuppliers(user?.id ?? "");
   const [tab, setTab] = useState(0);
+  const [rsvpSubTab, setRsvpSubTab] = useState(0);
 
   if (!user) {
     return null;
@@ -69,7 +71,10 @@ export default function DashboardPage() {
   }
 
   const handleExportCsv = () => {
-    const header = ["Nome", "Presente", "N. Persone", "Menu", "Intolleranze", "Note", "Data"];
+    const header = [
+      "Nome", "Presente", "N. Persone", "Menu", "Intolleranze", "Note",
+      "Mezzo di trasporto", "Parcheggio", "Navetta", "Alloggio", "Note alloggio", "Data",
+    ];
     const rows = entries.map((e) => [
       e.guest_name,
       e.attending ? "Sì" : "No",
@@ -77,6 +82,11 @@ export default function DashboardPage() {
       e.menu_choice ?? "",
       e.dietary_restrictions ?? "",
       e.notes ?? "",
+      e.arrival_method ?? "",
+      e.needs_parking ? "Sì" : "No",
+      e.needs_shuttle ? "Sì" : "No",
+      e.needs_accommodation ? "Sì" : "No",
+      e.accommodation_notes ?? "",
       new Date(e.created_at).toLocaleString("it-IT"),
     ]);
     const csv = [header, ...rows]
@@ -159,7 +169,7 @@ export default function DashboardPage() {
 
           {tab === 1 && (
             <Stack spacing={3}>
-              {/* Stats */}
+              {/* Stats aggregate */}
               <Stack
                 direction={{ xs: "column", sm: "row" }}
                 spacing={2}
@@ -195,55 +205,182 @@ export default function DashboardPage() {
 
               {entries.length > 0 && (
                 <>
-                  <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-                    <Button
-                      variant="outlined"
-                      startIcon={<DownloadIcon />}
-                      onClick={handleExportCsv}
+                  {/* Sotto-tab */}
+                  <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+                    <Tabs
+                      value={rsvpSubTab}
+                      onChange={(_, v: number) => setRsvpSubTab(v)}
                       size="small"
                     >
-                      Esporta CSV
-                    </Button>
+                      <Tab label={`Risposte (${entries.length})`} />
+                      <Tab label="Logistica" />
+                    </Tabs>
                   </Box>
 
-                  <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>Nome</TableCell>
-                          <TableCell>Presenza</TableCell>
-                          <TableCell align="center">Persone</TableCell>
-                          <TableCell>Menu</TableCell>
-                          <TableCell>Intolleranze</TableCell>
-                          <TableCell>Note</TableCell>
-                          <TableCell>Data</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {entries.map((e) => (
-                          <TableRow key={e.id} hover>
-                            <TableCell>{e.guest_name}</TableCell>
-                            <TableCell>
+                  {/* ── Sub-tab 0: Risposte ── */}
+                  {rsvpSubTab === 0 && (
+                    <>
+                      <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+                        <Button
+                          variant="outlined"
+                          startIcon={<DownloadIcon />}
+                          onClick={handleExportCsv}
+                          size="small"
+                        >
+                          Esporta CSV
+                        </Button>
+                      </Box>
+
+                      <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
+                        <Table size="small">
+                          <TableHead>
+                            <TableRow>
+                              <TableCell>Nome</TableCell>
+                              <TableCell>Presenza</TableCell>
+                              <TableCell align="center">Persone</TableCell>
+                              <TableCell>Menu</TableCell>
+                              <TableCell>Intolleranze</TableCell>
+                              <TableCell>Note</TableCell>
+                              <TableCell>Data</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {entries.map((e) => (
+                              <TableRow key={e.id} hover>
+                                <TableCell>{e.guest_name}</TableCell>
+                                <TableCell>
+                                  <Chip
+                                    label={e.attending ? "Sì ✓" : "No ✗"}
+                                    color={e.attending ? "success" : "error"}
+                                    size="small"
+                                  />
+                                </TableCell>
+                                <TableCell align="center">
+                                  {e.attending ? e.num_guests : "—"}
+                                </TableCell>
+                                <TableCell>{e.menu_choice ?? "—"}</TableCell>
+                                <TableCell>{e.dietary_restrictions ?? "—"}</TableCell>
+                                <TableCell>{e.notes ?? "—"}</TableCell>
+                                <TableCell sx={{ whiteSpace: "nowrap" }}>
+                                  {new Date(e.created_at).toLocaleDateString("it-IT")}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                    </>
+                  )}
+
+                  {/* ── Sub-tab 1: Logistica ── */}
+                  {rsvpSubTab === 1 && (
+                    <Stack spacing={3}>
+                      {stats.totalAttending === 0 ? (
+                        <Typography color="text.secondary" textAlign="center" py={4}>
+                          Nessun ospite confermato ancora.
+                        </Typography>
+                      ) : (
+                        <>
+                          {/* Chips aggregate mezzo di trasporto */}
+                          <Box>
+                            <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+                              Mezzo di trasporto
+                            </Typography>
+                            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                              {stats.logisticsStats.auto > 0 && (
+                                <Chip label={`Auto 🚗: ${stats.logisticsStats.auto}`} variant="outlined" />
+                              )}
+                              {stats.logisticsStats.treno > 0 && (
+                                <Chip label={`Treno 🚂: ${stats.logisticsStats.treno}`} variant="outlined" />
+                              )}
+                              {stats.logisticsStats.aereo > 0 && (
+                                <Chip label={`Aereo ✈️: ${stats.logisticsStats.aereo}`} variant="outlined" />
+                              )}
+                              {stats.logisticsStats.altro > 0 && (
+                                <Chip label={`Altro: ${stats.logisticsStats.altro}`} variant="outlined" />
+                              )}
+                              {stats.logisticsStats.noMethod > 0 && (
+                                <Chip label={`Non specificato: ${stats.logisticsStats.noMethod}`} variant="outlined" color="default" />
+                              )}
+                            </Stack>
+                          </Box>
+
+                          <Divider />
+
+                          {/* Chips richieste logistiche */}
+                          <Box>
+                            <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+                              Richieste logistiche
+                            </Typography>
+                            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
                               <Chip
-                                label={e.attending ? "Sì ✓" : "No ✗"}
-                                color={e.attending ? "success" : "error"}
-                                size="small"
+                                label={`Parcheggio 🅿️: ${stats.logisticsStats.needsParking}`}
+                                color={stats.logisticsStats.needsParking > 0 ? "warning" : "default"}
+                                variant="outlined"
                               />
-                            </TableCell>
-                            <TableCell align="center">
-                              {e.attending ? e.num_guests : "—"}
-                            </TableCell>
-                            <TableCell>{e.menu_choice ?? "—"}</TableCell>
-                            <TableCell>{e.dietary_restrictions ?? "—"}</TableCell>
-                            <TableCell>{e.notes ?? "—"}</TableCell>
-                            <TableCell sx={{ whiteSpace: "nowrap" }}>
-                              {new Date(e.created_at).toLocaleDateString("it-IT")}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
+                              <Chip
+                                label={`Navetta 🚌: ${stats.logisticsStats.needsShuttle}`}
+                                color={stats.logisticsStats.needsShuttle > 0 ? "warning" : "default"}
+                                variant="outlined"
+                              />
+                              <Chip
+                                label={`Alloggio 🏨: ${stats.logisticsStats.needsAccommodation}`}
+                                color={stats.logisticsStats.needsAccommodation > 0 ? "warning" : "default"}
+                                variant="outlined"
+                              />
+                            </Stack>
+                          </Box>
+
+                          <Divider />
+
+                          {/* Tabella dettaglio ospiti presenti */}
+                          <Box>
+                            <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+                              Dettaglio per ospite (presenti)
+                            </Typography>
+                            <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
+                              <Table size="small">
+                                <TableHead>
+                                  <TableRow>
+                                    <TableCell>Nome</TableCell>
+                                    <TableCell>Mezzo</TableCell>
+                                    <TableCell align="center">Parcheggio</TableCell>
+                                    <TableCell align="center">Navetta</TableCell>
+                                    <TableCell align="center">Alloggio</TableCell>
+                                    <TableCell>Note alloggio</TableCell>
+                                  </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                  {entries
+                                    .filter((e) => e.attending)
+                                    .map((e) => (
+                                      <TableRow key={e.id} hover>
+                                        <TableCell>{e.guest_name}</TableCell>
+                                        <TableCell>
+                                          {e.arrival_method
+                                            ? { auto: "Auto 🚗", treno: "Treno 🚂", aereo: "Aereo ✈️", altro: "Altro" }[e.arrival_method]
+                                            : "—"}
+                                        </TableCell>
+                                        <TableCell align="center">
+                                          {e.needs_parking ? "✓" : "—"}
+                                        </TableCell>
+                                        <TableCell align="center">
+                                          {e.needs_shuttle ? "✓" : "—"}
+                                        </TableCell>
+                                        <TableCell align="center">
+                                          {e.needs_accommodation ? "✓" : "—"}
+                                        </TableCell>
+                                        <TableCell>{e.accommodation_notes ?? "—"}</TableCell>
+                                      </TableRow>
+                                    ))}
+                                </TableBody>
+                              </Table>
+                            </TableContainer>
+                          </Box>
+                        </>
+                      )}
+                    </Stack>
+                  )}
                 </>
               )}
             </Stack>

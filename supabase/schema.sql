@@ -353,6 +353,14 @@ alter table public.events add column if not exists visit_count integer not null 
 alter table public.rsvp_entries
   add column if not exists guest_id uuid references public.guest_list (id) on delete set null;
 
+-- Migration: Fase 13 - logistica ospiti nel RSVP
+alter table public.rsvp_entries
+  add column if not exists arrival_method text check (arrival_method in ('auto', 'treno', 'aereo', 'altro')),
+  add column if not exists needs_parking boolean not null default false,
+  add column if not exists needs_shuttle boolean not null default false,
+  add column if not exists needs_accommodation boolean not null default false,
+  add column if not exists accommodation_notes text;
+
 create or replace function public.increment_event_visits(p_event_id uuid)
 returns void
 language sql

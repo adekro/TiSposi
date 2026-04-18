@@ -8,6 +8,16 @@ export interface RsvpStats {
   totalNotAttending: number;
   totalPeople: number;
   menuBreakdown: Record<string, number>;
+  logisticsStats: {
+    auto: number;
+    treno: number;
+    aereo: number;
+    altro: number;
+    noMethod: number;
+    needsParking: number;
+    needsShuttle: number;
+    needsAccommodation: number;
+  };
 }
 
 export function useRsvp(userId: string) {
@@ -18,6 +28,16 @@ export function useRsvp(userId: string) {
     totalNotAttending: 0,
     totalPeople: 0,
     menuBreakdown: {},
+    logisticsStats: {
+      auto: 0,
+      treno: 0,
+      aereo: 0,
+      altro: 0,
+      noMethod: 0,
+      needsParking: 0,
+      needsShuttle: 0,
+      needsAccommodation: 0,
+    },
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -66,12 +86,25 @@ export function useRsvp(userId: string) {
         menuBreakdown[key] = (menuBreakdown[key] ?? 0) + 1;
       }
 
+      // Fase 13: logistica
+      const logisticsStats = {
+        auto: attending.filter((r) => r.arrival_method === "auto").length,
+        treno: attending.filter((r) => r.arrival_method === "treno").length,
+        aereo: attending.filter((r) => r.arrival_method === "aereo").length,
+        altro: attending.filter((r) => r.arrival_method === "altro").length,
+        noMethod: attending.filter((r) => !r.arrival_method).length,
+        needsParking: attending.filter((r) => r.needs_parking).length,
+        needsShuttle: attending.filter((r) => r.needs_shuttle).length,
+        needsAccommodation: attending.filter((r) => r.needs_accommodation).length,
+      };
+
       setStats({
         totalRsvp: rows.length,
         totalAttending: attending.length,
         totalNotAttending: rows.length - attending.length,
         totalPeople: attending.reduce((sum, r) => sum + r.num_guests, 0),
         menuBreakdown,
+        logisticsStats,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Errore di caricamento.");

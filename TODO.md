@@ -137,10 +137,10 @@
 
 ---
 
-## 🔲 Fase 13 — Logistica ospiti nel RSVP
+## ✅ Fase 13 — Logistica ospiti nel RSVP
 
-- [ ] **Schema SQL**: aggiungere colonne alla tabella `rsvp_entries`: `arrival_method` (enum o testo: auto, treno, aereo, altro), `needs_parking` (boolean), `needs_shuttle` (boolean), `needs_accommodation` (boolean), `accommodation_notes` (testo libero)
-- [ ] **Form RSVP pubblico — sezione Logistica**: nuova sezione opzionale "Come arrivi?" con campi: mezzo di trasporto (radio/select), casella "Ho bisogno di un posto auto", casella "Ho bisogno della navetta", casella "Ho bisogno di un alloggio" + note libere; i campi appaiono solo se l'ospite conferma la presenza
-- [ ] **Dashboard sposi — resoconto logistica**: nella tab RSVP aggiungere una vista "Logistica" con contatori aggregati (quanti arrivano in auto / treno / aereo, quanti chiedono parcheggio, quanti navetta, quanti alloggio) e lista dettaglio per ciascun ospite con la relativa richiesta
-- [ ] **Export CSV RSVP**: aggiornare le colonne con i nuovi campi logistici
-- [ ] **Migration SQL** idempotente
+- [x] **Schema SQL**: aggiunto `arrival_method` (testo con check `IN ('auto','treno','aereo','altro')`), `needs_parking`, `needs_shuttle`, `needs_accommodation` (boolean `DEFAULT false`), `accommodation_notes` (testo libero) a `rsvp_entries`; migration idempotente (`ADD COLUMN IF NOT EXISTS`)
+- [x] **Form RSVP pubblico — sezione Logistica**: nuova sezione "Come arrivi?" visibile solo se l'ospite conferma la presenza; RadioGroup per il mezzo di trasporto, 3 Checkbox (parcheggio, navetta, alloggio), TextField note alloggio (condizionale a `needsAccommodation`); reset automatico dei campi se l'ospite cambia la risposta a "No"
+- [x] **Dashboard sposi — resoconto logistica**: nella tab RSVP aggiunti due sotto-tab "Risposte" (tabella attuale invariata) e "Logistica" con Chips aggregate per mezzo/parcheggio/navetta/alloggio e tabella dettaglio ospiti presenti
+- [x] **Export CSV RSVP**: aggiornate le colonne con i nuovi campi (Mezzo di trasporto, Parcheggio, Navetta, Alloggio, Note alloggio)
+- [x] **Migration SQL** idempotente
