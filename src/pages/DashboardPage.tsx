@@ -249,7 +249,7 @@ export default function DashboardPage() {
             </Stack>
           )}
           {tab === 2 && <ChecklistTab hook={checklistHook} />}
-          {tab === 3 && <GuestListTab hook={guestListHook} publicId={formProps.publicId} />}
+          {tab === 3 && <GuestListTab hook={guestListHook} publicId={formProps.normalizedPublicId} />}
           {tab === 4 && <BudgetTab hook={budgetHook} />}
           {tab === 5 && <SuppliersTab hook={suppliersHook} />}
           {tab === 6 && <StatisticsTab userId={user.id} />}
