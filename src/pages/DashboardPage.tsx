@@ -210,7 +210,6 @@ export default function DashboardPage() {
                     <Tabs
                       value={rsvpSubTab}
                       onChange={(_, v: number) => setRsvpSubTab(v)}
-                      size="small"
                     >
                       <Tab label={`Risposte (${entries.length})`} />
                       <Tab label="Logistica" />
