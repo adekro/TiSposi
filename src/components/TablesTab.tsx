@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import {
   Alert,
   Box,
@@ -48,11 +48,22 @@ const EMPTY_TABLE_FORM: TableFormData = {
 };
 
 export default function TablesTab({ tablesHook, guestListHook }: Props) {
-  const { tables, loading: tablesLoading, error: tablesError, addTable, updateTable, deleteTable } = tablesHook;
-  const { guests, rsvpByGuestId, updateGuest } = guestListHook;
+  const {
+    tables,
+    assignments,
+    loading: tablesLoading,
+    error: tablesError,
+    addTable,
+    updateTable,
+    deleteTable,
+    assignGuest,
+    removeAssignment,
+    remainingSeatsForGuest,
+  } = tablesHook;
+  const { guests, rsvpByGuestId } = guestListHook;
 
-  // Ritorna il numero di persone occupate da un ospite (da RSVP, default 1)
-  const guestSeats = (guestId: string): number =>
+  // Totale posti di un invitato (da RSVP, default 1)
+  const guestTotalSeats = (guestId: string): number =>
     (rsvpByGuestId[guestId]?.attending ? rsvpByGuestId[guestId].num_guests : null) ?? 1;
 
   // Table add/edit dialog
@@ -71,6 +82,7 @@ export default function TablesTab({ tablesHook, guestListHook }: Props) {
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [assignTargetTableId, setAssignTargetTableId] = useState<string | null>(null);
   const [assignGuestId, setAssignGuestId] = useState<string>("");
+  const [assignNumSeats, setAssignNumSeats] = useState<number>(1);
 
   const openAddTable = () => {
     setEditTableId(null);
@@ -91,7 +103,7 @@ export default function TablesTab({ tablesHook, guestListHook }: Props) {
 
   const handleSaveTable = async () => {
     if (!tableForm.name.trim()) {
-      setTableFormError("Il nome del tavolo è obbligatorio.");
+      setTableFormError("Il nome del tavolo Ã¨ obbligatorio.");
       return;
     }
     setTableSaving(true);
@@ -140,35 +152,71 @@ export default function TablesTab({ tablesHook, guestListHook }: Props) {
   const openAssignDialog = (tableId: string) => {
     setAssignTargetTableId(tableId);
     setAssignGuestId("");
+    setAssignNumSeats(1);
     setAssignDialogOpen(true);
   };
 
+  // Quando si seleziona un ospite nel dialog, precompila il numero di posti rimanenti
+  const handleSelectAssignGuest = (guestId: string) => {
+    setAssignGuestId(guestId);
+    if (guestId) {
+      const remaining = remainingSeatsForGuest(guestId, guestTotalSeats(guestId));
+      setAssignNumSeats(remaining > 0 ? remaining : 1);
+    } else {
+      setAssignNumSeats(1);
+    }
+  };
+
   const handleAssignGuest = async () => {
-    if (!assignGuestId || !assignTargetTableId) return;
+    if (!assignGuestId || !assignTargetTableId || assignNumSeats < 1) return;
     try {
-      await updateGuest(assignGuestId, { table_id: assignTargetTableId });
+      await assignGuest(assignGuestId, assignTargetTableId, assignNumSeats);
       setAssignDialogOpen(false);
     } catch {
       // ignore
     }
   };
 
-  const handleUnassignGuest = async (guestId: string) => {
+  const handleRemoveAssignment = async (assignmentId: string) => {
     try {
-      await updateGuest(guestId, { table_id: null });
+      await removeAssignment(assignmentId);
     } catch {
       // ignore
     }
   };
 
-  const guestsAtTable = (tableId: string) => guests.filter((g) => g.table_id === tableId);
-  const unassignedGuests = guests.filter((g) => !g.table_id);
+  // Assignments per un tavolo specifico, con il guest object allegato
+  const assignmentsAtTable = (tableId: string) =>
+    assignments
+      .filter((a) => a.table_id === tableId)
+      .map((a) => ({ assignment: a, guest: guests.find((g) => g.id === a.guest_id) }))
+      .filter((x): x is { assignment: typeof x.assignment; guest: NonNullable<typeof x.guest> } => !!x.guest);
 
-  const totalAssignedGuests = guests.filter((g) => g.table_id !== null).length;
-  const totalAssignedSeats = guests
-    .filter((g) => g.table_id !== null)
-    .reduce((sum, g) => sum + guestSeats(g.id), 0);
+  // Ospiti che hanno ancora posti non assegnati (non assegnati del tutto O parzialmente)
+  const guestsWithRemainingSeats = guests.filter((g) => {
+    const total = guestTotalSeats(g.id);
+    return remainingSeatsForGuest(g.id, total) > 0;
+  });
+
+  // Ospiti non assegnati del tutto
+  const fullyUnassignedGuests = guests.filter((g) => !assignments.some((a) => a.guest_id === g.id));
+
+  // Ospiti parzialmente assegnati (hanno almeno 1 assignment ma anche posti rimanenti)
+  const partiallyAssignedGuests = guests.filter((g) => {
+    const hasAssignment = assignments.some((a) => a.guest_id === g.id);
+    const total = guestTotalSeats(g.id);
+    return hasAssignment && remainingSeatsForGuest(g.id, total) > 0;
+  });
+
+  const totalAssignedGuests = guests.filter((g) => assignments.some((a) => a.guest_id === g.id)).length;
+  const totalAssignedSeats = assignments.reduce((sum, a) => sum + a.num_seats, 0);
   const totalCapacity = tables.reduce((sum, t) => sum + (t.capacity ?? 0), 0);
+
+  // Ospiti disponibili per il dialog di assegnazione (posti rimanenti > 0,
+  // ma non giÃ  assegnati al tavolo target)
+  const availableGuestsForAssign = guestsWithRemainingSeats.filter(
+    (g) => !assignments.some((a) => a.guest_id === g.id && a.table_id === assignTargetTableId)
+  );
 
   if (tablesLoading) {
     return (
@@ -203,10 +251,18 @@ export default function TablesTab({ tablesHook, guestListHook }: Props) {
             sx={{ fontSize: 14, py: 2.5 }}
           />
         )}
-        {unassignedGuests.length > 0 && (
+        {fullyUnassignedGuests.length > 0 && (
           <Chip
-            label={`Senza tavolo: ${unassignedGuests.length}`}
+            label={`Senza tavolo: ${fullyUnassignedGuests.length}`}
             color="warning"
+            variant="outlined"
+            sx={{ fontSize: 14, py: 2.5 }}
+          />
+        )}
+        {partiallyAssignedGuests.length > 0 && (
+          <Chip
+            label={`Parzialmente assegnati: ${partiallyAssignedGuests.length}`}
+            color="info"
             variant="outlined"
             sx={{ fontSize: 14, py: 2.5 }}
           />
@@ -239,12 +295,12 @@ export default function TablesTab({ tablesHook, guestListHook }: Props) {
           }}
         >
           {tables.map((table) => {
-            const assigned = guestsAtTable(table.id);
-            const seatsOccupied = assigned.reduce((sum, g) => sum + guestSeats(g.id), 0);
+            const atTable = assignmentsAtTable(table.id);
+            const seatsOccupied = atTable.reduce((sum, x) => sum + x.assignment.num_seats, 0);
             const seatsLabel =
               table.capacity != null
                 ? `${seatsOccupied} / ${table.capacity} posti`
-                : `${assigned.length} ospit${assigned.length === 1 ? "e" : "i"}${seatsOccupied !== assigned.length ? ` (${seatsOccupied} posti)` : ""}`;
+                : `${atTable.length} ospit${atTable.length === 1 ? "e" : "i"}${seatsOccupied !== atTable.length ? ` (${seatsOccupied} posti)` : ""}`;
             const overCapacity =
               table.capacity != null && seatsOccupied > table.capacity;
 
@@ -302,43 +358,40 @@ export default function TablesTab({ tablesHook, guestListHook }: Props) {
                 <Divider />
 
                 {/* Guest list */}
-                {assigned.length === 0 ? (
+                {atTable.length === 0 ? (
                   <Typography variant="caption" color="text.secondary" sx={{ py: 0.5 }}>
                     Nessun ospite assegnato
                   </Typography>
                 ) : (
                   <List dense disablePadding>
-                    {assigned.map((g) => {
-                      const seats = guestSeats(g.id);
-                      return (
-                        <ListItem
-                          key={g.id}
-                          disableGutters
-                          secondaryAction={
-                            <Tooltip title="Rimuovi dal tavolo">
-                              <IconButton
-                                edge="end"
-                                size="small"
-                                onClick={() => void handleUnassignGuest(g.id)}
-                                sx={{ color: "text.secondary" }}
-                              >
-                                <DeleteIcon sx={{ fontSize: 14 }} />
-                              </IconButton>
-                            </Tooltip>
+                    {atTable.map(({ assignment, guest }) => (
+                      <ListItem
+                        key={assignment.id}
+                        disableGutters
+                        secondaryAction={
+                          <Tooltip title="Rimuovi dal tavolo">
+                            <IconButton
+                              edge="end"
+                              size="small"
+                              onClick={() => void handleRemoveAssignment(assignment.id)}
+                              sx={{ color: "text.secondary" }}
+                            >
+                              <DeleteIcon sx={{ fontSize: 14 }} />
+                            </IconButton>
+                          </Tooltip>
+                        }
+                        sx={{ pr: 4 }}
+                      >
+                        <ListItemText
+                          primary={
+                            assignment.num_seats > 1
+                              ? `${guest.full_name} Ã—${assignment.num_seats}`
+                              : guest.full_name
                           }
-                          sx={{ pr: 4 }}
-                        >
-                          <ListItemText
-                            primary={
-                              seats > 1
-                                ? `${g.full_name} ×${seats}`
-                                : g.full_name
-                            }
-                            primaryTypographyProps={{ variant: "body2" }}
-                          />
-                        </ListItem>
-                      );
-                    })}
+                          primaryTypographyProps={{ variant: "body2" }}
+                        />
+                      </ListItem>
+                    ))}
                   </List>
                 )}
 
@@ -347,7 +400,7 @@ export default function TablesTab({ tablesHook, guestListHook }: Props) {
                   size="small"
                   startIcon={<PersonAddIcon />}
                   onClick={() => openAssignDialog(table.id)}
-                  disabled={unassignedGuests.length === 0}
+                  disabled={availableGuestsForAssign.length === 0 && assignTargetTableId !== table.id}
                   sx={{ mt: 0.5 }}
                 >
                   Aggiungi ospite
@@ -356,8 +409,8 @@ export default function TablesTab({ tablesHook, guestListHook }: Props) {
             );
           })}
 
-          {/* "Senza tavolo" card */}
-          {unassignedGuests.length > 0 && (
+          {/* "Senza tavolo" card â€” mostra ospiti non assegnati del tutto */}
+          {guestsWithRemainingSeats.length > 0 && (
             <Paper
               sx={{
                 minWidth: 220,
@@ -373,10 +426,10 @@ export default function TablesTab({ tablesHook, guestListHook }: Props) {
               variant="outlined"
             >
               <Typography variant="subtitle1" fontWeight={700}>
-                Senza tavolo
+                Da assegnare
               </Typography>
               <Chip
-                label={`${unassignedGuests.length} ospit${unassignedGuests.length === 1 ? "e" : "i"}`}
+                label={`${guestsWithRemainingSeats.length} ospit${guestsWithRemainingSeats.length === 1 ? "e" : "i"} con posti liberi`}
                 size="small"
                 color="warning"
                 variant="outlined"
@@ -384,33 +437,52 @@ export default function TablesTab({ tablesHook, guestListHook }: Props) {
               />
               <Divider />
               <List dense disablePadding>
-                {unassignedGuests.map((g) => (
-                  <ListItem
-                    key={g.id}
-                    disableGutters
-                    secondaryAction={
-                      tables.length > 0 ? (
-                        <AssignInlineButton
-                          tables={tables.map((t) => ({ id: t.id, name: t.name }))}
-                          onAssign={(tableId) => void updateGuest(g.id, { table_id: tableId })}
-                        />
-                      ) : null
-                    }
-                    sx={{ pr: tables.length > 0 ? 6 : 0 }}
-                  >
-                    <ListItemText
-                      primary={g.full_name}
-                      primaryTypographyProps={{ variant: "body2" }}
-                    />
-                  </ListItem>
-                ))}
+                {guestsWithRemainingSeats.map((g) => {
+                  const total = guestTotalSeats(g.id);
+                  const remaining = remainingSeatsForGuest(g.id, total);
+                  const isPartial = assignments.some((a) => a.guest_id === g.id);
+                  return (
+                    <ListItem
+                      key={g.id}
+                      disableGutters
+                      secondaryAction={
+                        tables.length > 0 ? (
+                          <AssignInlineButton
+                            guestId={g.id}
+                            remainingSeats={remaining}
+                            tables={tables.map((t) => ({ id: t.id, name: t.name }))}
+                            excludeTableIds={assignments
+                              .filter((a) => a.guest_id === g.id)
+                              .map((a) => a.table_id)}
+                            onAssign={(tableId, numSeats) => void assignGuest(g.id, tableId, numSeats)}
+                          />
+                        ) : null
+                      }
+                      sx={{ pr: tables.length > 0 ? 6 : 0 }}
+                    >
+                      <ListItemText
+                        primary={
+                          isPartial
+                            ? `${g.full_name} (${remaining}/${total} rimasti)`
+                            : remaining > 1
+                            ? `${g.full_name} Ã—${remaining}`
+                            : g.full_name
+                        }
+                        primaryTypographyProps={{
+                          variant: "body2",
+                          color: isPartial ? "info.main" : undefined,
+                        }}
+                      />
+                    </ListItem>
+                  );
+                })}
               </List>
             </Paper>
           )}
         </Box>
       )}
 
-      {/* ── Add/Edit table dialog ── */}
+      {/* â”€â”€ Add/Edit table dialog â”€â”€ */}
       <Dialog open={tableDialogOpen} onClose={() => setTableDialogOpen(false)} maxWidth="xs" fullWidth>
         <DialogTitle>{editTableId ? "Modifica tavolo" : "Aggiungi tavolo"}</DialogTitle>
         <DialogContent>
@@ -452,12 +524,12 @@ export default function TablesTab({ tablesHook, guestListHook }: Props) {
         <DialogActions>
           <Button onClick={() => setTableDialogOpen(false)}>Annulla</Button>
           <Button variant="contained" onClick={() => void handleSaveTable()} disabled={tableSaving}>
-            {tableSaving ? "Salvataggio…" : "Salva"}
+            {tableSaving ? "Salvataggioâ€¦" : "Salva"}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* ── Delete confirmation dialog ── */}
+      {/* â”€â”€ Delete confirmation dialog â”€â”€ */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)} maxWidth="xs" fullWidth>
         <DialogTitle>Elimina tavolo</DialogTitle>
         <DialogContent>
@@ -475,12 +547,12 @@ export default function TablesTab({ tablesHook, guestListHook }: Props) {
             onClick={() => void handleDeleteTable()}
             disabled={deleting}
           >
-            {deleting ? "Eliminazione…" : "Elimina"}
+            {deleting ? "Eliminazioneâ€¦" : "Elimina"}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* ── Assign guest dialog ── */}
+      {/* â”€â”€ Assign guest dialog â”€â”€ */}
       <Dialog open={assignDialogOpen} onClose={() => setAssignDialogOpen(false)} maxWidth="xs" fullWidth>
         <DialogTitle>Aggiungi ospite al tavolo</DialogTitle>
         <DialogContent>
@@ -490,16 +562,46 @@ export default function TablesTab({ tablesHook, guestListHook }: Props) {
               <Select
                 label="Ospite"
                 value={assignGuestId}
-                onChange={(e) => setAssignGuestId(e.target.value)}
+                onChange={(e) => handleSelectAssignGuest(e.target.value)}
               >
-                <MenuItem value="">— Seleziona —</MenuItem>
-                {unassignedGuests.map((g) => (
-                  <MenuItem key={g.id} value={g.id}>
-                    {g.full_name}
-                  </MenuItem>
-                ))}
+                <MenuItem value="">â€” Seleziona â€”</MenuItem>
+                {guests
+                  .filter(
+                    (g) =>
+                      remainingSeatsForGuest(g.id, guestTotalSeats(g.id)) > 0 &&
+                      !assignments.some((a) => a.guest_id === g.id && a.table_id === assignTargetTableId)
+                  )
+                  .map((g) => {
+                    const total = guestTotalSeats(g.id);
+                    const remaining = remainingSeatsForGuest(g.id, total);
+                    return (
+                      <MenuItem key={g.id} value={g.id}>
+                        {g.full_name}
+                        {remaining < total ? ` (${remaining} di ${total} rimasti)` : remaining > 1 ? ` (Ã—${remaining})` : ""}
+                      </MenuItem>
+                    );
+                  })}
               </Select>
             </FormControl>
+            {assignGuestId && (
+              <TextField
+                label="Quanti posti assegnare a questo tavolo?"
+                type="number"
+                value={assignNumSeats}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value, 10);
+                  const maxSeats = remainingSeatsForGuest(assignGuestId, guestTotalSeats(assignGuestId));
+                  setAssignNumSeats(Math.min(Math.max(1, isNaN(val) ? 1 : val), maxSeats));
+                }}
+                fullWidth
+                size="small"
+                inputProps={{
+                  min: 1,
+                  max: remainingSeatsForGuest(assignGuestId, guestTotalSeats(assignGuestId)),
+                }}
+                helperText={`Max: ${remainingSeatsForGuest(assignGuestId, guestTotalSeats(assignGuestId))} posti disponibili`}
+              />
+            )}
           </Stack>
         </DialogContent>
         <DialogActions>
@@ -507,7 +609,7 @@ export default function TablesTab({ tablesHook, guestListHook }: Props) {
           <Button
             variant="contained"
             onClick={() => void handleAssignGuest()}
-            disabled={!assignGuestId}
+            disabled={!assignGuestId || assignNumSeats < 1}
           >
             Assegna
           </Button>
@@ -517,19 +619,31 @@ export default function TablesTab({ tablesHook, guestListHook }: Props) {
   );
 }
 
-// ── Inline "Assegna" button for the unassigned card ──────────────────────────
+// â”€â”€ Inline "Assegna" button for the unassigned card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 interface AssignInlineButtonProps {
+  guestId: string;
+  remainingSeats: number;
   tables: { id: string; name: string }[];
-  onAssign: (tableId: string) => void;
+  excludeTableIds: string[];
+  onAssign: (tableId: string, numSeats: number) => void;
 }
 
-function AssignInlineButton({ tables, onAssign }: AssignInlineButtonProps) {
+function AssignInlineButton({ remainingSeats, tables, excludeTableIds, onAssign }: AssignInlineButtonProps) {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState("");
+  const [numSeats, setNumSeats] = useState(remainingSeats);
+
+  const availableTables = tables.filter((t) => !excludeTableIds.includes(t.id));
+
+  const handleOpen = () => {
+    setSelected("");
+    setNumSeats(remainingSeats);
+    setOpen(true);
+  };
 
   const handleConfirm = () => {
-    if (!selected) return;
-    onAssign(selected);
+    if (!selected || numSeats < 1) return;
+    onAssign(selected, numSeats);
     setOpen(false);
     setSelected("");
   };
@@ -537,32 +651,47 @@ function AssignInlineButton({ tables, onAssign }: AssignInlineButtonProps) {
   return (
     <>
       <Tooltip title="Assegna a un tavolo">
-        <IconButton size="small" onClick={() => setOpen(true)} sx={{ color: "primary.main" }}>
+        <IconButton size="small" onClick={handleOpen} sx={{ color: "primary.main" }}>
           <PersonAddIcon sx={{ fontSize: 16 }} />
         </IconButton>
       </Tooltip>
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="xs" fullWidth>
         <DialogTitle>Assegna a un tavolo</DialogTitle>
         <DialogContent>
-          <FormControl fullWidth size="small" sx={{ mt: 1 }}>
-            <InputLabel>Tavolo</InputLabel>
-            <Select
-              label="Tavolo"
-              value={selected}
-              onChange={(e) => setSelected(e.target.value)}
-            >
-              <MenuItem value="">— Seleziona —</MenuItem>
-              {tables.map((t) => (
-                <MenuItem key={t.id} value={t.id}>
-                  {t.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <Stack spacing={2} pt={1}>
+            <FormControl fullWidth size="small">
+              <InputLabel>Tavolo</InputLabel>
+              <Select
+                label="Tavolo"
+                value={selected}
+                onChange={(e) => setSelected(e.target.value)}
+              >
+                <MenuItem value="">â€” Seleziona â€”</MenuItem>
+                {availableTables.map((t) => (
+                  <MenuItem key={t.id} value={t.id}>
+                    {t.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <TextField
+              label="Quanti posti assegnare?"
+              type="number"
+              value={numSeats}
+              onChange={(e) => {
+                const val = parseInt(e.target.value, 10);
+                setNumSeats(Math.min(Math.max(1, isNaN(val) ? 1 : val), remainingSeats));
+              }}
+              size="small"
+              fullWidth
+              inputProps={{ min: 1, max: remainingSeats }}
+              helperText={`Max disponibili: ${remainingSeats}`}
+            />
+          </Stack>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpen(false)}>Annulla</Button>
-          <Button variant="contained" onClick={handleConfirm} disabled={!selected}>
+          <Button variant="contained" onClick={handleConfirm} disabled={!selected || numSeats < 1}>
             Assegna
           </Button>
         </DialogActions>

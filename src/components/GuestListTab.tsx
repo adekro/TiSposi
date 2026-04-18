@@ -44,7 +44,7 @@ import CollectionsIcon from "@mui/icons-material/Collections";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import type { useGuestList, GuestFormData } from "../hooks/useGuestList";
-import type { GuestEntry, RsvpFormData, RsvpStatus, TableEntry } from "../types";
+import type { GuestEntry, RsvpFormData, RsvpStatus, TableAssignment, TableEntry } from "../types";
 
 type GuestListHook = ReturnType<typeof useGuestList>;
 
@@ -52,6 +52,7 @@ interface Props {
   hook: GuestListHook;
   publicId: string;
   tables: TableEntry[];
+  assignments: TableAssignment[];
 }
 
 const EMPTY_FORM: GuestFormData = {
@@ -59,7 +60,6 @@ const EMPTY_FORM: GuestFormData = {
   email: null,
   phone: null,
   table_number: null,
-  table_id: null,
   rsvp_status: "pending",
   notes: null,
 };
@@ -90,7 +90,7 @@ const statusColor: Record<RsvpStatus, "default" | "success" | "error"> = {
   declined: "error",
 };
 
-export default function GuestListTab({ hook, publicId, tables }: Props) {
+export default function GuestListTab({ hook, publicId, tables, assignments }: Props) {
   const { guests, stats, rsvpByGuestId, loading, error, addGuest, updateGuest, deleteGuest } = hook;
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
@@ -123,7 +123,6 @@ export default function GuestListTab({ hook, publicId, tables }: Props) {
       email: guest.email,
       phone: guest.phone,
       table_number: guest.table_number,
-      table_id: guest.table_id,
       rsvp_status: guest.rsvp_status,
       notes: guest.notes,
     });
@@ -235,15 +234,36 @@ export default function GuestListTab({ hook, publicId, tables }: Props) {
     window.open(buildWaUrl(phone, text), "_blank", "noopener,noreferrer");
   };
 
-  const tableNameById = (id: string | null) =>
-    id ? (tables.find((t) => t.id === id)?.name ?? "") : "";
+  const tableNameById = (id: string) =>
+    tables.find((t) => t.id === id)?.name ?? "";
+
+  // Restituisce una stringa con i nomi dei tavoli assegnati a un ospite
+  const guestTablesLabel = (guestId: string): string => {
+    const guestAssignments = assignments.filter((a) => a.guest_id === guestId);
+    if (guestAssignments.length === 0) return "—";
+    return guestAssignments
+      .map((a) => {
+        const name = tableNameById(a.table_id);
+        return a.num_seats > 1 ? `${name} ×${a.num_seats}` : name;
+      })
+      .filter(Boolean)
+      .join(", ");
+  };
+
+  // Restituisce il label per un singolo tavolo (usato nella vista filtrata)
+  const guestTableLabelForTable = (guestId: string, tableId: string): string => {
+    const a = assignments.find((x) => x.guest_id === guestId && x.table_id === tableId);
+    if (!a) return "—";
+    const name = tableNameById(tableId);
+    return a.num_seats > 1 ? `${name} ×${a.num_seats}` : name;
+  };
 
   const filteredGuests =
     filterTableId === "all"
       ? guests
       : filterTableId === "none"
-      ? guests.filter((g) => !g.table_id)
-      : guests.filter((g) => g.table_id === filterTableId);
+      ? guests.filter((g) => !assignments.some((a) => a.guest_id === g.id))
+      : guests.filter((g) => assignments.some((a) => a.guest_id === g.id && a.table_id === filterTableId));
 
   const handleExportCsv = () => {
     const header = ["Nome", "Email", "Telefono", "Tavolo", "Stato", "Note"];
@@ -251,7 +271,7 @@ export default function GuestListTab({ hook, publicId, tables }: Props) {
       g.full_name,
       g.email ?? "",
       g.phone ?? "",
-      tableNameById(g.table_id) || g.table_number || "",
+      guestTablesLabel(g.id),
       statusLabel[g.rsvp_status],
       g.notes ?? "",
     ]);
@@ -265,6 +285,12 @@ export default function GuestListTab({ hook, publicId, tables }: Props) {
     link.download = "lista-invitati.csv";
     link.click();
     URL.revokeObjectURL(url);
+  };
+
+  // Numero del filtro tavolo corrente nell'etichetta
+  const filterTableSeatsLabel = (guestId: string): string | null => {
+    if (filterTableId === "all" || filterTableId === "none") return null;
+    return guestTableLabelForTable(guestId, filterTableId);
   };
 
   if (loading) {
@@ -366,7 +392,11 @@ export default function GuestListTab({ hook, publicId, tables }: Props) {
                           {!g.email && !g.phone && "—"}
                         </Stack>
                       </TableCell>
-                      <TableCell>{tableNameById(g.table_id) || g.table_number || "—"}</TableCell>
+                      <TableCell>
+                        {filterTableId !== "all" && filterTableId !== "none"
+                          ? filterTableSeatsLabel(g.id)
+                          : guestTablesLabel(g.id)}
+                      </TableCell>
                       <TableCell>
                         <Chip
                           label={statusLabel[g.rsvp_status]}
@@ -524,34 +554,14 @@ export default function GuestListTab({ hook, publicId, tables }: Props) {
               />
             </Stack>
             <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-              {tables.length > 0 ? (
-                <FormControl fullWidth size="small">
-                  <InputLabel>Tavolo</InputLabel>
-                  <Select
-                    label="Tavolo"
-                    value={form.table_id ?? ""}
-                    onChange={(e) =>
-                      setForm({ ...form, table_id: e.target.value || null })
-                    }
-                  >
-                    <MenuItem value="">— Nessun tavolo —</MenuItem>
-                    {tables.map((t) => (
-                      <MenuItem key={t.id} value={t.id}>
-                        {t.name}
-                        {t.capacity != null ? ` (max ${t.capacity})` : ""}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              ) : (
-                <TextField
-                  label="Tavolo (n. o nome)"
-                  value={form.table_number ?? ""}
-                  onChange={(e) => setForm({ ...form, table_number: e.target.value || null })}
-                  fullWidth
-                  size="small"
-                />
-              )}
+              <TextField
+                label="Tavolo (n. o nome, legacy)"
+                value={form.table_number ?? ""}
+                onChange={(e) => setForm({ ...form, table_number: e.target.value || null })}
+                fullWidth
+                size="small"
+                helperText="L'assegnazione ai tavoli si gestisce nella scheda Tavoli"
+              />
               <FormControl fullWidth size="small">
                 <InputLabel>Stato RSVP</InputLabel>
                 <Select

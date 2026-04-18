@@ -403,9 +403,65 @@ create policy "Owners can manage tables"
     )
   );
 
--- Migration: Fase 11 - FK tavolo su lista invitati
+-- Migration: Fase 11 - FK tavolo su lista invitati (legacy, sostituita da table_assignments in Fase 17)
 alter table public.guest_list
   add column if not exists table_id uuid references public.tables (id) on delete set null;
+
+-- ── Fase 17: Assegnazione parziale ai tavoli (refactoring) ───────────────────
+-- Sostituisce la FK diretta guest_list.table_id con una tabella junction.
+-- Permette di distribuire i presenti di un invitato su più tavoli con quote diverse.
+
+create table if not exists public.table_assignments (
+  id uuid primary key default gen_random_uuid(),
+  event_id uuid not null references public.events (id) on delete cascade,
+  guest_id uuid not null references public.guest_list (id) on delete cascade,
+  table_id uuid not null references public.tables (id) on delete cascade,
+  num_seats integer not null default 1 check (num_seats > 0),
+  created_at timestamptz not null default timezone('utc', now()),
+  constraint table_assignments_guest_table_unique unique (guest_id, table_id)
+);
+
+create index if not exists idx_table_assignments_event_id
+  on public.table_assignments (event_id, table_id, guest_id);
+
+alter table public.table_assignments enable row level security;
+
+drop policy if exists "Owners can manage table assignments" on public.table_assignments;
+create policy "Owners can manage table assignments"
+  on public.table_assignments for all
+  using (
+    exists (
+      select 1 from public.events
+      where events.id = table_assignments.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.events
+      where events.id = table_assignments.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  );
+
+-- Migration: copia assegnazioni esistenti da guest_list.table_id → table_assignments
+-- Usa num_guests dall'RSVP dell'invitato (se presente e attending=true), altrimenti 1
+insert into public.table_assignments (id, event_id, guest_id, table_id, num_seats)
+select
+  gen_random_uuid(),
+  gl.event_id,
+  gl.id,
+  gl.table_id,
+  coalesce(re.num_guests, 1)
+from public.guest_list gl
+left join public.rsvp_entries re
+  on re.guest_id = gl.id
+  and re.attending = true
+where gl.table_id is not null
+on conflict (guest_id, table_id) do nothing;
+
+-- Migration: rimuovi colonna legacy (commentare se si vuole retrocompatibilità temporanea)
+-- alter table public.guest_list drop column if exists table_id;
 
 -- ── Fase 12: Attività e giochi ───────────────────────────────────────────────
 create table if not exists public.activities (

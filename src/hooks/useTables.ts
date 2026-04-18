@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
-import type { TableEntry, TableFormData } from "../types";
+import type { TableEntry, TableFormData, TableAssignment } from "../types";
 
 export function useTables(userId: string) {
   const [tables, setTables] = useState<TableEntry[]>([]);
+  const [assignments, setAssignments] = useState<TableAssignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -29,18 +30,28 @@ export function useTables(userId: string) {
       const eventId = await resolveEventId();
       if (!eventId) {
         setTables([]);
+        setAssignments([]);
         setLoading(false);
         return;
       }
-      const { data, error: fetchErr } = await supabase!
-        .from("tables")
-        .select("*")
-        .eq("event_id", eventId)
-        .order("order", { ascending: true })
-        .order("name", { ascending: true })
-        .returns<TableEntry[]>();
-      if (fetchErr) throw new Error(fetchErr.message);
-      setTables(data ?? []);
+      const [tablesRes, assignmentsRes] = await Promise.all([
+        supabase!
+          .from("tables")
+          .select("*")
+          .eq("event_id", eventId)
+          .order("order", { ascending: true })
+          .order("name", { ascending: true })
+          .returns<TableEntry[]>(),
+        supabase!
+          .from("table_assignments")
+          .select("*")
+          .eq("event_id", eventId)
+          .returns<TableAssignment[]>(),
+      ]);
+      if (tablesRes.error) throw new Error(tablesRes.error.message);
+      if (assignmentsRes.error) throw new Error(assignmentsRes.error.message);
+      setTables(tablesRes.data ?? []);
+      setAssignments(assignmentsRes.data ?? []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Errore di caricamento.");
     } finally {
@@ -86,7 +97,41 @@ export function useTables(userId: string) {
     const { error: err } = await supabase.from("tables").delete().eq("id", id);
     if (err) throw new Error(err.message);
     setTables((prev) => prev.filter((t) => t.id !== id));
+    setAssignments((prev) => prev.filter((a) => a.table_id !== id));
   };
+
+  const assignGuest = async (guestId: string, tableId: string, numSeats: number) => {
+    if (!supabase) return;
+    const eventId = await resolveEventId();
+    if (!eventId) return;
+    const { data, error: err } = await supabase
+      .from("table_assignments")
+      .insert({ event_id: eventId, guest_id: guestId, table_id: tableId, num_seats: numSeats })
+      .select()
+      .single<TableAssignment>();
+    if (err || !data) throw new Error(err?.message ?? "Errore assegnazione.");
+    setAssignments((prev) => [...prev, data]);
+  };
+
+  const removeAssignment = async (assignmentId: string) => {
+    if (!supabase) return;
+    const { error: err } = await supabase
+      .from("table_assignments")
+      .delete()
+      .eq("id", assignmentId);
+    if (err) throw new Error(err.message);
+    setAssignments((prev) => prev.filter((a) => a.id !== assignmentId));
+  };
+
+  // Restituisce il totale di posti già assegnati per un invitato su tutti i tavoli
+  const assignedSeatsForGuest = (guestId: string): number =>
+    assignments
+      .filter((a) => a.guest_id === guestId)
+      .reduce((sum, a) => sum + a.num_seats, 0);
+
+  // Restituisce i posti ancora disponibili per un invitato
+  const remainingSeatsForGuest = (guestId: string, totalSeats: number): number =>
+    Math.max(0, totalSeats - assignedSeatsForGuest(guestId));
 
   useEffect(() => {
     let active = true;
@@ -100,5 +145,19 @@ export function useTables(userId: string) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
-  return { tables, loading, error, addTable, updateTable, deleteTable, refetch: fetchTables };
+  return {
+    tables,
+    assignments,
+    loading,
+    error,
+    addTable,
+    updateTable,
+    deleteTable,
+    assignGuest,
+    removeAssignment,
+    assignedSeatsForGuest,
+    remainingSeatsForGuest,
+    refetch: fetchTables,
+  };
 }
+

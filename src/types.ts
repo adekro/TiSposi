@@ -143,6 +143,17 @@ export interface TableEntry {
 
 export type TableFormData = Omit<TableEntry, "id" | "event_id" | "created_at">;
 
+// ── Fase 17: Assegnazione parziale ai tavoli ──────────────────────────────────
+// Junction table: un invitato può occupare N posti su più tavoli diversi.
+export interface TableAssignment {
+  id: string;
+  event_id: string;
+  guest_id: string;
+  table_id: string;
+  num_seats: number;
+  created_at: string;
+}
+
 export interface GuestEntry {
   id: string;
   event_id: string;
@@ -150,7 +161,6 @@ export interface GuestEntry {
   email: string | null;
   phone: string | null;
   table_number: string | null;
-  table_id: string | null;
   rsvp_status: RsvpStatus;
   notes: string | null;
   created_at: string;

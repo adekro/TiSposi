@@ -427,6 +427,7 @@ export default function DashboardPage() {
                   hook={guestListHook}
                   publicId={formProps.normalizedPublicId}
                   tables={tablesHook.tables}
+                  assignments={tablesHook.assignments}
                 />
               )}
               {guestSubTab === 1 && (
