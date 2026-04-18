@@ -369,6 +369,44 @@ as $$
   update public.events set visit_count = visit_count + 1 where id = p_event_id;
 $$;
 
+-- ── Fase 11: Gestione tavoli ─────────────────────────────────────────────────
+create table if not exists public.tables (
+  id uuid primary key default gen_random_uuid(),
+  event_id uuid not null references public.events (id) on delete cascade,
+  name text not null check (char_length(name) between 1 and 200),
+  capacity integer check (capacity is null or capacity > 0),
+  notes text,
+  "order" integer not null default 0,
+  created_at timestamptz not null default timezone('utc', now())
+);
+
+create index if not exists idx_tables_event_id
+  on public.tables (event_id, "order", name);
+
+alter table public.tables enable row level security;
+
+drop policy if exists "Owners can manage tables" on public.tables;
+create policy "Owners can manage tables"
+  on public.tables for all
+  using (
+    exists (
+      select 1 from public.events
+      where events.id = tables.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.events
+      where events.id = tables.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  );
+
+-- Migration: Fase 11 - FK tavolo su lista invitati
+alter table public.guest_list
+  add column if not exists table_id uuid references public.tables (id) on delete set null;
+
 -- ── Fase 12: Attività e giochi ───────────────────────────────────────────────
 create table if not exists public.activities (
   id uuid primary key default gen_random_uuid(),

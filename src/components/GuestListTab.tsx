@@ -36,13 +36,14 @@ import CollectionsIcon from "@mui/icons-material/Collections";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import type { useGuestList, GuestFormData } from "../hooks/useGuestList";
-import type { RsvpStatus } from "../types";
+import type { RsvpStatus, TableEntry } from "../types";
 
 type GuestListHook = ReturnType<typeof useGuestList>;
 
 interface Props {
   hook: GuestListHook;
   publicId: string;
+  tables: TableEntry[];
 }
 
 const EMPTY_FORM: GuestFormData = {
@@ -50,6 +51,7 @@ const EMPTY_FORM: GuestFormData = {
   email: null,
   phone: null,
   table_number: null,
+  table_id: null,
   rsvp_status: "pending",
   notes: null,
 };
@@ -66,7 +68,7 @@ const statusColor: Record<RsvpStatus, "default" | "success" | "error"> = {
   declined: "error",
 };
 
-export default function GuestListTab({ hook, publicId }: Props) {
+export default function GuestListTab({ hook, publicId, tables }: Props) {
   const { guests, stats, rsvpByGuestId, loading, error, addGuest, updateGuest, deleteGuest } = hook;
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
@@ -74,6 +76,7 @@ export default function GuestListTab({ hook, publicId }: Props) {
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [filterTableId, setFilterTableId] = useState<string>("all");
 
   const openAdd = () => {
     setEditId(null);
@@ -91,6 +94,7 @@ export default function GuestListTab({ hook, publicId }: Props) {
       email: guest.email,
       phone: guest.phone,
       table_number: guest.table_number,
+      table_id: guest.table_id,
       rsvp_status: guest.rsvp_status,
       notes: guest.notes,
     });
@@ -164,13 +168,23 @@ export default function GuestListTab({ hook, publicId }: Props) {
     window.open(buildWaUrl(phone, text), "_blank", "noopener,noreferrer");
   };
 
+  const tableNameById = (id: string | null) =>
+    id ? (tables.find((t) => t.id === id)?.name ?? "") : "";
+
+  const filteredGuests =
+    filterTableId === "all"
+      ? guests
+      : filterTableId === "none"
+      ? guests.filter((g) => !g.table_id)
+      : guests.filter((g) => g.table_id === filterTableId);
+
   const handleExportCsv = () => {
     const header = ["Nome", "Email", "Telefono", "Tavolo", "Stato", "Note"];
     const rows = guests.map((g) => [
       g.full_name,
       g.email ?? "",
       g.phone ?? "",
-      g.table_number ?? "",
+      tableNameById(g.table_id) || g.table_number || "",
       statusLabel[g.rsvp_status],
       g.notes ?? "",
     ]);
@@ -206,16 +220,36 @@ export default function GuestListTab({ hook, publicId }: Props) {
         <Chip label={`In attesa: ${stats.pending}`} color="default" variant="outlined" sx={{ fontSize: 14, py: 2.5 }} />
       </Stack>
 
-      {/* Actions */}
-      <Stack direction="row" spacing={1} justifyContent="flex-end">
-        {guests.length > 0 && (
-          <Button variant="outlined" startIcon={<DownloadIcon />} onClick={handleExportCsv} size="small">
-            Esporta CSV
-          </Button>
+      {/* Filter by table + Actions */}
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems={{ sm: "center" }} justifyContent="space-between">
+        {tables.length > 0 && (
+          <FormControl size="small" sx={{ minWidth: 200 }}>
+            <InputLabel>Filtra per tavolo</InputLabel>
+            <Select
+              label="Filtra per tavolo"
+              value={filterTableId}
+              onChange={(e) => setFilterTableId(e.target.value)}
+            >
+              <MenuItem value="all">Tutti gli ospiti</MenuItem>
+              <MenuItem value="none">Senza tavolo</MenuItem>
+              {tables.map((t) => (
+                <MenuItem key={t.id} value={t.id}>
+                  {t.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         )}
-        <Button variant="contained" startIcon={<AddIcon />} onClick={openAdd} size="small">
-          Aggiungi ospite
-        </Button>
+        <Stack direction="row" spacing={1} justifyContent="flex-end">
+          {guests.length > 0 && (
+            <Button variant="outlined" startIcon={<DownloadIcon />} onClick={handleExportCsv} size="small">
+              Esporta CSV
+            </Button>
+          )}
+          <Button variant="contained" startIcon={<AddIcon />} onClick={openAdd} size="small">
+            Aggiungi ospite
+          </Button>
+        </Stack>
       </Stack>
 
       {guests.length === 0 && !error && (
@@ -224,7 +258,13 @@ export default function GuestListTab({ hook, publicId }: Props) {
         </Typography>
       )}
 
-      {guests.length > 0 && (
+      {filteredGuests.length === 0 && guests.length > 0 && !error && (
+        <Typography color="text.secondary" textAlign="center" py={2}>
+          Nessun ospite per il filtro selezionato.
+        </Typography>
+      )}
+
+      {filteredGuests.length > 0 && (
         <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
           <Table size="small">
             <TableHead>
@@ -238,7 +278,7 @@ export default function GuestListTab({ hook, publicId }: Props) {
               </TableRow>
             </TableHead>
             <TableBody>
-              {guests.map((g) => {
+              {filteredGuests.map((g) => {
                 const rsvp = rsvpByGuestId[g.id];
                 const isOpen = expandedId === g.id;
                 return (
@@ -259,7 +299,7 @@ export default function GuestListTab({ hook, publicId }: Props) {
                           {!g.email && !g.phone && "—"}
                         </Stack>
                       </TableCell>
-                      <TableCell>{g.table_number ?? "—"}</TableCell>
+                      <TableCell>{tableNameById(g.table_id) || g.table_number || "—"}</TableCell>
                       <TableCell>
                         <Chip
                           label={statusLabel[g.rsvp_status]}
@@ -379,13 +419,34 @@ export default function GuestListTab({ hook, publicId }: Props) {
               />
             </Stack>
             <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-              <TextField
-                label="Tavolo"
-                value={form.table_number ?? ""}
-                onChange={(e) => setForm({ ...form, table_number: e.target.value || null })}
-                fullWidth
-                size="small"
-              />
+              {tables.length > 0 ? (
+                <FormControl fullWidth size="small">
+                  <InputLabel>Tavolo</InputLabel>
+                  <Select
+                    label="Tavolo"
+                    value={form.table_id ?? ""}
+                    onChange={(e) =>
+                      setForm({ ...form, table_id: e.target.value || null })
+                    }
+                  >
+                    <MenuItem value="">— Nessun tavolo —</MenuItem>
+                    {tables.map((t) => (
+                      <MenuItem key={t.id} value={t.id}>
+                        {t.name}
+                        {t.capacity != null ? ` (max ${t.capacity})` : ""}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              ) : (
+                <TextField
+                  label="Tavolo (n. o nome)"
+                  value={form.table_number ?? ""}
+                  onChange={(e) => setForm({ ...form, table_number: e.target.value || null })}
+                  fullWidth
+                  size="small"
+                />
+              )}
               <FormControl fullWidth size="small">
                 <InputLabel>Stato RSVP</InputLabel>
                 <Select

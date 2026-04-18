@@ -27,6 +27,7 @@ import { useGuestList } from "../hooks/useGuestList";
 import { useBudget } from "../hooks/useBudget";
 import { useSuppliers } from "../hooks/useSuppliers";
 import { useActivities } from "../hooks/useActivities";
+import { useTables } from "../hooks/useTables";
 import DashboardHeader from "../components/DashboardHeader";
 import EventSettingsForm from "../components/EventSettingsForm";
 import ChecklistTab from "../components/ChecklistTab";
@@ -34,6 +35,7 @@ import GuestListTab from "../components/GuestListTab";
 import BudgetTab from "../components/BudgetTab";
 import SuppliersTab from "../components/SuppliersTab";
 import ActivitiesTab from "../components/ActivitiesTab";
+import TablesTab from "../components/TablesTab";
 import StatisticsTab from "../components/StatisticsTab";
 import MediaTab from "../components/MediaTab";
 
@@ -49,8 +51,10 @@ export default function DashboardPage() {
   const budgetHook = useBudget(user?.id ?? "");
   const suppliersHook = useSuppliers(user?.id ?? "");
   const activitiesHook = useActivities(user?.id ?? "");
+  const tablesHook = useTables(user?.id ?? "");
   const [tab, setTab] = useState(0);
   const [rsvpSubTab, setRsvpSubTab] = useState(0);
+  const [guestSubTab, setGuestSubTab] = useState(0);
 
   if (!user) {
     return null;
@@ -395,7 +399,41 @@ export default function DashboardPage() {
             </Stack>
           )}
           {tab === 2 && <ChecklistTab hook={checklistHook} />}
-          {tab === 3 && <GuestListTab hook={guestListHook} publicId={formProps.normalizedPublicId} />}
+          {tab === 3 && (
+            <Stack spacing={2}>
+              <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+                <Tabs
+                  value={guestSubTab}
+                  onChange={(_, v: number) => setGuestSubTab(v)}
+                >
+                  <Tab
+                    label={
+                      guestListHook.stats.total > 0
+                        ? `Lista (${guestListHook.stats.total})`
+                        : "Lista"
+                    }
+                  />
+                  <Tab
+                    label={
+                      tablesHook.tables.length > 0
+                        ? `Tavoli (${tablesHook.tables.length})`
+                        : "Tavoli"
+                    }
+                  />
+                </Tabs>
+              </Box>
+              {guestSubTab === 0 && (
+                <GuestListTab
+                  hook={guestListHook}
+                  publicId={formProps.normalizedPublicId}
+                  tables={tablesHook.tables}
+                />
+              )}
+              {guestSubTab === 1 && (
+                <TablesTab tablesHook={tablesHook} guestListHook={guestListHook} />
+              )}
+            </Stack>
+          )}
           {tab === 4 && <BudgetTab hook={budgetHook} />}
           {tab === 5 && <SuppliersTab hook={suppliersHook} />}
           {tab === 6 && <ActivitiesTab hook={activitiesHook} />}

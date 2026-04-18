@@ -110,12 +110,14 @@
 
 ---
 
-## 🔲 Fase 11 — Gestione tavoli (dashboard sposi)
+## ✅ Fase 11 — Gestione tavoli (dashboard sposi)
 
-- [ ] **Schema SQL**: nuova tabella `tables` (`id`, `event_id FK`, `name`, `capacity`, `notes`); eventuale colonna `table_id FK` su `guest_list` per associare gli invitati al tavolo
-- [ ] **Dashboard sposi — tab Tavoli** (o sezione interna a Lista Invitati): form per creare/rinominare/eliminare i tavoli (nome, capienza opzionale); vista a colonne o drag-and-drop per assegnare gli invitati ai tavoli; contatore posti per tavolo (assegnati / totale)
-- [ ] **Filtro invitati per tavolo**: nella tab "Lista Invitati" aggiungere filtro per tavolo; export CSV aggiornato con colonna `tavolo`
-- [ ] **Migration SQL** idempotente
+- [x] **Schema SQL**: nuova tabella `tables` (`id`, `event_id FK`, `name`, `capacity int nullable`, `notes`, `order`, `created_at`); indice su `(event_id, "order", name)`; RLS policy "Owners can manage tables" (stesso pattern degli altri); migration `ALTER TABLE guest_list ADD COLUMN IF NOT EXISTS table_id uuid REFERENCES public.tables(id) ON DELETE SET NULL`
+- [x] **Dashboard sposi — sotto-tab "Tavoli"** dentro la tab "Invitati": sotto-tab "Lista" e "Tavoli" (stesso pattern di RSVP → Risposte/Logistica); form dialog per creare/rinominare/eliminare i tavoli (nome obbligatorio, capienza opzionale, note); vista a colonne con card per ogni tavolo (nome, chip `assegnati / capienza`, lista ospiti con ✕ per rimuovere, bottone "Aggiungi ospite"); card "Senza tavolo" con bottone assegna inline per ogni ospite non assegnato; dialog conferma eliminazione tavolo
+- [x] **Assegnazione ospiti — doppio percorso**: select "Tavolo" nel dialog Add/Edit ospite (dropdown con nomi dei tavoli, se presenti; fallback al campo testo libero se non ci sono tavoli strutturati); vista colonne nel sotto-tab Tavoli con assign/unassign in tempo reale
+- [x] **Filtro invitati per tavolo**: nella sotto-tab "Lista" aggiunto Select filtro (Tutti / Senza tavolo / per tavolo specifico); export CSV aggiornato con colonna "Tavolo" basata su `table_id` → nome tavolo (con fallback a `table_number` legacy)
+- [x] **`TableEntry` e `TableFormData`** in `src/types.ts`; `GuestEntry.table_id: string | null` aggiunto; nuovi `src/hooks/useTables.ts` e `src/components/TablesTab.tsx`
+- [x] **Migration SQL** idempotente
 
 ---
 
@@ -134,6 +136,15 @@
 - [x] **Link RSVP personalizzato**: ogni invitato ha un link RSVP nel formato `/{publicId}/rsvp?guest_id={guestListId}&name={encodedName}`; la pagina RSVP carica con il `name` pre-compilato (read-only) e passa il `guest_id` alla chiamata `POST /api/rsvp`
 - [x] **`rsvp.ts` API**: accetta e salva il campo `guest_id` (UUID opzionale validato) in `rsvp_entries`; se valorizzato, aggiorna automaticamente `rsvp_status` dell'invitato in `guest_list` (`confirmed` se presente, `declined` se assente)
 - [x] **GuestListTab — bottoni WhatsApp**: per ogni riga aggiunto **"Invia link RSVP"** (icona WhatsApp verde, apre `wa.me/?text=...` con link personalizzato) e **"Invia link Galleria"** (icona galleria, apre `wa.me/?text=...`); link pre-codificati con `encodeURIComponent`
+
+---
+
+## 🔲 Fase 15 — Pannello admin (solo e.croce88@gmail.com)
+
+- [ ] **Riconoscimento admin**: all'avvio dell'app, se `user.email === "e.croce88@gmail.com"` viene visualizzato un banner/sezione "Admin" nella dashboard (non visibile ad altri utenti); nessuna tabella extra necessaria, la verifica è puramente client-side sul campo email dell'utente autenticato
+- [ ] **Lista utenti attivi**: la sezione admin mostra una tabella con tutti gli eventi (e i relativi owner) senza filtro per `owner_user_id`; colonne: email proprietario, nome evento, sposi, data matrimonio, data creazione; dati caricati con una query Supabase senza RLS tramite la service-role key (API route dedicata `GET /api/admin/events` con token admin hardcoded lato server)
+- [ ] **Impersonazione**: ogni riga ha un bottone "Gestisci" che ricarica la dashboard impostando un `impersonatedUserId` nel contesto; tutti gli hook che usano `userId` ricevono l'id impersonato al posto di quello reale; banner persistente in alto ("Stai gestendo: {email}") con tasto "Torna al tuo account"
+- [ ] **Protezione API**: `GET /api/admin/events` verifica che il JWT nel header appartenga a `e.croce88@gmail.com` prima di rispondere; restituisce la lista completa degli eventi con email owner
 
 ---
 

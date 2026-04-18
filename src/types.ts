@@ -127,6 +127,19 @@ export interface MusicRequest {
   approved: boolean;
 }
 
+// ── Fase 11: Gestione tavoli ─────────────────────────────────────────────────
+export interface TableEntry {
+  id: string;
+  event_id: string;
+  name: string;
+  capacity: number | null;
+  notes: string | null;
+  order: number;
+  created_at: string;
+}
+
+export type TableFormData = Omit<TableEntry, "id" | "event_id" | "created_at">;
+
 export interface GuestEntry {
   id: string;
   event_id: string;
@@ -134,6 +147,7 @@ export interface GuestEntry {
   email: string | null;
   phone: string | null;
   table_number: string | null;
+  table_id: string | null;
   rsvp_status: RsvpStatus;
   notes: string | null;
   created_at: string;
@@ -168,7 +182,7 @@ export interface Supplier {
   created_at: string;
 }
 
-// ── Fase 12: Attività e giochi ────────────────────────────────────────────────
+// ── Fase 12: Attività e giochi ──────────────────────────────────────────────
 export interface Activity {
   id: string;
   event_id: string;
