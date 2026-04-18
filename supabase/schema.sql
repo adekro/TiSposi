@@ -349,6 +349,10 @@ create policy "Owners can manage suppliers"
 
 alter table public.events add column if not exists visit_count integer not null default 0;
 
+-- Migration: Fase 14 - link RSVP personalizzato per invitato
+alter table public.rsvp_entries
+  add column if not exists guest_id uuid references public.guest_list (id) on delete set null;
+
 create or replace function public.increment_event_visits(p_event_id uuid)
 returns void
 language sql

@@ -95,3 +95,52 @@
 - [x] **Dashboard sposi — form logistica**: suddividere la sezione "Informazioni evento" in due schede/blocchi distinti: "Cerimonia" e "Ricevimento", ciascuno con nome luogo, indirizzo, link Maps e orario
 - [x] **GalleryPage — visualizzazione logistica**: mostrare le due location come card/sezioni separate nell'`WeddingInfoSection`, con mappa/link dedicati per ciascuna; fallback al vecchio blocco generico "Location" per eventi già configurati con solo `venue_name`
 - [x] **Migration SQL** per i nuovi campi
+
+---
+
+## 🔲 Fase 9 — Icona app
+
+- [ ] **Cambio icona PWA / favicon**: sostituire le icone attuali in `public/icons/` con una nuova grafica (formato PNG, dimensioni 192×192 e 512×512 + favicon 32×32 e 180×180 per Apple); aggiornare `manifest.json` e `index.html` di conseguenza
+
+---
+
+## ✅ Fase 10 — Playlist nello ZIP di esportazione
+
+- [x] **`gallery-export.ts` — includi `playlist.md`**: in fase di generazione ZIP leggere tutte le `music_requests` con `approved = true` relative all'evento; generare un file `playlist.md` con titolo, artista e "suggerita da" per ogni canzone approvata; aggiungere il file allo ZIP accanto alle foto e a `dediche.md`
+
+---
+
+## 🔲 Fase 11 — Gestione tavoli (dashboard sposi)
+
+- [ ] **Schema SQL**: nuova tabella `tables` (`id`, `event_id FK`, `name`, `capacity`, `notes`); eventuale colonna `table_id FK` su `guest_list` per associare gli invitati al tavolo
+- [ ] **Dashboard sposi — tab Tavoli** (o sezione interna a Lista Invitati): form per creare/rinominare/eliminare i tavoli (nome, capienza opzionale); vista a colonne o drag-and-drop per assegnare gli invitati ai tavoli; contatore posti per tavolo (assegnati / totale)
+- [ ] **Filtro invitati per tavolo**: nella tab "Lista Invitati" aggiungere filtro per tavolo; export CSV aggiornato con colonna `tavolo`
+- [ ] **Migration SQL** idempotente
+
+---
+
+## 🔲 Fase 12 — Attività e giochi (dashboard sposi)
+
+- [ ] **Schema SQL**: nuova tabella `activities` (`id`, `event_id FK`, `title`, `description`, `materials`, `order`, `done`)
+- [ ] **Dashboard sposi — tab Attività**: lista delle attività/giochi pianificate; form per aggiungere/modificare (titolo, descrizione, elenco materiali necessari, ordine); check-box "completata"; pulsante elimina con conferma
+- [ ] **Visualizzazione materiali**: ogni attività mostra l'elenco dei materiali in una chip-list o elenco puntato; possibilità di stampare / esportare l'elenco completo dei materiali (tutti i giochi in un colpo)
+- [ ] **Migration SQL** idempotente
+
+---
+
+## ✅ Fase 14 — Inviti via WhatsApp dalla lista invitati
+
+- [x] **Schema SQL**: aggiunta colonna `guest_id` (UUID FK → `guest_list.id`, nullable) a `rsvp_entries`; migration idempotente (`ALTER TABLE … ADD COLUMN IF NOT EXISTS`)
+- [x] **Link RSVP personalizzato**: ogni invitato ha un link RSVP nel formato `/{publicId}/rsvp?guest_id={guestListId}&name={encodedName}`; la pagina RSVP carica con il `name` pre-compilato (read-only) e passa il `guest_id` alla chiamata `POST /api/rsvp`
+- [x] **`rsvp.ts` API**: accetta e salva il campo `guest_id` (UUID opzionale validato) in `rsvp_entries`; se valorizzato, aggiorna automaticamente `rsvp_status` dell'invitato in `guest_list` (`confirmed` se presente, `declined` se assente)
+- [x] **GuestListTab — bottoni WhatsApp**: per ogni riga aggiunto **"Invia link RSVP"** (icona WhatsApp verde, apre `wa.me/?text=...` con link personalizzato) e **"Invia link Galleria"** (icona galleria, apre `wa.me/?text=...`); link pre-codificati con `encodeURIComponent`
+
+---
+
+## 🔲 Fase 13 — Logistica ospiti nel RSVP
+
+- [ ] **Schema SQL**: aggiungere colonne alla tabella `rsvp_entries`: `arrival_method` (enum o testo: auto, treno, aereo, altro), `needs_parking` (boolean), `needs_shuttle` (boolean), `needs_accommodation` (boolean), `accommodation_notes` (testo libero)
+- [ ] **Form RSVP pubblico — sezione Logistica**: nuova sezione opzionale "Come arrivi?" con campi: mezzo di trasporto (radio/select), casella "Ho bisogno di un posto auto", casella "Ho bisogno della navetta", casella "Ho bisogno di un alloggio" + note libere; i campi appaiono solo se l'ospite conferma la presenza
+- [ ] **Dashboard sposi — resoconto logistica**: nella tab RSVP aggiungere una vista "Logistica" con contatori aggregati (quanti arrivano in auto / treno / aereo, quanti chiedono parcheggio, quanti navetta, quanti alloggio) e lista dettaglio per ciascun ospite con la relativa richiesta
+- [ ] **Export CSV RSVP**: aggiornare le colonne con i nuovi campi logistici
+- [ ] **Migration SQL** idempotente

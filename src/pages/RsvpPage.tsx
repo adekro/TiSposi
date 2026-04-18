@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useParams, useSearchParams } from "react-router-dom";
 import DOMPurify from "dompurify";
 import {
   Alert,
@@ -22,8 +22,15 @@ import LegalFooter from "../components/LegalFooter";
 
 export default function RsvpPage() {
   const { publicId = "" } = useParams();
+  const [searchParams] = useSearchParams();
+  const prefilledName = searchParams.get("name") ?? "";
+  const guestIdParam = searchParams.get("guest_id") ?? "";
 
   const [guestName, setGuestName] = useState("");
+
+  useEffect(() => {
+    if (prefilledName) setGuestName(prefilledName);
+  }, [prefilledName]);
   const [attending, setAttending] = useState<"yes" | "no" | "">("");
   const [numGuests, setNumGuests] = useState("1");
   const [menuChoice, setMenuChoice] = useState("");
@@ -69,6 +76,7 @@ export default function RsvpPage() {
           menuChoice: isAttending && menuChoice.trim() ? sanitize(menuChoice.trim()) : null,
           dietaryRestrictions: dietaryRestrictions.trim() ? sanitize(dietaryRestrictions.trim()) : null,
           notes: notes.trim() ? sanitize(notes.trim()) : null,
+          guestId: guestIdParam || null,
         }),
       });
 
@@ -133,8 +141,9 @@ export default function RsvpPage() {
               placeholder="Marco Rossi"
               fullWidth
               required
-              disabled={loading}
-              inputProps={{ maxLength: 200 }}
+              disabled={loading || Boolean(prefilledName)}
+              inputProps={{ maxLength: 200, readOnly: Boolean(prefilledName) }}
+              helperText={prefilledName ? "Nome pre-compilato dal link di invito" : undefined}
             />
 
             <FormControl required disabled={loading}>

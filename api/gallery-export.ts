@@ -138,6 +138,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     zip.file("dediche.md", lines.join("\n"));
   }
 
+  // ── Playlist (canzoni approvate, sempre da Supabase) ──────────────────────
+  const { data: playlist } = await supabase
+    .from("music_requests")
+    .select("id, song, artist, requested_by, created_at")
+    .eq("event_id", event.id)
+    .eq("approved", true)
+    .order("created_at", { ascending: true });
+
+  if (playlist && playlist.length > 0) {
+    const lines: string[] = ["# Playlist\n"];
+    playlist.forEach((p, i) => {
+      const suggeritaDa = (p.requested_by as string | null)?.trim() || "Anonimo";
+      lines.push(`## ${i + 1}. ${p.song as string}`);
+      lines.push(`**Artista**: ${(p.artist as string) || "—"}`);
+      lines.push(`**Suggerita da**: ${suggeritaDa}\n`);
+      lines.push("---\n");
+    });
+    zip.file("playlist.md", lines.join("\n"));
+  }
+
   const zipBuffer = await zip.generateAsync({
     type: "nodebuffer",
     compression: "STORE",

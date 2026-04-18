@@ -35,6 +35,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         : null;
     const notes =
       typeof body?.notes === "string" ? body.notes.trim() : null;
+    const guestIdRaw =
+      typeof body?.guestId === "string" ? body.guestId.trim() : null;
+    const UUID_RE =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const guestId =
+      guestIdRaw && UUID_RE.test(guestIdRaw) ? guestIdRaw : null;
 
     if (!guestName || guestName.length < 1 || guestName.length > 200) {
       return res
@@ -81,10 +87,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       menu_choice: attending && menuChoice ? menuChoice : null,
       dietary_restrictions: dietaryRestrictions || null,
       notes: notes || null,
+      guest_id: guestId || null,
     });
 
     if (insertError) {
       throw new Error(insertError.message);
+    }
+
+    // Se il link RSVP era personalizzato, aggiorna lo stato dell'invitato
+    if (guestId) {
+      await supabase
+        .from("guest_list")
+        .update({ rsvp_status: attending ? "confirmed" : "declined" })
+        .eq("id", guestId);
     }
 
     return res.status(201).json({ ok: true });

@@ -30,6 +30,8 @@ import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DownloadIcon from "@mui/icons-material/Download";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+import CollectionsIcon from "@mui/icons-material/Collections";
 import type { useGuestList, GuestFormData } from "../hooks/useGuestList";
 import type { RsvpStatus } from "../types";
 
@@ -37,6 +39,7 @@ type GuestListHook = ReturnType<typeof useGuestList>;
 
 interface Props {
   hook: GuestListHook;
+  publicId: string;
 }
 
 const EMPTY_FORM: GuestFormData = {
@@ -60,7 +63,7 @@ const statusColor: Record<RsvpStatus, "default" | "success" | "error"> = {
   declined: "error",
 };
 
-export default function GuestListTab({ hook }: Props) {
+export default function GuestListTab({ hook, publicId }: Props) {
   const { guests, stats, loading, error, addGuest, updateGuest, deleteGuest } = hook;
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
@@ -126,6 +129,25 @@ export default function GuestListTab({ hook }: Props) {
     } catch {
       // ignore
     }
+  };
+
+  const buildRsvpUrl = (guestId: string, guestName: string) =>
+    `${window.location.origin}/${encodeURIComponent(publicId)}/rsvp` +
+    `?guest_id=${encodeURIComponent(guestId)}&name=${encodeURIComponent(guestName)}`;
+
+  const buildGalleryUrl = () =>
+    `${window.location.origin}/${encodeURIComponent(publicId)}/gallery`;
+
+  const openWhatsAppRsvp = (guestId: string, guestName: string) => {
+    const link = buildRsvpUrl(guestId, guestName);
+    const text = `Ciao ${guestName}! Ti aspettiamo al nostro matrimonio 💍 Conferma la tua presenza qui: ${link}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
+  };
+
+  const openWhatsAppGallery = (guestName: string) => {
+    const link = buildGalleryUrl();
+    const text = `Ciao ${guestName}! Ecco il link alla nostra galleria foto del matrimonio 📸 ${link}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
   };
 
   const handleExportCsv = () => {
@@ -220,6 +242,26 @@ export default function GuestListTab({ hook }: Props) {
                     />
                   </TableCell>
                   <TableCell align="right">
+                    <Tooltip title="Invia link RSVP via WhatsApp">
+                      <IconButton
+                        size="small"
+                        onClick={() => openWhatsAppRsvp(g.id, g.full_name)}
+                        sx={{ color: "#25D366" }}
+                        disabled={!publicId}
+                      >
+                        <WhatsAppIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Invia link galleria via WhatsApp">
+                      <IconButton
+                        size="small"
+                        onClick={() => openWhatsAppGallery(g.full_name)}
+                        sx={{ color: "primary.main" }}
+                        disabled={!publicId}
+                      >
+                        <CollectionsIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
                     <Tooltip title="Modifica">
                       <IconButton size="small" onClick={() => openEdit(g.id)}>
                         <EditIcon fontSize="small" />
