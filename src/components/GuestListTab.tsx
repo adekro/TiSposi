@@ -5,6 +5,7 @@ import {
   Button,
   Chip,
   CircularProgress,
+  Collapse,
   Dialog,
   DialogActions,
   DialogContent,
@@ -32,6 +33,8 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import DownloadIcon from "@mui/icons-material/Download";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import CollectionsIcon from "@mui/icons-material/Collections";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import type { useGuestList, GuestFormData } from "../hooks/useGuestList";
 import type { RsvpStatus } from "../types";
 
@@ -64,12 +67,13 @@ const statusColor: Record<RsvpStatus, "default" | "success" | "error"> = {
 };
 
 export default function GuestListTab({ hook, publicId }: Props) {
-  const { guests, stats, loading, error, addGuest, updateGuest, deleteGuest } = hook;
+  const { guests, stats, rsvpByGuestId, loading, error, addGuest, updateGuest, deleteGuest } = hook;
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<GuestFormData>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const openAdd = () => {
     setEditId(null);
@@ -138,16 +142,26 @@ export default function GuestListTab({ hook, publicId }: Props) {
   const buildGalleryUrl = () =>
     `${window.location.origin}/${encodeURIComponent(publicId)}/gallery`;
 
-  const openWhatsAppRsvp = (guestId: string, guestName: string) => {
-    const link = buildRsvpUrl(guestId, guestName);
-    const text = `Ciao ${guestName}! Ti aspettiamo al nostro matrimonio 💍 Conferma la tua presenza qui: ${link}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
+  const cleanPhone = (phone: string | null): string =>
+    phone ? phone.replace(/[^\d+]/g, "") : "";
+
+  const buildWaUrl = (phone: string | null, text: string): string => {
+    const p = cleanPhone(phone);
+    return p
+      ? `https://wa.me/${p}?text=${encodeURIComponent(text)}`
+      : `https://wa.me/?text=${encodeURIComponent(text)}`;
   };
 
-  const openWhatsAppGallery = (guestName: string) => {
+  const openWhatsAppRsvp = (guestId: string, guestName: string, phone: string | null) => {
+    const link = buildRsvpUrl(guestId, guestName);
+    const text = `Ciao ${guestName}! Ti aspettiamo al nostro matrimonio 💍 Conferma la tua presenza qui: ${link}`;
+    window.open(buildWaUrl(phone, text), "_blank", "noopener,noreferrer");
+  };
+
+  const openWhatsAppGallery = (guestName: string, phone: string | null) => {
     const link = buildGalleryUrl();
     const text = `Ciao ${guestName}! Ecco il link alla nostra galleria foto del matrimonio 📸 ${link}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
+    window.open(buildWaUrl(phone, text), "_blank", "noopener,noreferrer");
   };
 
   const handleExportCsv = () => {
@@ -215,6 +229,7 @@ export default function GuestListTab({ hook, publicId }: Props) {
           <Table size="small">
             <TableHead>
               <TableRow>
+                <TableCell padding="checkbox" />
                 <TableCell>Nome</TableCell>
                 <TableCell>Email / Tel</TableCell>
                 <TableCell>Tavolo</TableCell>
@@ -223,58 +238,111 @@ export default function GuestListTab({ hook, publicId }: Props) {
               </TableRow>
             </TableHead>
             <TableBody>
-              {guests.map((g) => (
-                <TableRow key={g.id} hover>
-                  <TableCell sx={{ fontWeight: 500 }}>{g.full_name}</TableCell>
-                  <TableCell>
-                    <Stack>
-                      {g.email && <Typography variant="caption">{g.email}</Typography>}
-                      {g.phone && <Typography variant="caption">{g.phone}</Typography>}
-                      {!g.email && !g.phone && "—"}
-                    </Stack>
-                  </TableCell>
-                  <TableCell>{g.table_number ?? "—"}</TableCell>
-                  <TableCell>
-                    <Chip
-                      label={statusLabel[g.rsvp_status]}
-                      color={statusColor[g.rsvp_status]}
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell align="right">
-                    <Tooltip title="Invia link RSVP via WhatsApp">
-                      <IconButton
-                        size="small"
-                        onClick={() => openWhatsAppRsvp(g.id, g.full_name)}
-                        sx={{ color: "#25D366" }}
-                        disabled={!publicId}
-                      >
-                        <WhatsAppIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Invia link galleria via WhatsApp">
-                      <IconButton
-                        size="small"
-                        onClick={() => openWhatsAppGallery(g.full_name)}
-                        sx={{ color: "primary.main" }}
-                        disabled={!publicId}
-                      >
-                        <CollectionsIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Modifica">
-                      <IconButton size="small" onClick={() => openEdit(g.id)}>
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Elimina">
-                      <IconButton size="small" onClick={() => void handleDelete(g.id)} sx={{ color: "error.main" }}>
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {guests.map((g) => {
+                const rsvp = rsvpByGuestId[g.id];
+                const isOpen = expandedId === g.id;
+                return (
+                  <>
+                    <TableRow key={g.id} hover sx={{ "& > *": { borderBottom: rsvp && isOpen ? "unset" : undefined } }}>
+                      <TableCell padding="checkbox">
+                        {rsvp ? (
+                          <IconButton size="small" onClick={() => setExpandedId(isOpen ? null : g.id)}>
+                            {isOpen ? <KeyboardArrowUpIcon fontSize="small" /> : <KeyboardArrowDownIcon fontSize="small" />}
+                          </IconButton>
+                        ) : null}
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: 500 }}>{g.full_name}</TableCell>
+                      <TableCell>
+                        <Stack>
+                          {g.email && <Typography variant="caption">{g.email}</Typography>}
+                          {g.phone && <Typography variant="caption">{g.phone}</Typography>}
+                          {!g.email && !g.phone && "—"}
+                        </Stack>
+                      </TableCell>
+                      <TableCell>{g.table_number ?? "—"}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={statusLabel[g.rsvp_status]}
+                          color={statusColor[g.rsvp_status]}
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell align="right">
+                        <Tooltip title="Invia link RSVP via WhatsApp">
+                          <IconButton
+                            size="small"
+                            onClick={() => openWhatsAppRsvp(g.id, g.full_name, g.phone)}
+                            sx={{ color: "#25D366" }}
+                            disabled={!publicId}
+                          >
+                            <WhatsAppIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Invia link galleria via WhatsApp">
+                          <IconButton
+                            size="small"
+                            onClick={() => openWhatsAppGallery(g.full_name, g.phone)}
+                            sx={{ color: "primary.main" }}
+                            disabled={!publicId}
+                          >
+                            <CollectionsIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Modifica">
+                          <IconButton size="small" onClick={() => openEdit(g.id)}>
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Elimina">
+                          <IconButton size="small" onClick={() => void handleDelete(g.id)} sx={{ color: "error.main" }}>
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </TableCell>
+                    </TableRow>
+                    {rsvp && (
+                      <TableRow key={`${g.id}-rsvp`}>
+                        <TableCell colSpan={6} sx={{ py: 0, bgcolor: "action.hover" }}>
+                          <Collapse in={isOpen} timeout="auto" unmountOnExit>
+                            <Box sx={{ px: 3, py: 1.5 }}>
+                              <Stack direction={{ xs: "column", sm: "row" }} spacing={2} flexWrap="wrap">
+                                <Box>
+                                  <Typography variant="caption" color="text.secondary">Presenza</Typography>
+                                  <Typography variant="body2" fontWeight={500}>
+                                    {rsvp.attending ? `✓ Presente (${rsvp.num_guests} ${rsvp.num_guests === 1 ? "persona" : "persone"})` : "✗ Non presente"}
+                                  </Typography>
+                                </Box>
+                                {rsvp.menu_choice && (
+                                  <Box>
+                                    <Typography variant="caption" color="text.secondary">Menu</Typography>
+                                    <Typography variant="body2">{rsvp.menu_choice}</Typography>
+                                  </Box>
+                                )}
+                                {rsvp.dietary_restrictions && (
+                                  <Box>
+                                    <Typography variant="caption" color="text.secondary">Intolleranze</Typography>
+                                    <Typography variant="body2">{rsvp.dietary_restrictions}</Typography>
+                                  </Box>
+                                )}
+                                {rsvp.notes && (
+                                  <Box>
+                                    <Typography variant="caption" color="text.secondary">Note</Typography>
+                                    <Typography variant="body2">{rsvp.notes}</Typography>
+                                  </Box>
+                                )}
+                                <Box>
+                                  <Typography variant="caption" color="text.secondary">Risposta il</Typography>
+                                  <Typography variant="body2">{new Date(rsvp.created_at).toLocaleDateString("it-IT")}</Typography>
+                                </Box>
+                              </Stack>
+                            </Box>
+                          </Collapse>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </>
+                );
+              })}
             </TableBody>
           </Table>
         </TableContainer>

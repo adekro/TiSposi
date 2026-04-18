@@ -88,6 +88,7 @@ export interface EventSettingsRow {
 export interface RsvpEntry {
   id: string;
   event_id: string;
+  guest_id: string | null;
   guest_name: string;
   attending: boolean;
   num_guests: number;
