@@ -49,7 +49,11 @@ const EMPTY_TABLE_FORM: TableFormData = {
 
 export default function TablesTab({ tablesHook, guestListHook }: Props) {
   const { tables, loading: tablesLoading, error: tablesError, addTable, updateTable, deleteTable } = tablesHook;
-  const { guests, updateGuest } = guestListHook;
+  const { guests, rsvpByGuestId, updateGuest } = guestListHook;
+
+  // Ritorna il numero di persone occupate da un ospite (da RSVP, default 1)
+  const guestSeats = (guestId: string): number =>
+    (rsvpByGuestId[guestId]?.attending ? rsvpByGuestId[guestId].num_guests : null) ?? 1;
 
   // Table add/edit dialog
   const [tableDialogOpen, setTableDialogOpen] = useState(false);
@@ -160,7 +164,10 @@ export default function TablesTab({ tablesHook, guestListHook }: Props) {
   const guestsAtTable = (tableId: string) => guests.filter((g) => g.table_id === tableId);
   const unassignedGuests = guests.filter((g) => !g.table_id);
 
-  const totalAssigned = guests.filter((g) => g.table_id !== null).length;
+  const totalAssignedGuests = guests.filter((g) => g.table_id !== null).length;
+  const totalAssignedSeats = guests
+    .filter((g) => g.table_id !== null)
+    .reduce((sum, g) => sum + guestSeats(g.id), 0);
   const totalCapacity = tables.reduce((sum, t) => sum + (t.capacity ?? 0), 0);
 
   if (tablesLoading) {
@@ -183,7 +190,7 @@ export default function TablesTab({ tablesHook, guestListHook }: Props) {
           sx={{ fontSize: 14, py: 2.5 }}
         />
         <Chip
-          label={`Ospiti assegnati: ${totalAssigned}`}
+          label={`Ospiti assegnati: ${totalAssignedGuests}${totalAssignedSeats !== totalAssignedGuests ? ` (${totalAssignedSeats} posti)` : ""}`}
           color="primary"
           variant="outlined"
           sx={{ fontSize: 14, py: 2.5 }}
@@ -233,12 +240,13 @@ export default function TablesTab({ tablesHook, guestListHook }: Props) {
         >
           {tables.map((table) => {
             const assigned = guestsAtTable(table.id);
+            const seatsOccupied = assigned.reduce((sum, g) => sum + guestSeats(g.id), 0);
             const seatsLabel =
               table.capacity != null
-                ? `${assigned.length} / ${table.capacity} posti`
-                : `${assigned.length} ospit${assigned.length === 1 ? "e" : "i"}`;
+                ? `${seatsOccupied} / ${table.capacity} posti`
+                : `${assigned.length} ospit${assigned.length === 1 ? "e" : "i"}${seatsOccupied !== assigned.length ? ` (${seatsOccupied} posti)` : ""}`;
             const overCapacity =
-              table.capacity != null && assigned.length > table.capacity;
+              table.capacity != null && seatsOccupied > table.capacity;
 
             return (
               <Paper
@@ -300,30 +308,37 @@ export default function TablesTab({ tablesHook, guestListHook }: Props) {
                   </Typography>
                 ) : (
                   <List dense disablePadding>
-                    {assigned.map((g) => (
-                      <ListItem
-                        key={g.id}
-                        disableGutters
-                        secondaryAction={
-                          <Tooltip title="Rimuovi dal tavolo">
-                            <IconButton
-                              edge="end"
-                              size="small"
-                              onClick={() => void handleUnassignGuest(g.id)}
-                              sx={{ color: "text.secondary" }}
-                            >
-                              <DeleteIcon sx={{ fontSize: 14 }} />
-                            </IconButton>
-                          </Tooltip>
-                        }
-                        sx={{ pr: 4 }}
-                      >
-                        <ListItemText
-                          primary={g.full_name}
-                          primaryTypographyProps={{ variant: "body2" }}
-                        />
-                      </ListItem>
-                    ))}
+                    {assigned.map((g) => {
+                      const seats = guestSeats(g.id);
+                      return (
+                        <ListItem
+                          key={g.id}
+                          disableGutters
+                          secondaryAction={
+                            <Tooltip title="Rimuovi dal tavolo">
+                              <IconButton
+                                edge="end"
+                                size="small"
+                                onClick={() => void handleUnassignGuest(g.id)}
+                                sx={{ color: "text.secondary" }}
+                              >
+                                <DeleteIcon sx={{ fontSize: 14 }} />
+                              </IconButton>
+                            </Tooltip>
+                          }
+                          sx={{ pr: 4 }}
+                        >
+                          <ListItemText
+                            primary={
+                              seats > 1
+                                ? `${g.full_name} ×${seats}`
+                                : g.full_name
+                            }
+                            primaryTypographyProps={{ variant: "body2" }}
+                          />
+                        </ListItem>
+                      );
+                    })}
                   </List>
                 )}
 
