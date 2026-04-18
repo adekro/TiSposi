@@ -139,6 +139,16 @@
 
 ---
 
+## ✅ Fase 16 — Modifica RSVP dalla scheda invitati
+
+- [x] **Tipo `RsvpFormData`** in `src/types.ts`: `Omit<RsvpEntry, "id" | "event_id" | "guest_id" | "created_at">` — include tutti i campi editabili (presenza, n. persone, menu, intolleranze, note, logistica Fase 13)
+- [x] **Migration RLS** in `supabase/schema.sql`: policy idempotente `"Owners can manage rsvp entries"` (`for all` su `rsvp_entries`) — sblocca INSERT e UPDATE dal client autenticato (in precedenza solo SELECT era permesso)
+- [x] **`upsertRsvp(guestId, data)`** in `src/hooks/useGuestList.ts`: se esiste `rsvpByGuestId[guestId]` fa UPDATE, altrimenti `resolveEventId()` + INSERT; aggiorna `rsvpByGuestId` nello stato; chiama `updateGuest` per sincronizzare `guest_list.rsvp_status` (`confirmed` / `declined`)
+- [x] **Dialog "RSVP"** in `GuestListTab.tsx`: campi Presenza (Switch), N. persone, Menu, Intolleranze, Note; sezione Logistica condizionale (Mezzo di trasporto RadioGroup, Parcheggio/Navetta/Alloggio Checkbox, Note alloggio condizionale); `attending = false` resetta automaticamente la logistica; pulsante "Aggiungi RSVP" (grigio) o "Modifica RSVP" (verde) nella colonna Azioni per ogni ospite; bottone "Modifica RSVP" anche nella riga espansa
+- [x] **Riga espansa aggiornata**: mostra i nuovi campi logistica (arrivo, chip parcheggio/navetta/alloggio, note alloggio)
+
+---
+
 ## 🔲 Fase 15 — Pannello admin (solo e.croce88@gmail.com)
 
 - [ ] **Riconoscimento admin**: all'avvio dell'app, se `user.email === "e.croce88@gmail.com"` viene visualizzato un banner/sezione "Admin" nella dashboard (non visibile ad altri utenti); nessuna tabella extra necessaria, la verifica è puramente client-side sul campo email dell'utente autenticato

@@ -3,6 +3,7 @@ import {
   Alert,
   Box,
   Button,
+  Checkbox,
   Chip,
   CircularProgress,
   Collapse,
@@ -11,12 +12,18 @@ import {
   DialogContent,
   DialogTitle,
   FormControl,
+  FormControlLabel,
+  FormGroup,
+  FormLabel,
   IconButton,
   InputLabel,
   MenuItem,
   Paper,
+  Radio,
+  RadioGroup,
   Select,
   Stack,
+  Switch,
   Table,
   TableBody,
   TableCell,
@@ -28,6 +35,7 @@ import {
   Typography,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import AssignmentIcon from "@mui/icons-material/Assignment";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DownloadIcon from "@mui/icons-material/Download";
@@ -36,7 +44,7 @@ import CollectionsIcon from "@mui/icons-material/Collections";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import type { useGuestList, GuestFormData } from "../hooks/useGuestList";
-import type { RsvpStatus, TableEntry } from "../types";
+import type { GuestEntry, RsvpFormData, RsvpStatus, TableEntry } from "../types";
 
 type GuestListHook = ReturnType<typeof useGuestList>;
 
@@ -54,6 +62,20 @@ const EMPTY_FORM: GuestFormData = {
   table_id: null,
   rsvp_status: "pending",
   notes: null,
+};
+
+const EMPTY_RSVP_FORM: RsvpFormData = {
+  guest_name: "",
+  attending: true,
+  num_guests: 1,
+  menu_choice: null,
+  dietary_restrictions: null,
+  notes: null,
+  arrival_method: null,
+  needs_parking: false,
+  needs_shuttle: false,
+  needs_accommodation: false,
+  accommodation_notes: null,
 };
 
 const statusLabel: Record<RsvpStatus, string> = {
@@ -77,6 +99,13 @@ export default function GuestListTab({ hook, publicId, tables }: Props) {
   const [formError, setFormError] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [filterTableId, setFilterTableId] = useState<string>("all");
+
+  // Fase 16 — dialog RSVP
+  const [rsvpDialogOpen, setRsvpDialogOpen] = useState(false);
+  const [rsvpGuestId, setRsvpGuestId] = useState<string | null>(null);
+  const [rsvpForm, setRsvpForm] = useState<RsvpFormData>(EMPTY_RSVP_FORM);
+  const [rsvpSaving, setRsvpSaving] = useState(false);
+  const [rsvpError, setRsvpError] = useState("");
 
   const openAdd = () => {
     setEditId(null);
@@ -136,6 +165,44 @@ export default function GuestListTab({ hook, publicId, tables }: Props) {
       await deleteGuest(id);
     } catch {
       // ignore
+    }
+  };
+
+  const openRsvpDialog = (guest: GuestEntry) => {
+    const existing = rsvpByGuestId[guest.id];
+    if (existing) {
+      setRsvpForm({
+        guest_name: existing.guest_name,
+        attending: existing.attending,
+        num_guests: existing.num_guests,
+        menu_choice: existing.menu_choice,
+        dietary_restrictions: existing.dietary_restrictions,
+        notes: existing.notes,
+        arrival_method: existing.arrival_method,
+        needs_parking: existing.needs_parking,
+        needs_shuttle: existing.needs_shuttle,
+        needs_accommodation: existing.needs_accommodation,
+        accommodation_notes: existing.accommodation_notes,
+      });
+    } else {
+      setRsvpForm({ ...EMPTY_RSVP_FORM, guest_name: guest.full_name });
+    }
+    setRsvpGuestId(guest.id);
+    setRsvpError("");
+    setRsvpDialogOpen(true);
+  };
+
+  const handleRsvpSave = async () => {
+    if (!rsvpGuestId) return;
+    setRsvpSaving(true);
+    setRsvpError("");
+    try {
+      await hook.upsertRsvp(rsvpGuestId, rsvpForm);
+      setRsvpDialogOpen(false);
+    } catch (err) {
+      setRsvpError(err instanceof Error ? err.message : "Errore nel salvataggio.");
+    } finally {
+      setRsvpSaving(false);
     }
   };
 
@@ -333,6 +400,15 @@ export default function GuestListTab({ hook, publicId, tables }: Props) {
                             <EditIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
+                        <Tooltip title={rsvpByGuestId[g.id] ? "Modifica RSVP" : "Aggiungi RSVP"}>
+                          <IconButton
+                            size="small"
+                            onClick={() => openRsvpDialog(g)}
+                            sx={{ color: rsvpByGuestId[g.id] ? "success.main" : "action.active" }}
+                          >
+                            <AssignmentIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
                         <Tooltip title="Elimina">
                           <IconButton size="small" onClick={() => void handleDelete(g.id)} sx={{ color: "error.main" }}>
                             <DeleteIcon fontSize="small" />
@@ -370,9 +446,38 @@ export default function GuestListTab({ hook, publicId, tables }: Props) {
                                     <Typography variant="body2">{rsvp.notes}</Typography>
                                   </Box>
                                 )}
+                                {rsvp.arrival_method && (
+                                  <Box>
+                                    <Typography variant="caption" color="text.secondary">Arrivo</Typography>
+                                    <Typography variant="body2" sx={{ textTransform: "capitalize" }}>{rsvp.arrival_method}</Typography>
+                                  </Box>
+                                )}
+                                {(rsvp.needs_parking || rsvp.needs_shuttle || rsvp.needs_accommodation) && (
+                                  <Box>
+                                    <Typography variant="caption" color="text.secondary">Richieste</Typography>
+                                    <Stack direction="row" spacing={0.5} flexWrap="wrap" mt={0.5}>
+                                      {rsvp.needs_parking && <Chip label="Parcheggio" size="small" variant="outlined" />}
+                                      {rsvp.needs_shuttle && <Chip label="Navetta" size="small" variant="outlined" />}
+                                      {rsvp.needs_accommodation && <Chip label="Alloggio" size="small" variant="outlined" />}
+                                    </Stack>
+                                    {rsvp.needs_accommodation && rsvp.accommodation_notes && (
+                                      <Typography variant="body2" mt={0.5}>{rsvp.accommodation_notes}</Typography>
+                                    )}
+                                  </Box>
+                                )}
                                 <Box>
                                   <Typography variant="caption" color="text.secondary">Risposta il</Typography>
                                   <Typography variant="body2">{new Date(rsvp.created_at).toLocaleDateString("it-IT")}</Typography>
+                                </Box>
+                                <Box sx={{ ml: "auto", alignSelf: "flex-end" }}>
+                                  <Button
+                                    size="small"
+                                    variant="outlined"
+                                    startIcon={<AssignmentIcon />}
+                                    onClick={() => openRsvpDialog(g)}
+                                  >
+                                    Modifica RSVP
+                                  </Button>
                                 </Box>
                               </Stack>
                             </Box>
@@ -475,6 +580,141 @@ export default function GuestListTab({ hook, publicId, tables }: Props) {
           <Button onClick={() => setDialogOpen(false)}>Annulla</Button>
           <Button variant="contained" onClick={() => void handleSave()} disabled={saving}>
             {saving ? "Salvataggio…" : "Salva"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog RSVP — Fase 16 */}
+      <Dialog open={rsvpDialogOpen} onClose={() => setRsvpDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>
+          {rsvpGuestId && rsvpByGuestId[rsvpGuestId] ? "Modifica RSVP" : "Aggiungi RSVP"}
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={2.5} pt={1}>
+            {rsvpError && <Alert severity="error">{rsvpError}</Alert>}
+
+            {/* Presenza */}
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={rsvpForm.attending}
+                  onChange={(e) => {
+                    const attending = e.target.checked;
+                    setRsvpForm((prev) => ({
+                      ...prev,
+                      attending,
+                      // reset logistica se non presente
+                      ...(attending ? {} : {
+                        num_guests: 1,
+                        arrival_method: null,
+                        needs_parking: false,
+                        needs_shuttle: false,
+                        needs_accommodation: false,
+                        accommodation_notes: null,
+                      }),
+                    }));
+                  }}
+                />
+              }
+              label={rsvpForm.attending ? "Presente" : "Non presente"}
+            />
+
+            {/* N. persone — visibile solo se presente */}
+            {rsvpForm.attending && (
+              <TextField
+                label="N. persone"
+                type="number"
+                value={rsvpForm.num_guests}
+                onChange={(e) => setRsvpForm({ ...rsvpForm, num_guests: Math.max(1, parseInt(e.target.value) || 1) })}
+                inputProps={{ min: 1, max: 20 }}
+                size="small"
+                sx={{ width: 160 }}
+              />
+            )}
+
+            {/* Menu */}
+            <TextField
+              label="Scelta menu"
+              value={rsvpForm.menu_choice ?? ""}
+              onChange={(e) => setRsvpForm({ ...rsvpForm, menu_choice: e.target.value || null })}
+              fullWidth
+              size="small"
+            />
+
+            {/* Intolleranze */}
+            <TextField
+              label="Intolleranze alimentari"
+              value={rsvpForm.dietary_restrictions ?? ""}
+              onChange={(e) => setRsvpForm({ ...rsvpForm, dietary_restrictions: e.target.value || null })}
+              fullWidth
+              size="small"
+              multiline
+              rows={2}
+            />
+
+            {/* Note */}
+            <TextField
+              label="Note"
+              value={rsvpForm.notes ?? ""}
+              onChange={(e) => setRsvpForm({ ...rsvpForm, notes: e.target.value || null })}
+              fullWidth
+              size="small"
+              multiline
+              rows={2}
+            />
+
+            {/* Sezione Logistica — solo se presente */}
+            {rsvpForm.attending && (
+              <>
+                <FormControl>
+                  <FormLabel>Mezzo di trasporto</FormLabel>
+                  <RadioGroup
+                    row
+                    value={rsvpForm.arrival_method ?? ""}
+                    onChange={(e) => setRsvpForm({ ...rsvpForm, arrival_method: (e.target.value as typeof rsvpForm.arrival_method) || null })}
+                  >
+                    <FormControlLabel value="" control={<Radio size="small" />} label="Non specificato" />
+                    <FormControlLabel value="auto" control={<Radio size="small" />} label="Auto" />
+                    <FormControlLabel value="treno" control={<Radio size="small" />} label="Treno" />
+                    <FormControlLabel value="aereo" control={<Radio size="small" />} label="Aereo" />
+                    <FormControlLabel value="altro" control={<Radio size="small" />} label="Altro" />
+                  </RadioGroup>
+                </FormControl>
+
+                <FormGroup>
+                  <FormControlLabel
+                    control={<Checkbox checked={rsvpForm.needs_parking} onChange={(e) => setRsvpForm({ ...rsvpForm, needs_parking: e.target.checked })} size="small" />}
+                    label="Necessita parcheggio"
+                  />
+                  <FormControlLabel
+                    control={<Checkbox checked={rsvpForm.needs_shuttle} onChange={(e) => setRsvpForm({ ...rsvpForm, needs_shuttle: e.target.checked })} size="small" />}
+                    label="Necessita navetta"
+                  />
+                  <FormControlLabel
+                    control={<Checkbox checked={rsvpForm.needs_accommodation} onChange={(e) => setRsvpForm({ ...rsvpForm, needs_accommodation: e.target.checked })} size="small" />}
+                    label="Necessita alloggio"
+                  />
+                </FormGroup>
+
+                {rsvpForm.needs_accommodation && (
+                  <TextField
+                    label="Note alloggio"
+                    value={rsvpForm.accommodation_notes ?? ""}
+                    onChange={(e) => setRsvpForm({ ...rsvpForm, accommodation_notes: e.target.value || null })}
+                    fullWidth
+                    size="small"
+                    multiline
+                    rows={2}
+                  />
+                )}
+              </>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setRsvpDialogOpen(false)}>Annulla</Button>
+          <Button variant="contained" onClick={() => void handleRsvpSave()} disabled={rsvpSaving}>
+            {rsvpSaving ? "Salvataggio…" : "Salva"}
           </Button>
         </DialogActions>
       </Dialog>

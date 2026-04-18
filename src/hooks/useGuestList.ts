@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
-import type { GuestEntry, RsvpEntry, RsvpStatus } from "../types";
+import type { GuestEntry, RsvpEntry, RsvpFormData, RsvpStatus } from "../types";
 
 export interface GuestStats {
   total: number;
@@ -131,6 +131,60 @@ export function useGuestList(userId: string) {
     await updateGuest(id, { rsvp_status });
   };
 
+  const upsertRsvp = async (guestId: string, data: RsvpFormData) => {
+    if (!supabase) return;
+    const existing = rsvpByGuestId[guestId];
+    let newEntry: RsvpEntry;
+    if (existing) {
+      const { data: updated, error: err } = await supabase
+        .from("rsvp_entries")
+        .update({
+          guest_name: data.guest_name,
+          attending: data.attending,
+          num_guests: data.num_guests,
+          menu_choice: data.menu_choice,
+          dietary_restrictions: data.dietary_restrictions,
+          notes: data.notes,
+          arrival_method: data.arrival_method,
+          needs_parking: data.needs_parking,
+          needs_shuttle: data.needs_shuttle,
+          needs_accommodation: data.needs_accommodation,
+          accommodation_notes: data.accommodation_notes,
+        })
+        .eq("id", existing.id)
+        .select()
+        .single<RsvpEntry>();
+      if (err || !updated) throw new Error(err?.message ?? "Errore aggiornamento RSVP.");
+      newEntry = updated;
+    } else {
+      const eventId = await resolveEventId();
+      if (!eventId) throw new Error("Evento non trovato.");
+      const { data: inserted, error: err } = await supabase
+        .from("rsvp_entries")
+        .insert({
+          event_id: eventId,
+          guest_id: guestId,
+          guest_name: data.guest_name,
+          attending: data.attending,
+          num_guests: data.num_guests,
+          menu_choice: data.menu_choice,
+          dietary_restrictions: data.dietary_restrictions,
+          notes: data.notes,
+          arrival_method: data.arrival_method,
+          needs_parking: data.needs_parking,
+          needs_shuttle: data.needs_shuttle,
+          needs_accommodation: data.needs_accommodation,
+          accommodation_notes: data.accommodation_notes,
+        })
+        .select()
+        .single<RsvpEntry>();
+      if (err || !inserted) throw new Error(err?.message ?? "Errore inserimento RSVP.");
+      newEntry = inserted;
+    }
+    setRsvpByGuestId((prev) => ({ ...prev, [guestId]: newEntry }));
+    await updateGuest(guestId, { rsvp_status: data.attending ? "confirmed" : "declined" });
+  };
+
   useEffect(() => {
     let active = true;
     void (async () => {
@@ -143,5 +197,5 @@ export function useGuestList(userId: string) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
-  return { guests, stats, rsvpByGuestId, loading, error, addGuest, updateGuest, deleteGuest, updateStatus, refetch: fetchGuests };
+  return { guests, stats, rsvpByGuestId, loading, error, addGuest, updateGuest, deleteGuest, updateStatus, upsertRsvp, refetch: fetchGuests };
 }

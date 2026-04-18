@@ -441,3 +441,23 @@ create policy "Owners can manage activities"
         and events.owner_user_id = auth.uid()
     )
   );
+
+-- ── Fase 16: Modifica RSVP dalla scheda invitati ─────────────────────────────
+-- Aggiunge policy owner per INSERT e UPDATE su rsvp_entries (in precedenza solo SELECT)
+drop policy if exists "Owners can manage rsvp entries" on public.rsvp_entries;
+create policy "Owners can manage rsvp entries"
+  on public.rsvp_entries for all
+  using (
+    exists (
+      select 1 from public.events
+      where events.id = rsvp_entries.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.events
+      where events.id = rsvp_entries.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  );

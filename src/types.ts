@@ -104,6 +104,9 @@ export interface RsvpEntry {
   accommodation_notes: string | null;
 }
 
+// Fase 16: campi editabili di rsvp_entries (esclude id, event_id, guest_id, created_at)
+export type RsvpFormData = Omit<RsvpEntry, "id" | "event_id" | "guest_id" | "created_at">;
+
 // ── Fase 3: Wedding Planning ──────────────────────────────────────────────────
 export interface ChecklistItem {
   id: string;
