@@ -26,12 +26,14 @@ import { useChecklist } from "../hooks/useChecklist";
 import { useGuestList } from "../hooks/useGuestList";
 import { useBudget } from "../hooks/useBudget";
 import { useSuppliers } from "../hooks/useSuppliers";
+import { useActivities } from "../hooks/useActivities";
 import DashboardHeader from "../components/DashboardHeader";
 import EventSettingsForm from "../components/EventSettingsForm";
 import ChecklistTab from "../components/ChecklistTab";
 import GuestListTab from "../components/GuestListTab";
 import BudgetTab from "../components/BudgetTab";
 import SuppliersTab from "../components/SuppliersTab";
+import ActivitiesTab from "../components/ActivitiesTab";
 import StatisticsTab from "../components/StatisticsTab";
 import MediaTab from "../components/MediaTab";
 
@@ -46,6 +48,7 @@ export default function DashboardPage() {
   const guestListHook = useGuestList(user?.id ?? "");
   const budgetHook = useBudget(user?.id ?? "");
   const suppliersHook = useSuppliers(user?.id ?? "");
+  const activitiesHook = useActivities(user?.id ?? "");
   const [tab, setTab] = useState(0);
   const [rsvpSubTab, setRsvpSubTab] = useState(0);
 
@@ -151,6 +154,13 @@ export default function DashboardPage() {
                   suppliersHook.suppliers.length > 0
                     ? `Fornitori (${suppliersHook.suppliers.length})`
                     : "Fornitori"
+                }
+              />
+              <Tab
+                label={
+                  activitiesHook.activities.length > 0
+                    ? `Attività (${activitiesHook.activities.length})`
+                    : "Attività"
                 }
               />
               <Tab label="Statistiche" />
@@ -388,8 +398,9 @@ export default function DashboardPage() {
           {tab === 3 && <GuestListTab hook={guestListHook} publicId={formProps.normalizedPublicId} />}
           {tab === 4 && <BudgetTab hook={budgetHook} />}
           {tab === 5 && <SuppliersTab hook={suppliersHook} />}
-          {tab === 6 && <StatisticsTab userId={user.id} />}
-          {tab === 7 && <MediaTab userId={user.id} />}
+          {tab === 6 && <ActivitiesTab hook={activitiesHook} />}
+          {tab === 7 && <StatisticsTab userId={user.id} />}
+          {tab === 8 && <MediaTab userId={user.id} />}
         </Stack>
       </Container>
     </Box>

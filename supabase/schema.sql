@@ -368,3 +368,38 @@ security definer
 as $$
   update public.events set visit_count = visit_count + 1 where id = p_event_id;
 $$;
+
+-- ── Fase 12: Attività e giochi ───────────────────────────────────────────────
+create table if not exists public.activities (
+  id uuid primary key default gen_random_uuid(),
+  event_id uuid not null references public.events (id) on delete cascade,
+  title text not null check (char_length(title) between 1 and 200),
+  description text,
+  materials text,
+  "order" integer not null default 0,
+  done boolean not null default false,
+  created_at timestamptz not null default timezone('utc', now())
+);
+
+create index if not exists idx_activities_event_id
+  on public.activities (event_id, "order", created_at);
+
+alter table public.activities enable row level security;
+
+drop policy if exists "Owners can manage activities" on public.activities;
+create policy "Owners can manage activities"
+  on public.activities for all
+  using (
+    exists (
+      select 1 from public.events
+      where events.id = activities.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.events
+      where events.id = activities.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  );

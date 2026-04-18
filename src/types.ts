@@ -167,3 +167,17 @@ export interface Supplier {
   notes: string | null;
   created_at: string;
 }
+
+// ── Fase 12: Attività e giochi ────────────────────────────────────────────────
+export interface Activity {
+  id: string;
+  event_id: string;
+  title: string;
+  description: string | null;
+  materials: string | null;
+  order: number;
+  done: boolean;
+  created_at: string;
+}
+
+export type ActivityFormData = Omit<Activity, "id" | "event_id" | "created_at">;

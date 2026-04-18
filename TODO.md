@@ -119,12 +119,12 @@
 
 ---
 
-## 🔲 Fase 12 — Attività e giochi (dashboard sposi)
+## ✅ Fase 12 — Attività e giochi (dashboard sposi)
 
-- [ ] **Schema SQL**: nuova tabella `activities` (`id`, `event_id FK`, `title`, `description`, `materials`, `order`, `done`)
-- [ ] **Dashboard sposi — tab Attività**: lista delle attività/giochi pianificate; form per aggiungere/modificare (titolo, descrizione, elenco materiali necessari, ordine); check-box "completata"; pulsante elimina con conferma
-- [ ] **Visualizzazione materiali**: ogni attività mostra l'elenco dei materiali in una chip-list o elenco puntato; possibilità di stampare / esportare l'elenco completo dei materiali (tutti i giochi in un colpo)
-- [ ] **Migration SQL** idempotente
+- [x] **Schema SQL**: nuova tabella `activities` (`id`, `event_id FK`, `title`, `description`, `materials`, `order`, `done`, `created_at`); indice su `(event_id, "order", created_at)`; RLS policy `"Owners can manage activities"` (stesso pattern degli altri tavoli); migration idempotente con `CREATE TABLE IF NOT EXISTS` e `DROP POLICY IF EXISTS`
+- [x] **Dashboard sposi — tab Attività**: lista card con checkbox "completata" (strikethrough sul titolo), chip-list dei materiali per ogni attività; form dialog Add/Edit (titolo obbligatorio, descrizione, materiali textarea, ordine); bottoni ▲/▼ per il riordino (swap `order` tra record adiacenti); pulsante "Elimina" con dialog di conferma
+- [x] **Visualizzazione materiali**: ogni attività mostra l'elenco dei materiali come chip-list (split su newline e virgola); accordion in fondo alla tab con riepilogo materiali aggregato per tutte le attività + pulsante "Stampa" (`window.print()`) e "Esporta TXT" (download blob)
+- [x] **Migration SQL** idempotente
 
 ---
 
