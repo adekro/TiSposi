@@ -44,6 +44,7 @@ export interface PublicEventSummary {
   receptionTime?: string | null;
   // Fase 17: sito ospite
   landingBgUrl?: string | null;
+  weddingListDescription?: string | null;
 }
 
 export interface PublicGalleryResponse {

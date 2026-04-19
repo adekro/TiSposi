@@ -22,7 +22,7 @@ import {
 import HowToRegIcon from "@mui/icons-material/HowToReg";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import LegalFooter from "../components/LegalFooter";
-import GuestNavMenu from "../components/GuestNavMenu";
+import GuestNavbar from "../components/GuestNavbar";
 
 export default function RsvpPage() {
   const { publicId = "" } = useParams();
@@ -118,10 +118,7 @@ export default function RsvpPage() {
         flexDirection: "column",
       }}
     >
-      {/* Hamburger menu navigazione ospite */}
-      <Box sx={{ position: "fixed", top: 12, right: 12, zIndex: 1200 }}>
-        <GuestNavMenu publicId={publicId} />
-      </Box>
+      <GuestNavbar publicId={publicId} />
 
       <Container maxWidth="sm" sx={{ flex: 1, py: { xs: 4, md: 6 } }}>
         {/* Header */}

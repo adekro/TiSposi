@@ -10,6 +10,7 @@ export default function EventRedirectPage() {
   const getSuffix = () => {
     if (pathname.endsWith("/rsvp")) return "/rsvp";
     if (pathname.endsWith("/landing")) return "/landing";
+    if (pathname.endsWith("/listanozze")) return "/listanozze";
     return "/gallery";
   };
 

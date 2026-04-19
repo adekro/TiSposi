@@ -116,6 +116,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         receptionVenueMapsUrl: event.reception_venue_maps_url,
         receptionTime: event.reception_time,
         landingBgUrl: event.landing_bg_url,
+        weddingListDescription: event.wedding_list_description,
       },
       items,
     };

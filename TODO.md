@@ -220,20 +220,27 @@ Nuova tab nella dashboard sposi per gestire gli item della lista nozze.
 
 ---
 
-## 🔲 Fase 22 — Pagina Lista Nozze ospite (`/:publicId/listanozze`)
+## ✅ Fase 22 — Pagina Lista Nozze ospite (`/:publicId/listanozze`)
 
 Nuova pagina pubblica con la lista nozze; richiede Fase 20 completata.
 
-- [ ] **`src/pages/GuestWeddingListPage.tsx`**: carica evento + items tramite `useWeddingList(publicId)`; mostra descrizione testuale degli sposi; griglia di card cliccabili (titolo, descrizione, pulsante "Scopri" che apre l'URL in `_blank`); empty state se lista vuota
-- [ ] **Rotta** `/:publicId/listanozze` in `App.tsx`
-- [ ] **`/e/:eventId/listanozze`** — redirect stabile via `EventRedirectPage`
+- [x] **`api/wedding-list.ts`**: endpoint pubblico `GET /api/wedding-list?publicId=...`; usa service-role client; restituisce `{ event: { spouses, weddingListDescription }, items: WeddingListItem[] }`; cache 60s; nessuna auth richiesta
+- [x] **`api/_lib/events.ts`**: aggiunto `wedding_list_description` a `EventRecord` e alla select query
+- [x] **`api/gallery.ts`**: `weddingListDescription` aggiunto al payload `PublicEventSummary`
+- [x] **`src/types.ts`**: `weddingListDescription?: string | null` aggiunto a `PublicEventSummary`
+- [x] **`src/pages/GuestWeddingListPage.tsx`**: carica evento + items tramite `useQuery` su `/api/wedding-list`; mostra descrizione testuale degli sposi; griglia di card cliccabili (titolo, descrizione, pulsante "Scopri" che apre l'URL in `_blank`); empty state se lista vuota
+- [x] **Rotta** `/:publicId/listanozze` in `App.tsx`
+- [x] **`/e/:eventId/listanozze`** — redirect stabile via `EventRedirectPage` (`getSuffix` aggiornato)
 
 ---
 
-## 🔲 Fase 23 — Layout condiviso sito ospite
+## ✅ Fase 23 — Layout condiviso sito ospite
 
 Unificare le pagine ospite con una navigation bar comune.
 
-- [ ] **`src/components/Guestnavbar.tsx`**: `AppBar` leggero (logo TiSposi + link `Landing`, `Galleria`, `RSVP`, `Lista Nozze`); link attivi evidenziati; link assenti se la pagina corrispondente non ha dati (es. lista nozze vuota)
-- [ ] **Adottare `GuestNavbar`** in `GuestLandingPage`, `GalleryPage`, `RsvpPage`, `GuestWeddingListPage`
-- [ ] Verificare che le rotte `/e/:eventId/*` coprano tutte le nuove pagine del sito ospite
+- [x] **`src/components/GuestNavbar.tsx`**: `AppBar` sticky leggero (logo TiSposi + link `Landing`, `Galleria`, `RSVP`, `Lista Nozze`); desktop: pulsanti orizzontali con link attivo evidenziato (bordo inferiore primario); mobile: hamburger → drawer laterale con link; prop `hasWeddingList` (default `true`) per nascondere il link Lista Nozze se la lista non ha dati
+- [x] **`GalleryPage`**: sostituito `GuestNavMenu` con `GuestNavbar`; indicatore refresh spostato in posizione coerente
+- [x] **`RsvpPage`**: sostituito `GuestNavMenu` (fixed overlay) con `GuestNavbar` in cima alla pagina
+- [x] **`GuestLandingPage`**: aggiunto `GuestNavbar` prima dell'hero
+- [x] **`GuestWeddingListPage`**: usa `GuestNavbar` con `hasWeddingList` attivo
+- [x] **`App.tsx`**: rotte `/e/:eventId/listanozze` coprono il redirect stabile

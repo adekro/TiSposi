@@ -13,6 +13,7 @@ import { useParams, Link as RouterLink } from "react-router-dom";
 import { useGallery } from "../hooks/useGallery";
 import LegalFooter from "../components/LegalFooter";
 import PWAInstallBanner from "../components/PWAInstallBanner";
+import GuestNavbar from "../components/GuestNavbar";
 
 export default function GuestLandingPage() {
   const { publicId = "" } = useParams();
@@ -71,6 +72,7 @@ export default function GuestLandingPage() {
   return (
     <Box sx={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       <PWAInstallBanner />
+      <GuestNavbar publicId={publicId} spouses={event.spouses} />
 
       {/* ── Hero ── */}
       <Box
