@@ -527,6 +527,35 @@ create policy "Owners can manage rsvp entries"
 alter table public.events add column if not exists landing_bg_url text;
 alter table public.events add column if not exists wedding_list_description text;
 
+-- ── Fase 19: Sfondo landing page ospiti (base64 su tabella dedicata) ─────────
+create table if not exists public.event_backgrounds (
+  id uuid primary key default gen_random_uuid(),
+  event_id uuid not null unique references public.events (id) on delete cascade,
+  image_base64 text not null,
+  image_mime_type text not null,
+  updated_at timestamptz not null default timezone('utc', now())
+);
+
+alter table public.event_backgrounds enable row level security;
+
+drop policy if exists "Owners can manage own event background" on public.event_backgrounds;
+create policy "Owners can manage own event background"
+  on public.event_backgrounds for all
+  using (
+    exists (
+      select 1 from public.events
+      where events.id = event_backgrounds.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.events
+      where events.id = event_backgrounds.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  );
+
 -- Tabella lista nozze
 create table if not exists public.wedding_list_items (
   id uuid primary key default gen_random_uuid(),

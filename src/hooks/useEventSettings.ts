@@ -36,8 +36,6 @@ export interface EventFormState {
   receptionVenueAddress: string;
   receptionVenueMapsUrl: string;
   receptionTime: string;
-  // Fase 19
-  landingBgUrl: string;
   // Fase 21
   weddingListDescription: string;
 }
@@ -70,7 +68,6 @@ const defaultState: EventFormState = {
   receptionVenueAddress: "",
   receptionVenueMapsUrl: "",
   receptionTime: "",
-  landingBgUrl: "",
   weddingListDescription: "",
 };
 
@@ -91,6 +88,7 @@ export function useEventSettings(userId: string, userEmail?: string) {
   const [eventId, setEventId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingBg, setUploadingBg] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
@@ -105,7 +103,7 @@ export function useEventSettings(userId: string, userEmail?: string) {
     void supabase
       .from("events")
       .select(
-        "id, owner_user_id, public_id, title, spouses, storage_provider, google_drive_folder_id, wedding_date, venue_name, venue_address, venue_maps_url, dresscode, schedule, couple_story, menu, menu_antipasto, menu_primo, menu_secondo, menu_contorno, menu_dolce, menu_bevande, ceremony_venue_name, ceremony_venue_address, ceremony_venue_maps_url, ceremony_time, reception_venue_name, reception_venue_address, reception_venue_maps_url, reception_time, landing_bg_url, wedding_list_description",
+        "id, owner_user_id, public_id, title, spouses, storage_provider, google_drive_folder_id, wedding_date, venue_name, venue_address, venue_maps_url, dresscode, schedule, couple_story, menu, menu_antipasto, menu_primo, menu_secondo, menu_contorno, menu_dolce, menu_bevande, ceremony_venue_name, ceremony_venue_address, ceremony_venue_maps_url, ceremony_time, reception_venue_name, reception_venue_address, reception_venue_maps_url, reception_time, wedding_list_description",
       )
       .eq("owner_user_id", userId)
       .maybeSingle<EventSettingsRow>()
@@ -146,7 +144,6 @@ export function useEventSettings(userId: string, userEmail?: string) {
             receptionVenueAddress: data.reception_venue_address ?? "",
             receptionVenueMapsUrl: data.reception_venue_maps_url ?? "",
             receptionTime: data.reception_time ?? "",
-            landingBgUrl: data.landing_bg_url ?? "",
             weddingListDescription: data.wedding_list_description ?? "",
           });
         } else {
@@ -237,7 +234,6 @@ export function useEventSettings(userId: string, userEmail?: string) {
       reception_venue_address: form.receptionVenueAddress.trim() || null,
       reception_venue_maps_url: form.receptionVenueMapsUrl.trim() || null,
       reception_time: form.receptionTime.trim() || null,
-      landing_bg_url: form.landingBgUrl.trim() || null,
       wedding_list_description: form.weddingListDescription.trim() || null,
     };
 
@@ -285,6 +281,71 @@ export function useEventSettings(userId: string, userEmail?: string) {
     link.click();
   };
 
+  const bgPreviewUrl = eventId ? `/api/upload-bg?eventId=${eventId}` : null;
+
+  const onUploadBg = async (file: File): Promise<void> => {
+    if (!supabase) {
+      setError("Supabase non configurato.");
+      return;
+    }
+    setUploadingBg(true);
+    setError("");
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) {
+        setError("Sessione scaduta. Rieffettua il login.");
+        return;
+      }
+      const res = await fetch("/api/upload-bg", {
+        method: "POST",
+        headers: {
+          "Content-Type": file.type,
+          Authorization: `Bearer ${token}`,
+        },
+        body: file,
+      });
+      if (!res.ok) {
+        const json = (await res.json()) as { error?: string };
+        setError(json.error ?? "Errore nel caricamento dello sfondo.");
+      } else {
+        setMessage("Immagine di sfondo caricata.");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Errore sconosciuto.");
+    } finally {
+      setUploadingBg(false);
+    }
+  };
+
+  const onDeleteBg = async (): Promise<void> => {
+    if (!supabase) return;
+    setUploadingBg(true);
+    setError("");
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) {
+        setError("Sessione scaduta. Rieffettua il login.");
+        return;
+      }
+      const res = await fetch("/api/upload-bg", {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const json = (await res.json()) as { error?: string };
+        setError(json.error ?? "Errore nella rimozione dello sfondo.");
+      } else {
+        setMessage("Immagine di sfondo rimossa.");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Errore sconosciuto.");
+    } finally {
+      setUploadingBg(false);
+    }
+  };
+
   return {
     form,
     updateField,
@@ -298,6 +359,10 @@ export function useEventSettings(userId: string, userEmail?: string) {
     rsvpUrl,
     landingUrl,
     publicIdValid,
+    bgPreviewUrl,
+    uploadingBg,
+    onUploadBg,
+    onDeleteBg,
     handleSave,
     handleDownloadQr,
     handleDownloadRsvpQr,

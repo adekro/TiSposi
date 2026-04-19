@@ -7,6 +7,7 @@ import {
   Button,
   Card,
   CardContent,
+  CircularProgress,
   Divider,
   Link,
   Stack,
@@ -16,6 +17,9 @@ import {
 import SaveIcon from "@mui/icons-material/Save";
 import QrCode2Icon from "@mui/icons-material/QrCode2";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { useRef, useState } from "react";
 import type { EventFormState } from "../hooks/useEventSettings";
 import { normalizePublicId } from "../hooks/useEventSettings";
 
@@ -27,6 +31,7 @@ interface Props {
   ) => void;
   loading: boolean;
   saving: boolean;
+  uploadingBg: boolean;
   error: string;
   message: string;
   normalizedPublicId: string;
@@ -34,9 +39,12 @@ interface Props {
   rsvpUrl: string;
   landingUrl: string;
   publicIdValid: boolean;
+  bgPreviewUrl: string | null;
   onSave: () => Promise<void>;
   onDownloadQr: () => Promise<void>;
   onDownloadRsvpQr: () => Promise<void>;
+  onUploadBg: (file: File) => Promise<void>;
+  onDeleteBg: () => Promise<void>;
 }
 
 export default function EventSettingsForm({
@@ -44,6 +52,7 @@ export default function EventSettingsForm({
   updateField,
   loading,
   saving,
+  uploadingBg,
   error,
   message,
   normalizedPublicId,
@@ -51,11 +60,16 @@ export default function EventSettingsForm({
   rsvpUrl,
   landingUrl,
   publicIdValid,
+  bgPreviewUrl,
   onSave,
   onDownloadQr,
   onDownloadRsvpQr,
+  onUploadBg,
+  onDeleteBg,
 }: Props) {
   const disabled = loading || saving;
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [bgImgError, setBgImgError] = useState(false);
 
   return (
     <Card sx={{ borderRadius: 5 }}>
@@ -390,20 +404,17 @@ export default function EventSettingsForm({
             </AccordionSummary>
             <AccordionDetails>
               <Stack spacing={2}>
-                <TextField
-                  label="URL immagine di sfondo"
-                  value={form.landingBgUrl}
-                  onChange={(e) => updateField("landingBgUrl", e.target.value)}
-                  placeholder="https://example.com/foto-matrimonio.jpg"
-                  fullWidth
-                  disabled={disabled}
-                  helperText="URL diretto a un'immagine (JPG, PNG, WebP) da usare come sfondo della pagina di benvenuto"
-                />
-                {form.landingBgUrl.trim() ? (
+                <Typography variant="body2" color="text.secondary">
+                  Carica un&apos;immagine (JPG, PNG, WebP — max 4 MB) da usare come sfondo della pagina di benvenuto.
+                </Typography>
+
+                {/* Anteprima */}
+                {bgPreviewUrl && !bgImgError ? (
                   <Box
                     component="img"
-                    src={form.landingBgUrl.trim()}
+                    src={bgPreviewUrl}
                     alt="Anteprima sfondo"
+                    onError={() => setBgImgError(true)}
                     sx={{
                       width: "100%",
                       maxWidth: 320,
@@ -413,11 +424,68 @@ export default function EventSettingsForm({
                       border: "1px solid",
                       borderColor: "divider",
                     }}
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).style.display = "none";
-                    }}
                   />
-                ) : null}
+                ) : (
+                  <Box
+                    sx={{
+                      width: "100%",
+                      maxWidth: 320,
+                      height: 180,
+                      borderRadius: 2,
+                      border: "1px dashed",
+                      borderColor: "divider",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Typography variant="body2" color="text.disabled">
+                      Nessuna immagine caricata
+                    </Typography>
+                  </Box>
+                )}
+
+                {/* Input file nascosto */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  style={{ display: "none" }}
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setBgImgError(false);
+                    await onUploadBg(file);
+                    // Forza il re-render dell'anteprima
+                    setBgImgError(false);
+                    if (fileInputRef.current) fileInputRef.current.value = "";
+                  }}
+                />
+
+                <Stack direction="row" spacing={1}>
+                  <Button
+                    variant="outlined"
+                    startIcon={uploadingBg ? <CircularProgress size={16} /> : <CloudUploadIcon />}
+                    disabled={disabled || uploadingBg}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    {bgPreviewUrl && !bgImgError ? "Sostituisci" : "Carica immagine"}
+                  </Button>
+                  {bgPreviewUrl && !bgImgError && (
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      startIcon={<DeleteIcon />}
+                      disabled={disabled || uploadingBg}
+                      onClick={async () => {
+                        await onDeleteBg();
+                        setBgImgError(true);
+                      }}
+                    >
+                      Rimuovi
+                    </Button>
+                  )}
+                </Stack>
               </Stack>
             </AccordionDetails>
           </Accordion>
