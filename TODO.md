@@ -192,12 +192,12 @@ Nuova pagina pubblica di benvenuto; nessuna modifica alla dashboard in questa fa
 
 ---
 
-## 🔲 Fase 19 — Dashboard: configurazione landing bg
+## ✅ Fase 19 — Dashboard: configurazione landing bg
 
 Aggiungere alla dashboard sposi il campo per l'immagine di sfondo della landing.
 
-- [ ] **`EventSettingsForm.tsx`**: nuova sezione "Pagina di benvenuto ospiti"; campo URL testuale `landing_bg_url` con anteprima miniatura (`<img>` condizionale sotto il campo); salvataggio tramite `useEventSettings` (già gestisce update generici)
-- [ ] **`useEventSettings`** / tipi: aggiungere `landing_bg_url` all'interfaccia `EventSettings` / `EventFormData`
+- [x] **`EventSettingsForm.tsx`**: nuova sezione "Pagina di benvenuto ospiti"; campo URL testuale `landing_bg_url` con anteprima miniatura (`<img>` condizionale sotto il campo); salvataggio tramite `useEventSettings` (già gestisce update generici)
+- [x] **`useEventSettings`** / tipi: aggiungere `landing_bg_url` all'interfaccia `EventSettings` / `EventFormData`
 
 ---
 

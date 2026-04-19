@@ -3,6 +3,7 @@ import {
   AccordionDetails,
   AccordionSummary,
   Alert,
+  Box,
   Button,
   Card,
   CardContent,
@@ -370,6 +371,53 @@ export default function EventSettingsForm({
                   disabled={disabled}
                   helperText="Campo opzionale per note generali o menù alternativo"
                 />
+              </Stack>
+            </AccordionDetails>
+          </Accordion>
+
+          <Accordion
+            disableGutters
+            elevation={0}
+            sx={{
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 3,
+              "&:before": { display: "none" },
+            }}
+          >
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography fontWeight={600}>🖼️ Pagina di benvenuto ospiti</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Stack spacing={2}>
+                <TextField
+                  label="URL immagine di sfondo"
+                  value={form.landingBgUrl}
+                  onChange={(e) => updateField("landingBgUrl", e.target.value)}
+                  placeholder="https://example.com/foto-matrimonio.jpg"
+                  fullWidth
+                  disabled={disabled}
+                  helperText="URL diretto a un'immagine (JPG, PNG, WebP) da usare come sfondo della pagina di benvenuto"
+                />
+                {form.landingBgUrl.trim() ? (
+                  <Box
+                    component="img"
+                    src={form.landingBgUrl.trim()}
+                    alt="Anteprima sfondo"
+                    sx={{
+                      width: "100%",
+                      maxWidth: 320,
+                      height: 180,
+                      objectFit: "cover",
+                      borderRadius: 2,
+                      border: "1px solid",
+                      borderColor: "divider",
+                    }}
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).style.display = "none";
+                    }}
+                  />
+                ) : null}
               </Stack>
             </AccordionDetails>
           </Accordion>

@@ -84,6 +84,8 @@ export interface EventSettingsRow {
   reception_venue_address: string | null;
   reception_venue_maps_url: string | null;
   reception_time: string | null;
+  // Fase 17: sito ospite
+  landing_bg_url: string | null;
 }
 
 // ── Fase 2: RSVP ─────────────────────────────────────────────────────────────
