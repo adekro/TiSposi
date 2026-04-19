@@ -38,6 +38,8 @@ export interface EventFormState {
   receptionTime: string;
   // Fase 19
   landingBgUrl: string;
+  // Fase 21
+  weddingListDescription: string;
 }
 
 const defaultState: EventFormState = {
@@ -69,6 +71,7 @@ const defaultState: EventFormState = {
   receptionVenueMapsUrl: "",
   receptionTime: "",
   landingBgUrl: "",
+  weddingListDescription: "",
 };
 
 export function normalizePublicId(value: string) {
@@ -102,7 +105,7 @@ export function useEventSettings(userId: string, userEmail?: string) {
     void supabase
       .from("events")
       .select(
-        "id, owner_user_id, public_id, title, spouses, storage_provider, google_drive_folder_id, wedding_date, venue_name, venue_address, venue_maps_url, dresscode, schedule, couple_story, menu, menu_antipasto, menu_primo, menu_secondo, menu_contorno, menu_dolce, menu_bevande, ceremony_venue_name, ceremony_venue_address, ceremony_venue_maps_url, ceremony_time, reception_venue_name, reception_venue_address, reception_venue_maps_url, reception_time, landing_bg_url",
+        "id, owner_user_id, public_id, title, spouses, storage_provider, google_drive_folder_id, wedding_date, venue_name, venue_address, venue_maps_url, dresscode, schedule, couple_story, menu, menu_antipasto, menu_primo, menu_secondo, menu_contorno, menu_dolce, menu_bevande, ceremony_venue_name, ceremony_venue_address, ceremony_venue_maps_url, ceremony_time, reception_venue_name, reception_venue_address, reception_venue_maps_url, reception_time, landing_bg_url, wedding_list_description",
       )
       .eq("owner_user_id", userId)
       .maybeSingle<EventSettingsRow>()
@@ -144,6 +147,7 @@ export function useEventSettings(userId: string, userEmail?: string) {
             receptionVenueMapsUrl: data.reception_venue_maps_url ?? "",
             receptionTime: data.reception_time ?? "",
             landingBgUrl: data.landing_bg_url ?? "",
+            weddingListDescription: data.wedding_list_description ?? "",
           });
         } else {
           const defaultPublicId = buildPublicIdFromEmail(userEmail);
@@ -234,6 +238,7 @@ export function useEventSettings(userId: string, userEmail?: string) {
       reception_venue_maps_url: form.receptionVenueMapsUrl.trim() || null,
       reception_time: form.receptionTime.trim() || null,
       landing_bg_url: form.landingBgUrl.trim() || null,
+      wedding_list_description: form.weddingListDescription.trim() || null,
     };
 
     const { error: upsertError } = await supabase

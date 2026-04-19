@@ -31,6 +31,7 @@ import { useBudget } from "../hooks/useBudget";
 import { useSuppliers } from "../hooks/useSuppliers";
 import { useActivities } from "../hooks/useActivities";
 import { useTables } from "../hooks/useTables";
+import { useWeddingList } from "../hooks/useWeddingList";
 import DashboardHeader from "../components/DashboardHeader";
 import EventSettingsForm from "../components/EventSettingsForm";
 import ChecklistTab from "../components/ChecklistTab";
@@ -39,6 +40,7 @@ import BudgetTab from "../components/BudgetTab";
 import SuppliersTab from "../components/SuppliersTab";
 import ActivitiesTab from "../components/ActivitiesTab";
 import TablesTab from "../components/TablesTab";
+import WeddingListTab from "../components/WeddingListTab";
 import StatisticsTab from "../components/StatisticsTab";
 import MediaTab from "../components/MediaTab";
 
@@ -61,6 +63,7 @@ export default function DashboardPage() {
   const suppliersHook = useSuppliers(effectiveUserId);
   const activitiesHook = useActivities(effectiveUserId);
   const tablesHook = useTables(effectiveUserId);
+  const weddingListHook = useWeddingList(effectiveUserId);
   const [tab, setTab] = useState(0);
   const [rsvpSubTab, setRsvpSubTab] = useState(0);
   const [guestSubTab, setGuestSubTab] = useState(0);
@@ -193,6 +196,13 @@ export default function DashboardPage() {
                   activitiesHook.activities.length > 0
                     ? `Attività (${activitiesHook.activities.length})`
                     : "Attività"
+                }
+              />
+              <Tab
+                label={
+                  weddingListHook.items.length > 0
+                    ? `Lista Nozze (${weddingListHook.items.length})`
+                    : "Lista Nozze"
                 }
               />
               <Tab label="Statistiche" />
@@ -474,9 +484,10 @@ export default function DashboardPage() {
           {tab === 4 && <BudgetTab hook={budgetHook} />}
           {tab === 5 && <SuppliersTab hook={suppliersHook} />}
           {tab === 6 && <ActivitiesTab hook={activitiesHook} />}
-          {tab === 7 && <StatisticsTab userId={effectiveUserId} />}
-          {tab === 8 && <MediaTab userId={effectiveUserId} />}
-          {tab === 9 && isAdmin && <AdminPanel />}
+          {tab === 7 && <WeddingListTab hook={weddingListHook} />}
+          {tab === 8 && <StatisticsTab userId={effectiveUserId} />}
+          {tab === 9 && <MediaTab userId={effectiveUserId} />}
+          {tab === 10 && isAdmin && <AdminPanel />}
         </Stack>
       </Container>
     </Box>

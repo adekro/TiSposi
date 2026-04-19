@@ -201,22 +201,22 @@ Aggiungere alla dashboard sposi il campo per l'immagine di sfondo della landing.
 
 ---
 
-## 🔲 Fase 20 — Lista nozze: schema lato backend e hook
+## ✅ Fase 20 — Lista nozze: schema lato backend e hook
 
 Creare hook e API per la gestione degli item della lista nozze (solo logica dati, nessuna UI pubblica ancora).
 
-- [ ] **`WeddingListItem` e `WeddingListFormData`** in `src/types.ts`
-- [ ] **`src/hooks/useWeddingList.ts`**: `useQuery` su `wedding_list_items` filtrato per `event_id`; mutation `addItem`, `updateItem`, `deleteItem`, `reorderItem` (swap `order` tra adiacenti); stesso pattern di `useTables`
+- [x] **`WeddingListItem` e `WeddingListFormData`** in `src/types.ts`
+- [x] **`src/hooks/useWeddingList.ts`**: `useQuery` su `wedding_list_items` filtrato per `event_id`; mutation `addItem`, `updateItem`, `deleteItem`, `reorderItem` (swap `order` tra adiacenti); stesso pattern di `useTables`
 
 ---
 
-## 🔲 Fase 21 — Dashboard: gestione lista nozze
+## ✅ Fase 21 — Dashboard: gestione lista nozze
 
 Nuova tab nella dashboard sposi per gestire gli item della lista nozze.
 
-- [ ] **`src/components/WeddingListTab.tsx`**: lista card con titolo, descrizione, URL (link esterno), pulsanti ▲/▼ riordino; form dialog Add/Edit (titolo obbligatorio, descrizione, URL obbligatorio); dialog conferma eliminazione
-- [ ] **`DashboardPage.tsx`**: aggiungere tab "Lista Nozze" con `<WeddingListTab />`
-- [ ] **`EventSettingsForm.tsx`**: aggiungere campo `wedding_list_description` (multiline) nella sezione "Lista Nozze"
+- [x] **`src/components/WeddingListTab.tsx`**: lista card con titolo, descrizione, URL (link esterno), pulsanti ▲/▼ riordino; form dialog Add/Edit (titolo obbligatorio, descrizione, URL obbligatorio); dialog conferma eliminazione
+- [x] **`DashboardPage.tsx`**: aggiungere tab "Lista Nozze" con `<WeddingListTab />`
+- [x] **`EventSettingsForm.tsx`**: aggiungere campo `wedding_list_description` (multiline) nella sezione "Lista Nozze"
 
 ---
 

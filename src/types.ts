@@ -86,6 +86,7 @@ export interface EventSettingsRow {
   reception_time: string | null;
   // Fase 17: sito ospite
   landing_bg_url: string | null;
+  wedding_list_description: string | null;
 }
 
 // ── Fase 2: RSVP ─────────────────────────────────────────────────────────────
@@ -223,3 +224,16 @@ export interface AdminEventRow {
   weddingDate: string | null;
   createdAt: string;
 }
+
+// ── Fase 20: Lista nozze ─────────────────────────────────────────────────────
+export interface WeddingListItem {
+  id: string;
+  event_id: string;
+  title: string;
+  description: string | null;
+  url: string;
+  order: number;
+  created_at: string;
+}
+
+export type WeddingListFormData = Omit<WeddingListItem, "id" | "event_id" | "created_at">;

@@ -422,6 +422,34 @@ export default function EventSettingsForm({
             </AccordionDetails>
           </Accordion>
 
+          <Accordion
+            disableGutters
+            elevation={0}
+            sx={{
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 3,
+              "&:before": { display: "none" },
+            }}
+          >
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography fontWeight={600}>💍 Lista Nozze</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <TextField
+                label="Descrizione lista nozze"
+                value={form.weddingListDescription}
+                onChange={(e) => updateField("weddingListDescription", e.target.value)}
+                placeholder="Invece dei regali tradizionali, abbiamo scelto dei desideri speciali..."
+                fullWidth
+                multiline
+                minRows={3}
+                disabled={disabled}
+                helperText="Testo introduttivo mostrato agli ospiti nella pagina della lista nozze"
+              />
+            </AccordionDetails>
+          </Accordion>
+
           <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
             <Button
               variant="contained"
