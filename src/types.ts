@@ -42,6 +42,8 @@ export interface PublicEventSummary {
   receptionVenueAddress?: string | null;
   receptionVenueMapsUrl?: string | null;
   receptionTime?: string | null;
+  // Fase 17: sito ospite
+  landingBgUrl?: string | null;
 }
 
 export interface PublicGalleryResponse {

@@ -11,6 +11,7 @@ import PrivacyPage from "./pages/PrivacyPage";
 import CookiePage from "./pages/CookiePage";
 import TerminiPage from "./pages/TerminiPage";
 import EventRedirectPage from "./pages/EventRedirectPage";
+import GuestLandingPage from "./pages/GuestLandingPage";
 import { supabase } from "./lib/supabase";
 
 export default function App() {
@@ -41,8 +42,10 @@ export default function App() {
       </Route>
       <Route path="/:publicId/gallery" element={<GalleryPage />} />
       <Route path="/:publicId/rsvp" element={<RsvpPage />} />
+      <Route path="/:publicId/landing" element={<GuestLandingPage />} />
       <Route path="/e/:eventId" element={<EventRedirectPage />} />
       <Route path="/e/:eventId/rsvp" element={<EventRedirectPage />} />
+      <Route path="/e/:eventId/landing" element={<EventRedirectPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

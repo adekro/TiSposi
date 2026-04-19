@@ -33,6 +33,9 @@ create table if not exists public.events (
   reception_venue_address text,
   reception_venue_maps_url text,
   reception_time text,
+  -- Fase 17: sito ospite
+  landing_bg_url text,
+  wedding_list_description text,
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now())
 );
@@ -514,6 +517,46 @@ create policy "Owners can manage rsvp entries"
     exists (
       select 1 from public.events
       where events.id = rsvp_entries.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  );
+
+-- ── Fase 17: Schema SQL sito ospite ─────────────────────────────────────────
+
+-- Migration: aggiungi campi sito ospite a events
+alter table public.events add column if not exists landing_bg_url text;
+alter table public.events add column if not exists wedding_list_description text;
+
+-- Tabella lista nozze
+create table if not exists public.wedding_list_items (
+  id uuid primary key default gen_random_uuid(),
+  event_id uuid not null references public.events (id) on delete cascade,
+  title text not null check (char_length(title) between 1 and 200),
+  description text,
+  url text not null check (char_length(url) between 1 and 2000),
+  "order" integer not null default 0,
+  created_at timestamptz not null default timezone('utc', now())
+);
+
+create index if not exists idx_wedding_list_items_event_id
+  on public.wedding_list_items (event_id, "order", created_at);
+
+alter table public.wedding_list_items enable row level security;
+
+drop policy if exists "Owners can manage wedding list items" on public.wedding_list_items;
+create policy "Owners can manage wedding list items"
+  on public.wedding_list_items for all
+  using (
+    exists (
+      select 1 from public.events
+      where events.id = wedding_list_items.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.events
+      where events.id = wedding_list_items.event_id
         and events.owner_user_id = auth.uid()
     )
   );

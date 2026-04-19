@@ -7,7 +7,11 @@ export default function EventRedirectPage() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
-  const isRsvp = pathname.endsWith("/rsvp");
+  const getSuffix = () => {
+    if (pathname.endsWith("/rsvp")) return "/rsvp";
+    if (pathname.endsWith("/landing")) return "/landing";
+    return "/gallery";
+  };
 
   useEffect(() => {
     if (!eventId) {
@@ -18,13 +22,10 @@ export default function EventRedirectPage() {
     fetch(`/api/event-redirect?eventId=${encodeURIComponent(eventId)}`)
       .then((res) => (res.ok ? (res.json() as Promise<{ publicId: string }>) : Promise.reject()))
       .then((data) => {
-        const target = isRsvp
-          ? `/${data.publicId}/rsvp`
-          : `/${data.publicId}/gallery`;
-        navigate(target, { replace: true });
+        navigate(`/${data.publicId}${getSuffix()}`, { replace: true });
       })
       .catch(() => navigate("/", { replace: true }));
-  }, [eventId, isRsvp, navigate]);
+  }, [eventId, navigate, pathname]);
 
   return (
     <Box

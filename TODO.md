@@ -168,27 +168,27 @@
 
 ---
 
-## 🔲 Fase 17 — Schema SQL sito ospite
+## ✅ Fase 17 — Schema SQL sito ospite
 
 Aggiungere i nuovi campi e tabelle necessari al sito ospite, senza toccare ancora il frontend.
 
-- [ ] **Migration idempotente su `events`**:
+- [x] **Migration idempotente su `events`**:
   - `ALTER TABLE public.events ADD COLUMN IF NOT EXISTS landing_bg_url text`
   - `ALTER TABLE public.events ADD COLUMN IF NOT EXISTS wedding_list_description text`
-- [ ] **Nuova tabella `wedding_list_items`**: `id uuid PK`, `event_id uuid FK → events(id) ON DELETE CASCADE`, `title text NOT NULL`, `description text`, `url text NOT NULL`, `"order" int NOT NULL DEFAULT 0`, `created_at timestamptz NOT NULL DEFAULT now()`; index su `(event_id, "order", created_at)`
-- [ ] **RLS** su `wedding_list_items`: policy `"Owners can manage wedding list items"` (`for all` con `owner_user_id` check, stesso pattern degli altri)
-- [ ] **Aggiornare `supabase/schema.sql`** con le migration idempotenti
+- [x] **Nuova tabella `wedding_list_items`**: `id uuid PK`, `event_id uuid FK → events(id) ON DELETE CASCADE`, `title text NOT NULL`, `description text`, `url text NOT NULL`, `"order" int NOT NULL DEFAULT 0`, `created_at timestamptz NOT NULL DEFAULT now()`; index su `(event_id, "order", created_at)`
+- [x] **RLS** su `wedding_list_items`: policy `"Owners can manage wedding list items"` (`for all` con `owner_user_id` check, stesso pattern degli altri)
+- [x] **Aggiornare `supabase/schema.sql`** con le migration idempotenti
 
 ---
 
-## 🔲 Fase 18 — Pagina Landing ospite (`/:publicId/landing`)
+## ✅ Fase 18 — Pagina Landing ospite (`/:publicId/landing`)
 
 Nuova pagina pubblica di benvenuto; nessuna modifica alla dashboard in questa fase.
 
-- [ ] **`src/pages/GuestLandingPage.tsx`**: carica l'evento via `publicId` (stesso pattern di `GalleryPage`); mostra intestazione "Benvenuti" con nome sposi e data matrimonio; immagine di sfondo da `landing_bg_url` (con fallback a gradiente tema); overlay semi-trasparente per leggibilità
-- [ ] **Navigazione**: pulsanti/link verso `/:publicId/gallery`, `/:publicId/rsvp`, `/:publicId/listanozze`
-- [ ] **Rotta** `/:publicId/landing` in `App.tsx`
-- [ ] **`/e/:eventId/landing`** — redirect stabile via `EventRedirectPage` (stesso pattern `/e/:eventId`)
+- [x] **`src/pages/GuestLandingPage.tsx`**: carica l'evento via `publicId` (stesso pattern di `GalleryPage`); mostra intestazione "Benvenuti" con nome sposi e data matrimonio; immagine di sfondo da `landing_bg_url` (con fallback a gradiente tema); overlay semi-trasparente per leggibilità
+- [x] **Navigazione**: pulsanti/link verso `/:publicId/gallery`, `/:publicId/rsvp`, `/:publicId/listanozze`
+- [x] **Rotta** `/:publicId/landing` in `App.tsx`
+- [x] **`/e/:eventId/landing`** — redirect stabile via `EventRedirectPage` (stesso pattern `/e/:eventId`)
 
 ---
 
