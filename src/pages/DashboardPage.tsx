@@ -19,7 +19,10 @@ import {
   Typography,
 } from "@mui/material";
 import DownloadIcon from "@mui/icons-material/Download";
+import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+import SwitchAccountIcon from "@mui/icons-material/SwitchAccount";
 import { useAuth } from "../contexts/AuthContext";
+import AdminPanel from "../components/AdminPanel";
 import { useEventSettings } from "../hooks/useEventSettings";
 import { useRsvp } from "../hooks/useRsvp";
 import { useChecklist } from "../hooks/useChecklist";
@@ -39,19 +42,25 @@ import TablesTab from "../components/TablesTab";
 import StatisticsTab from "../components/StatisticsTab";
 import MediaTab from "../components/MediaTab";
 
+const ADMIN_EMAIL = "e.croce88@gmail.com";
+
 export default function DashboardPage() {
-  const { user, signOut, configError } = useAuth();
+  const { user, signOut, configError, impersonatedUserId, impersonatedEmail, stopImpersonation } = useAuth();
+  const isAdmin = user?.email === ADMIN_EMAIL;
+  // effectiveUserId: usa l'id impersonato se presente, altrimenti il proprio
+  const effectiveUserId = impersonatedUserId ?? user?.id ?? "";
+
   const { handleSave, handleDownloadQr, handleDownloadRsvpQr, ...formProps } =
-    useEventSettings(user?.id ?? "", user?.email);
+    useEventSettings(effectiveUserId, impersonatedUserId ? impersonatedEmail ?? undefined : user?.email);
   const { entries, stats, loading: rsvpLoading, error: rsvpError } = useRsvp(
-    user?.id ?? "",
+    effectiveUserId,
   );
-  const checklistHook = useChecklist(user?.id ?? "");
-  const guestListHook = useGuestList(user?.id ?? "");
-  const budgetHook = useBudget(user?.id ?? "");
-  const suppliersHook = useSuppliers(user?.id ?? "");
-  const activitiesHook = useActivities(user?.id ?? "");
-  const tablesHook = useTables(user?.id ?? "");
+  const checklistHook = useChecklist(effectiveUserId);
+  const guestListHook = useGuestList(effectiveUserId);
+  const budgetHook = useBudget(effectiveUserId);
+  const suppliersHook = useSuppliers(effectiveUserId);
+  const activitiesHook = useActivities(effectiveUserId);
+  const tablesHook = useTables(effectiveUserId);
   const [tab, setTab] = useState(0);
   const [rsvpSubTab, setRsvpSubTab] = useState(0);
   const [guestSubTab, setGuestSubTab] = useState(0);
@@ -118,6 +127,25 @@ export default function DashboardPage() {
     >
       <Container maxWidth="md">
         <Stack spacing={3}>
+          {/* Banner impersonazione admin */}
+          {impersonatedUserId && (
+            <Alert
+              severity="warning"
+              icon={<SwitchAccountIcon />}
+              action={
+                <Button
+                  color="inherit"
+                  size="small"
+                  onClick={stopImpersonation}
+                >
+                  Torna al tuo account
+                </Button>
+              }
+            >
+              Stai gestendo: <strong>{impersonatedEmail}</strong>
+            </Alert>
+          )}
+
           <DashboardHeader
             email={user.email ?? ""}
             onSignOut={() => void signOut()}
@@ -169,6 +197,14 @@ export default function DashboardPage() {
               />
               <Tab label="Statistiche" />
               <Tab label="Media" />
+              {isAdmin && (
+                <Tab
+                  label="Admin"
+                  icon={<AdminPanelSettingsIcon fontSize="small" />}
+                  iconPosition="start"
+                  sx={{ color: "warning.main" }}
+                />
+              )}
             </Tabs>
           </Box>
 
@@ -438,8 +474,9 @@ export default function DashboardPage() {
           {tab === 4 && <BudgetTab hook={budgetHook} />}
           {tab === 5 && <SuppliersTab hook={suppliersHook} />}
           {tab === 6 && <ActivitiesTab hook={activitiesHook} />}
-          {tab === 7 && <StatisticsTab userId={user.id} />}
-          {tab === 8 && <MediaTab userId={user.id} />}
+          {tab === 7 && <StatisticsTab userId={effectiveUserId} />}
+          {tab === 8 && <MediaTab userId={effectiveUserId} />}
+          {tab === 9 && isAdmin && <AdminPanel />}
         </Stack>
       </Container>
     </Box>

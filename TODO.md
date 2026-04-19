@@ -149,12 +149,12 @@
 
 ---
 
-## 🔲 Fase 15 — Pannello admin (solo e.croce88@gmail.com)
+## ✅ Fase 15 — Pannello admin (solo e.croce88@gmail.com)
 
-- [ ] **Riconoscimento admin**: all'avvio dell'app, se `user.email === "e.croce88@gmail.com"` viene visualizzato un banner/sezione "Admin" nella dashboard (non visibile ad altri utenti); nessuna tabella extra necessaria, la verifica è puramente client-side sul campo email dell'utente autenticato
-- [ ] **Lista utenti attivi**: la sezione admin mostra una tabella con tutti gli eventi (e i relativi owner) senza filtro per `owner_user_id`; colonne: email proprietario, nome evento, sposi, data matrimonio, data creazione; dati caricati con una query Supabase senza RLS tramite la service-role key (API route dedicata `GET /api/admin/events` con token admin hardcoded lato server)
-- [ ] **Impersonazione**: ogni riga ha un bottone "Gestisci" che ricarica la dashboard impostando un `impersonatedUserId` nel contesto; tutti gli hook che usano `userId` ricevono l'id impersonato al posto di quello reale; banner persistente in alto ("Stai gestendo: {email}") con tasto "Torna al tuo account"
-- [ ] **Protezione API**: `GET /api/admin/events` verifica che il JWT nel header appartenga a `e.croce88@gmail.com` prima di rispondere; restituisce la lista completa degli eventi con email owner
+- [x] **Riconoscimento admin**: all'avvio dell'app, se `user.email === "e.croce88@gmail.com"` viene visualizzato un banner/sezione "Admin" nella dashboard (non visibile ad altri utenti); nessuna tabella extra necessaria, la verifica è puramente client-side sul campo email dell'utente autenticato
+- [x] **Lista utenti attivi**: la sezione admin mostra una tabella con tutti gli eventi (e i relativi owner) senza filtro per `owner_user_id`; colonne: email proprietario, nome evento, sposi, data matrimonio, data creazione; dati caricati con una query Supabase senza RLS tramite la service-role key (API route dedicata `GET /api/admin/events` con verifica email admin lato server)
+- [x] **Impersonazione**: ogni riga ha un bottone "Gestisci" che imposta `impersonatedUserId` nel contesto (`AuthContext`); tutti gli hook ricevono `effectiveUserId` (`impersonatedUserId ?? user?.id`) al posto dell'id reale; banner persistente in alto ("Stai gestendo: {email}") con tasto "Torna al tuo account"
+- [x] **Protezione API**: `GET /api/admin/events` verifica che il JWT nel header appartenga a `e.croce88@gmail.com` prima di rispondere (401 senza token, 403 per non-admin); restituisce la lista completa degli eventi con email owner
 
 ---
 
@@ -165,3 +165,75 @@
 - [x] **Dashboard sposi — resoconto logistica**: nella tab RSVP aggiunti due sotto-tab "Risposte" (tabella attuale invariata) e "Logistica" con Chips aggregate per mezzo/parcheggio/navetta/alloggio e tabella dettaglio ospiti presenti
 - [x] **Export CSV RSVP**: aggiornate le colonne con i nuovi campi (Mezzo di trasporto, Parcheggio, Navetta, Alloggio, Note alloggio)
 - [x] **Migration SQL** idempotente
+
+---
+
+## 🔲 Fase 17 — Schema SQL sito ospite
+
+Aggiungere i nuovi campi e tabelle necessari al sito ospite, senza toccare ancora il frontend.
+
+- [ ] **Migration idempotente su `events`**:
+  - `ALTER TABLE public.events ADD COLUMN IF NOT EXISTS landing_bg_url text`
+  - `ALTER TABLE public.events ADD COLUMN IF NOT EXISTS wedding_list_description text`
+- [ ] **Nuova tabella `wedding_list_items`**: `id uuid PK`, `event_id uuid FK → events(id) ON DELETE CASCADE`, `title text NOT NULL`, `description text`, `url text NOT NULL`, `"order" int NOT NULL DEFAULT 0`, `created_at timestamptz NOT NULL DEFAULT now()`; index su `(event_id, "order", created_at)`
+- [ ] **RLS** su `wedding_list_items`: policy `"Owners can manage wedding list items"` (`for all` con `owner_user_id` check, stesso pattern degli altri)
+- [ ] **Aggiornare `supabase/schema.sql`** con le migration idempotenti
+
+---
+
+## 🔲 Fase 18 — Pagina Landing ospite (`/:publicId/landing`)
+
+Nuova pagina pubblica di benvenuto; nessuna modifica alla dashboard in questa fase.
+
+- [ ] **`src/pages/GuestLandingPage.tsx`**: carica l'evento via `publicId` (stesso pattern di `GalleryPage`); mostra intestazione "Benvenuti" con nome sposi e data matrimonio; immagine di sfondo da `landing_bg_url` (con fallback a gradiente tema); overlay semi-trasparente per leggibilità
+- [ ] **Navigazione**: pulsanti/link verso `/:publicId/gallery`, `/:publicId/rsvp`, `/:publicId/listanozze`
+- [ ] **Rotta** `/:publicId/landing` in `App.tsx`
+- [ ] **`/e/:eventId/landing`** — redirect stabile via `EventRedirectPage` (stesso pattern `/e/:eventId`)
+
+---
+
+## 🔲 Fase 19 — Dashboard: configurazione landing bg
+
+Aggiungere alla dashboard sposi il campo per l'immagine di sfondo della landing.
+
+- [ ] **`EventSettingsForm.tsx`**: nuova sezione "Pagina di benvenuto ospiti"; campo URL testuale `landing_bg_url` con anteprima miniatura (`<img>` condizionale sotto il campo); salvataggio tramite `useEventSettings` (già gestisce update generici)
+- [ ] **`useEventSettings`** / tipi: aggiungere `landing_bg_url` all'interfaccia `EventSettings` / `EventFormData`
+
+---
+
+## 🔲 Fase 20 — Lista nozze: schema lato backend e hook
+
+Creare hook e API per la gestione degli item della lista nozze (solo logica dati, nessuna UI pubblica ancora).
+
+- [ ] **`WeddingListItem` e `WeddingListFormData`** in `src/types.ts`
+- [ ] **`src/hooks/useWeddingList.ts`**: `useQuery` su `wedding_list_items` filtrato per `event_id`; mutation `addItem`, `updateItem`, `deleteItem`, `reorderItem` (swap `order` tra adiacenti); stesso pattern di `useTables`
+
+---
+
+## 🔲 Fase 21 — Dashboard: gestione lista nozze
+
+Nuova tab nella dashboard sposi per gestire gli item della lista nozze.
+
+- [ ] **`src/components/WeddingListTab.tsx`**: lista card con titolo, descrizione, URL (link esterno), pulsanti ▲/▼ riordino; form dialog Add/Edit (titolo obbligatorio, descrizione, URL obbligatorio); dialog conferma eliminazione
+- [ ] **`DashboardPage.tsx`**: aggiungere tab "Lista Nozze" con `<WeddingListTab />`
+- [ ] **`EventSettingsForm.tsx`**: aggiungere campo `wedding_list_description` (multiline) nella sezione "Lista Nozze"
+
+---
+
+## 🔲 Fase 22 — Pagina Lista Nozze ospite (`/:publicId/listanozze`)
+
+Nuova pagina pubblica con la lista nozze; richiede Fase 20 completata.
+
+- [ ] **`src/pages/GuestWeddingListPage.tsx`**: carica evento + items tramite `useWeddingList(publicId)`; mostra descrizione testuale degli sposi; griglia di card cliccabili (titolo, descrizione, pulsante "Scopri" che apre l'URL in `_blank`); empty state se lista vuota
+- [ ] **Rotta** `/:publicId/listanozze` in `App.tsx`
+- [ ] **`/e/:eventId/listanozze`** — redirect stabile via `EventRedirectPage`
+
+---
+
+## 🔲 Fase 23 — Layout condiviso sito ospite
+
+Unificare le pagine ospite con una navigation bar comune.
+
+- [ ] **`src/components/Guestnavbar.tsx`**: `AppBar` leggero (logo TiSposi + link `Landing`, `Galleria`, `RSVP`, `Lista Nozze`); link attivi evidenziati; link assenti se la pagina corrispondente non ha dati (es. lista nozze vuota)
+- [ ] **Adottare `GuestNavbar`** in `GuestLandingPage`, `GalleryPage`, `RsvpPage`, `GuestWeddingListPage`
+- [ ] Verificare che le rotte `/e/:eventId/*` coprano tutte le nuove pagine del sito ospite

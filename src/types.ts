@@ -208,3 +208,14 @@ export interface Activity {
 }
 
 export type ActivityFormData = Omit<Activity, "id" | "event_id" | "created_at">;
+
+// ── Fase 15: Pannello admin ──────────────────────────────────────────────────
+export interface AdminEventRow {
+  id: string;
+  ownerUserId: string;
+  ownerEmail: string;
+  title: string;
+  spouses: string;
+  weddingDate: string | null;
+  createdAt: string;
+}
