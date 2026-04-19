@@ -28,6 +28,7 @@ import CountdownWidget from "../components/CountdownWidget";
 import WeddingInfoSection from "../components/WeddingInfoSection";
 import PWAInstallBanner from "../components/PWAInstallBanner";
 import LegalFooter from "../components/LegalFooter";
+import GuestNavMenu from "../components/GuestNavMenu";
 import { useParams } from "react-router-dom";
 
 export default function GalleryPage() {
@@ -121,7 +122,7 @@ export default function GalleryPage() {
             sx={{
               position: "absolute",
               top: 12,
-              right: 16,
+              right: 56,
               fontSize: 18,
               color: theme.palette.primary.main,
               opacity: 0.6,
@@ -133,6 +134,11 @@ export default function GalleryPage() {
             }}
           />
         )}
+
+        {/* Hamburger menu navigazione ospite */}
+        <Box sx={{ position: "absolute", top: 10, right: 12 }}>
+          <GuestNavMenu publicId={publicId} spouses={event?.spouses} />
+        </Box>
 
         <Typography
           variant="h3"

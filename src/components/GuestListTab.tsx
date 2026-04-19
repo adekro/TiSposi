@@ -41,6 +41,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import DownloadIcon from "@mui/icons-material/Download";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import CollectionsIcon from "@mui/icons-material/Collections";
+import HomeIcon from "@mui/icons-material/Home";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import type { useGuestList, GuestFormData } from "../hooks/useGuestList";
@@ -234,6 +235,12 @@ export default function GuestListTab({ hook, publicId, tables, assignments }: Pr
     window.open(buildWaUrl(phone, text), "_blank", "noopener,noreferrer");
   };
 
+  const openWhatsAppLanding = (guestName: string, phone: string | null) => {
+    const link = `${window.location.origin}/${encodeURIComponent(publicId)}/landing`;
+    const text = `Ciao ${guestName}! Ecco la pagina di benvenuto del nostro matrimonio 💍 ${link}`;
+    window.open(buildWaUrl(phone, text), "_blank", "noopener,noreferrer");
+  };
+
   const tableNameById = (id: string) =>
     tables.find((t) => t.id === id)?.name ?? "";
 
@@ -423,6 +430,16 @@ export default function GuestListTab({ hook, publicId, tables, assignments }: Pr
                             disabled={!publicId}
                           >
                             <CollectionsIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Invia link pagina di benvenuto via WhatsApp">
+                          <IconButton
+                            size="small"
+                            onClick={() => openWhatsAppLanding(g.full_name, g.phone)}
+                            sx={{ color: "secondary.dark" }}
+                            disabled={!publicId}
+                          >
+                            <HomeIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
                         <Tooltip title="Modifica">

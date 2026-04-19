@@ -161,6 +161,9 @@ export function useEventSettings(userId: string, userEmail?: string) {
   const rsvpUrl = normalizedPublicId
     ? `${window.location.origin}/${normalizedPublicId}/rsvp`
     : "";
+  const landingUrl = normalizedPublicId
+    ? `${window.location.origin}/${normalizedPublicId}/landing`
+    : "";
   const publicIdValid = PUBLIC_ID_PATTERN.test(normalizedPublicId);
 
   const updateField = <K extends keyof EventFormState>(
@@ -283,6 +286,7 @@ export function useEventSettings(userId: string, userEmail?: string) {
     normalizedPublicId,
     publicUrl,
     rsvpUrl,
+    landingUrl,
     publicIdValid,
     handleSave,
     handleDownloadQr,

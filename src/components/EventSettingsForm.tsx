@@ -31,6 +31,7 @@ interface Props {
   normalizedPublicId: string;
   publicUrl: string;
   rsvpUrl: string;
+  landingUrl: string;
   publicIdValid: boolean;
   onSave: () => Promise<void>;
   onDownloadQr: () => Promise<void>;
@@ -47,6 +48,7 @@ export default function EventSettingsForm({
   normalizedPublicId,
   publicUrl,
   rsvpUrl,
+  landingUrl,
   publicIdValid,
   onSave,
   onDownloadQr,
@@ -412,6 +414,14 @@ export default function EventSettingsForm({
               URL RSVP:{" "}
               <Link href={rsvpUrl} target="_blank" rel="noreferrer">
                 {rsvpUrl}
+              </Link>
+            </Alert>
+          ) : null}
+          {landingUrl ? (
+            <Alert severity="info">
+              URL pagina di benvenuto:{" "}
+              <Link href={landingUrl} target="_blank" rel="noreferrer">
+                {landingUrl}
               </Link>
             </Alert>
           ) : null}
