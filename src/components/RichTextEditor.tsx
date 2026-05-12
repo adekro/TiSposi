@@ -6,6 +6,7 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
+  MenuItem,
   Paper,
   Stack,
   TextField,
@@ -22,12 +23,18 @@ import { FormatAlignLeft as FormatAlignLeftIcon } from "@mui/icons-material";
 import { FormatAlignCenter as FormatAlignCenterIcon } from "@mui/icons-material";
 import { Link as LinkIcon } from "@mui/icons-material";
 import { LinkOff as LinkOffIcon } from "@mui/icons-material";
+import { FontDownload as FontDownloadIcon } from "@mui/icons-material";
+import { Palette as PaletteIcon } from "@mui/icons-material";
 import { Preview as PreviewIcon } from "@mui/icons-material";
 import { Title as TitleIcon } from "@mui/icons-material";
 import { Subject as SubjectIcon } from "@mui/icons-material";
 import { Undo as UndoIcon } from "@mui/icons-material";
 import { useEffect, useRef, useState } from "react";
 import IsolatedHtmlContent from "./IsolatedHtmlContent";
+import {
+  RICH_TEXT_COLOR_OPTIONS,
+  RICH_TEXT_FONT_OPTIONS,
+} from "./richTextOptions";
 
 interface RichTextEditorProps {
   value: string;
@@ -52,6 +59,23 @@ function normalizeHtml(value: string) {
 
   const container = document.createElement("div");
   container.innerHTML = value;
+
+  container.querySelectorAll("font").forEach((fontNode) => {
+    const span = document.createElement("span");
+    const color = fontNode.getAttribute("color");
+    const face = fontNode.getAttribute("face");
+
+    if (color) {
+      span.style.color = color;
+    }
+
+    if (face) {
+      span.style.fontFamily = face;
+    }
+
+    span.innerHTML = fontNode.innerHTML;
+    fontNode.replaceWith(span);
+  });
 
   container.querySelectorAll("div").forEach((block) => {
     const paragraph = document.createElement("p");
@@ -89,6 +113,12 @@ export default function RichTextEditor({
   const [previewOpen, setPreviewOpen] = useState(false);
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
+  const [selectedFont, setSelectedFont] = useState<string>(
+    RICH_TEXT_FONT_OPTIONS[0].value,
+  );
+  const [selectedTextColor, setSelectedTextColor] = useState<string>(
+    RICH_TEXT_COLOR_OPTIONS[0].value,
+  );
 
   useEffect(() => {
     if (!editorRef.current) return;
@@ -128,9 +158,26 @@ export default function RichTextEditor({
 
     editorRef.current.focus();
     restoreSelection();
+    document.execCommand("styleWithCSS", false, "true");
     document.execCommand(command, false, commandValue);
     emitChange();
     saveSelection();
+  };
+
+  const applyFontFamily = (fontValue: string) => {
+    const fontOption = RICH_TEXT_FONT_OPTIONS.find(
+      (option) => option.value === fontValue,
+    );
+
+    if (!fontOption) return;
+
+    setSelectedFont(fontValue);
+    runCommand("fontName", fontOption.commandValue);
+  };
+
+  const applyTextColor = (colorValue: string) => {
+    setSelectedTextColor(colorValue);
+    runCommand("foreColor", colorValue);
   };
 
   const runBlockCommand = (tagName: "p" | "h2" | "h3") => {
@@ -388,6 +435,80 @@ export default function RichTextEditor({
               </IconButton>
             </span>
           </Tooltip>
+          <TextField
+            select
+            size="small"
+            value={selectedFont}
+            onChange={(event) => applyFontFamily(event.target.value)}
+            disabled={disabled}
+            sx={{ minWidth: 180 }}
+            aria-label="Seleziona font"
+            InputProps={{
+              startAdornment: (
+                <FontDownloadIcon
+                  sx={{ color: "text.secondary", fontSize: 18, mr: 1 }}
+                />
+              ),
+            }}
+          >
+            {RICH_TEXT_FONT_OPTIONS.map((option) => (
+              <MenuItem
+                key={option.value}
+                value={option.value}
+                sx={{ fontFamily: option.value }}
+              >
+                {option.label}
+              </MenuItem>
+            ))}
+          </TextField>
+          <Stack
+            direction="row"
+            spacing={0.75}
+            alignItems="center"
+            sx={{ px: 0.5 }}
+          >
+            <PaletteIcon sx={{ color: "text.secondary", fontSize: 18 }} />
+            <Box
+              component="input"
+              type="color"
+              value={selectedTextColor}
+              onChange={(event) => applyTextColor(event.target.value)}
+              disabled={disabled}
+              aria-label="Colore testo"
+              sx={{
+                width: 32,
+                height: 32,
+                p: 0,
+                border: "1px solid",
+                borderColor: "divider",
+                borderRadius: 1,
+                backgroundColor: "transparent",
+                cursor: disabled ? "not-allowed" : "pointer",
+              }}
+            />
+            {RICH_TEXT_COLOR_OPTIONS.map((option) => (
+              <Tooltip key={option.value} title={option.label}>
+                <Box
+                  component="button"
+                  type="button"
+                  onClick={() => applyTextColor(option.value)}
+                  disabled={disabled}
+                  aria-label={`Usa colore ${option.label}`}
+                  sx={{
+                    width: 20,
+                    height: 20,
+                    borderRadius: "50%",
+                    border: option.value === selectedTextColor
+                      ? `2px solid ${theme.palette.text.primary}`
+                      : `1px solid ${alpha(theme.palette.text.primary, 0.18)}`,
+                    backgroundColor: option.value,
+                    cursor: disabled ? "not-allowed" : "pointer",
+                    p: 0,
+                  }}
+                />
+              </Tooltip>
+            ))}
+          </Stack>
           <Tooltip title="Rimuovi formattazione">
             <span>
               <IconButton
@@ -427,6 +548,7 @@ export default function RichTextEditor({
             py: 1.25,
             outline: "none",
             color: disabled ? "text.disabled" : "text.primary",
+            fontFamily: "'Montserrat', sans-serif",
             cursor: disabled ? "not-allowed" : "text",
             '&[contenteditable="true"]:focus': {
               boxShadow: `inset 0 0 0 2px ${alpha(theme.palette.primary.main, 0.18)}`,

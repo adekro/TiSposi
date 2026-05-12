@@ -2,6 +2,7 @@ import { Box } from "@mui/material";
 import DOMPurify from "dompurify";
 import { useEffect, useMemo, useRef } from "react";
 import type { SxProps, Theme } from "@mui/material/styles";
+import { RICH_TEXT_GOOGLE_FONTS_URL } from "./richTextOptions";
 
 interface IsolatedHtmlContentProps {
   html: string | null;
@@ -56,6 +57,8 @@ function sanitizeHtml(value: string | null) {
 }
 
 const SHADOW_BASE_CSS = `
+  @import url('${RICH_TEXT_GOOGLE_FONTS_URL}');
+
   :host {
     all: initial;
     display: block;
@@ -67,6 +70,10 @@ const SHADOW_BASE_CSS = `
 
   .isolated-html-root {
     display: block;
+  }
+
+  .isolated-html-root a {
+    color: inherit;
   }
 `;
 
