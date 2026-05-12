@@ -6,9 +6,9 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
-import ChecklistIcon from "@mui/icons-material/Checklist";
-import CardGiftcardIcon from "@mui/icons-material/CardGiftcard";
+import { PhotoCamera as PhotoCameraIcon } from "@mui/icons-material";
+import { Checklist as ChecklistIcon } from "@mui/icons-material";
+import { CardGiftcard as CardGiftcardIcon } from "@mui/icons-material";
 import { useParams, Link as RouterLink } from "react-router-dom";
 import { useGallery } from "../hooks/useGallery";
 import LegalFooter from "../components/LegalFooter";

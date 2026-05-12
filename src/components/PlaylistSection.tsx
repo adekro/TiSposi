@@ -7,8 +7,8 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import MusicNoteIcon from "@mui/icons-material/MusicNote";
-import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import { MusicNote as MusicNoteIcon } from "@mui/icons-material";
+import { OpenInNew as OpenInNewIcon } from "@mui/icons-material";
 import type { MusicRequest } from "../types";
 
 interface PlaylistSectionProps {

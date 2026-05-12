@@ -6,7 +6,7 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { ArrowBack as ArrowBackIcon } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 
 function Section({

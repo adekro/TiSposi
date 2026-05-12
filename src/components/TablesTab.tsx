@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import {
   Alert,
   Box,
@@ -24,10 +24,10 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import { Add as AddIcon } from "@mui/icons-material";
+import { Edit as EditIcon } from "@mui/icons-material";
+import { Delete as DeleteIcon } from "@mui/icons-material";
+import { PersonAdd as PersonAddIcon } from "@mui/icons-material";
 import type { useTables } from "../hooks/useTables";
 import type { useGuestList } from "../hooks/useGuestList";
 import type { TableFormData } from "../types";

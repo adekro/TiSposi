@@ -34,16 +34,16 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import AssignmentIcon from "@mui/icons-material/Assignment";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import DownloadIcon from "@mui/icons-material/Download";
-import WhatsAppIcon from "@mui/icons-material/WhatsApp";
-import CollectionsIcon from "@mui/icons-material/Collections";
-import HomeIcon from "@mui/icons-material/Home";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import { Add as AddIcon } from "@mui/icons-material";
+import { Assignment as AssignmentIcon } from "@mui/icons-material";
+import { Edit as EditIcon } from "@mui/icons-material";
+import { Delete as DeleteIcon } from "@mui/icons-material";
+import { Download as DownloadIcon } from "@mui/icons-material";
+import { WhatsApp as WhatsAppIcon } from "@mui/icons-material";
+import { Collections as CollectionsIcon } from "@mui/icons-material";
+import { Home as HomeIcon } from "@mui/icons-material";
+import { KeyboardArrowDown as KeyboardArrowDownIcon } from "@mui/icons-material";
+import { KeyboardArrowUp as KeyboardArrowUpIcon } from "@mui/icons-material";
 import type { useGuestList, GuestFormData } from "../hooks/useGuestList";
 import type { GuestEntry, RsvpFormData, RsvpStatus, TableAssignment, TableEntry } from "../types";
 

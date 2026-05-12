@@ -8,14 +8,6 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import CelebrationIcon from "@mui/icons-material/Celebration";
-import PhotoLibraryIcon from "@mui/icons-material/PhotoLibrary";
-import HowToRegIcon from "@mui/icons-material/HowToReg";
-import PeopleIcon from "@mui/icons-material/People";
-import ChecklistIcon from "@mui/icons-material/Checklist";
-import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
-import BusinessCenterIcon from "@mui/icons-material/BusinessCenter";
-import BarChartIcon from "@mui/icons-material/BarChart";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
@@ -125,17 +117,17 @@ export default function LandingPage() {
 
           <Stack direction={{ xs: "column", md: "row" }} spacing={3} sx={{ width: "100%" }}>
             <FeatureCard
-              icon={<PhotoLibraryIcon color="primary" fontSize="large" />}
+              icon="📸"
               title="Gallery pubblica"
               body="Gli invitati caricano foto, scrivono dediche e sfogliano la galleria dell'evento dal proprio smartphone."
             />
             <FeatureCard
-              icon={<HowToRegIcon color="primary" fontSize="large" />}
+              icon="📝"
               title="RSVP online"
               body="Raccoglie le conferme di presenza con scelta menu, intolleranze e note. Export CSV immediato."
             />
             <FeatureCard
-              icon={<CelebrationIcon color="primary" fontSize="large" />}
+              icon="🎉"
               title="Pagina evento"
               body="Countdown, storia della coppia, informazioni sulla location, dress code e programma della giornata."
             />
@@ -143,17 +135,17 @@ export default function LandingPage() {
 
           <Stack direction={{ xs: "column", md: "row" }} spacing={3} sx={{ width: "100%" }}>
             <FeatureCard
-              icon={<PeopleIcon color="primary" fontSize="large" />}
+              icon="👥"
               title="Lista invitati"
               body="Gestisci nome, contatti, tavolo assegnato e stato RSVP di ogni invitato direttamente dalla dashboard."
             />
             <FeatureCard
-              icon={<ChecklistIcon color="primary" fontSize="large" />}
+              icon="✅"
               title="Checklist"
               body="Checklist pre-compilata con scadenze dalla firma del contratto al giorno del matrimonio."
             />
             <FeatureCard
-              icon={<AccountBalanceWalletIcon color="primary" fontSize="large" />}
+              icon="💶"
               title="Budget tracker"
               body="Tieni traccia di ogni voce di spesa con importo previsto e reale, suddiviso per categoria."
             />
@@ -161,17 +153,17 @@ export default function LandingPage() {
 
           <Stack direction={{ xs: "column", md: "row" }} spacing={3} sx={{ width: "100%" }}>
             <FeatureCard
-              icon={<BusinessCenterIcon color="primary" fontSize="large" />}
+              icon="💼"
               title="Gestione fornitori"
               body="Centralizza nome, categoria, contatti, importo e stato contratto di ogni fornitore."
             />
             <FeatureCard
-              icon={<BarChartIcon color="primary" fontSize="large" />}
+              icon="📊"
               title="Statistiche"
               body="Visite galleria, foto caricate, dediche, RSVP ricevuti e richieste musicali in tempo reale."
             />
             <FeatureCard
-              icon={<PhotoLibraryIcon color="primary" fontSize="large" />}
+              icon="🖼️"
               title="Gestione media"
               body="Elimina singolarmente foto e dediche dalla dashboard. Scarica tutte le foto in ZIP con dediche incluse."
             />
@@ -196,7 +188,7 @@ function FeatureCard({
   return (
     <Card sx={{ flex: 1, borderRadius: 4, minHeight: 220 }}>
       <CardContent sx={{ p: 3.5 }}>
-        <Box sx={{ mb: 2 }}>{icon}</Box>
+        <Box sx={{ mb: 2, fontSize: 30, lineHeight: 1 }}>{icon}</Box>
         <Typography variant="h5" sx={{ mb: 1.5 }}>
           {title}
         </Typography>

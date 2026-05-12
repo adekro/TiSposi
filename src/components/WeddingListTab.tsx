@@ -17,12 +17,12 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
-import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
-import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import { Add as AddIcon } from "@mui/icons-material";
+import { Edit as EditIcon } from "@mui/icons-material";
+import { Delete as DeleteIcon } from "@mui/icons-material";
+import { ArrowUpward as ArrowUpwardIcon } from "@mui/icons-material";
+import { ArrowDownward as ArrowDownwardIcon } from "@mui/icons-material";
+import { OpenInNew as OpenInNewIcon } from "@mui/icons-material";
 import type { useWeddingList } from "../hooks/useWeddingList";
 import type { WeddingListFormData } from "../types";
 

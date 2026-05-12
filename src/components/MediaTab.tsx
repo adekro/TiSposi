@@ -20,10 +20,10 @@ import {
   Typography,
 } from "@mui/material";
 import Link from "@mui/material/Link";
-import DeleteIcon from "@mui/icons-material/Delete";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import MusicNoteIcon from "@mui/icons-material/MusicNote";
-import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import { Delete as DeleteIcon } from "@mui/icons-material";
+import { CheckCircle as CheckCircleIcon } from "@mui/icons-material";
+import { MusicNote as MusicNoteIcon } from "@mui/icons-material";
+import { OpenInNew as OpenInNewIcon } from "@mui/icons-material";
 import type { GalleryItem, MusicRequest } from "../types";
 import { useDashboardGallery } from "../hooks/useDashboardGallery";
 

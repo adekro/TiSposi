@@ -14,11 +14,11 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import SaveIcon from "@mui/icons-material/Save";
-import QrCode2Icon from "@mui/icons-material/QrCode2";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import DeleteIcon from "@mui/icons-material/Delete";
+import { Save as SaveIcon } from "@mui/icons-material";
+import { QrCode2 as QrCode2Icon } from "@mui/icons-material";
+import { ExpandMore as ExpandMoreIcon } from "@mui/icons-material";
+import { CloudUpload as CloudUploadIcon } from "@mui/icons-material";
+import { Delete as DeleteIcon } from "@mui/icons-material";
 import { useRef, useState } from "react";
 import type { EventFormState } from "../hooks/useEventSettings";
 import { normalizePublicId } from "../hooks/useEventSettings";

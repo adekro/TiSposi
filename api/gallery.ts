@@ -39,20 +39,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const supabaseForBg = getServiceSupabaseClient();
     const { data: bgRow } = await supabaseForBg
       .from("event_backgrounds")
-      .select("event_id")
+      .select("event_id, updated_at")
       .eq("event_id", event.id)
-      .maybeSingle();
+      .maybeSingle<{ event_id: string; updated_at: string | null }>();
     const landingBgUrl = bgRow
-      ? `/api/upload-bg?eventId=${event.id}`
+      ? `/api/upload-bg?eventId=${event.id}&v=${encodeURIComponent(bgRow.updated_at ?? "")}`
       : (event.landing_bg_url ?? null);
 
     const { data: galleryBgRow } = await supabaseForBg
       .from("event_gallery_backgrounds")
-      .select("event_id")
+      .select("event_id, updated_at")
       .eq("event_id", event.id)
-      .maybeSingle();
+      .maybeSingle<{ event_id: string; updated_at: string | null }>();
     const galleryBgUrl = galleryBgRow
-      ? `/api/upload-gallery-bg?eventId=${event.id}`
+      ? `/api/upload-gallery-bg?eventId=${event.id}&v=${encodeURIComponent(galleryBgRow.updated_at ?? "")}`
       : null;
 
     let items: GalleryItem[] = [];

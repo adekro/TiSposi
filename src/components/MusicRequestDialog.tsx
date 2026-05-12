@@ -10,7 +10,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import MusicNoteIcon from "@mui/icons-material/MusicNote";
+import { MusicNote as MusicNoteIcon } from "@mui/icons-material";
 import DOMPurify from "dompurify";
 
 interface MusicRequestDialogProps {

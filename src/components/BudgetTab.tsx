@@ -27,9 +27,9 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
+import { Add as AddIcon } from "@mui/icons-material";
+import { Edit as EditIcon } from "@mui/icons-material";
+import { Delete as DeleteIcon } from "@mui/icons-material";
 import type { useBudget, BudgetFormData } from "../hooks/useBudget";
 
 type BudgetHook = ReturnType<typeof useBudget>;

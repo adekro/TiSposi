@@ -13,6 +13,22 @@ if (import.meta.env.PROD) {
   registerSW({ immediate: true });
 }
 
+// In sviluppo forziamo la rimozione di SW/cache per evitare bundle stantii.
+if (import.meta.env.DEV && "serviceWorker" in navigator) {
+  void navigator.serviceWorker.getRegistrations().then((registrations) => {
+    registrations.forEach((registration) => {
+      void registration.unregister();
+    });
+  });
+  if ("caches" in window) {
+    void caches.keys().then((keys) => {
+      keys.forEach((key) => {
+        void caches.delete(key);
+      });
+    });
+  }
+}
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

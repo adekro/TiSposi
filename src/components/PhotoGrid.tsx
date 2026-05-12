@@ -10,7 +10,7 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material'
-import EditIcon from '@mui/icons-material/Edit'
+import { Edit as EditIcon } from "@mui/icons-material";
 import Lightbox from 'yet-another-react-lightbox'
 import 'yet-another-react-lightbox/styles.css'
 import type { GalleryItem } from '../types'

@@ -10,10 +10,10 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import CameraAltIcon from "@mui/icons-material/CameraAlt";
-import EditIcon from "@mui/icons-material/Edit";
-import AutorenewIcon from "@mui/icons-material/Autorenew";
-import MusicNoteIcon from "@mui/icons-material/MusicNote";
+import { CameraAlt as CameraAltIcon } from "@mui/icons-material";
+import { Edit as EditIcon } from "@mui/icons-material";
+import { Autorenew as AutorenewIcon } from "@mui/icons-material";
+import { MusicNote as MusicNoteIcon } from "@mui/icons-material";
 import { useGallery } from "../hooks/useGallery";
 import { useMusicRequests } from "../hooks/useMusicRequests";
 import { useQueryClient } from "@tanstack/react-query";
@@ -42,7 +42,8 @@ export default function GalleryPage() {
   console.log("GalleryPage render", { publicId, data, isLoading, error });
   const items = data?.items ?? [];
   const event = data?.event;
-  const hasGalleryBg = Boolean(event?.galleryBgUrl);
+  const headerBgUrl = event?.galleryBgUrl ?? event?.landingBgUrl ?? null;
+  const hasGalleryBg = Boolean(headerBgUrl);
 
   const captureRef = useRef<PhotoCaptureHandle>(null);
   const [dedicaOpen, setDedicaOpen] = useState(false);
@@ -113,7 +114,7 @@ export default function GalleryPage() {
       <Box
         sx={{
           backgroundImage: hasGalleryBg
-            ? `linear-gradient(160deg, ${theme.palette.common.black}88 0%, ${theme.palette.common.black}55 100%), url(${event?.galleryBgUrl})`
+            ? `linear-gradient(160deg, ${theme.palette.common.black}88 0%, ${theme.palette.common.black}55 100%), url(${headerBgUrl})`
             : `linear-gradient(160deg, ${theme.palette.primary.main}22 0%, ${theme.palette.secondary.main}22 100%)`,
           backgroundSize: "cover",
           backgroundPosition: "center",

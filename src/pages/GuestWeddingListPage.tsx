@@ -12,8 +12,8 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import CardGiftcardIcon from "@mui/icons-material/CardGiftcard";
-import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import { CardGiftcard as CardGiftcardIcon } from "@mui/icons-material";
+import { OpenInNew as OpenInNewIcon } from "@mui/icons-material";
 import GuestNavbar from "../components/GuestNavbar";
 import LegalFooter from "../components/LegalFooter";
 import PWAInstallBanner from "../components/PWAInstallBanner";
@@ -24,6 +24,7 @@ interface WeddingListPublicResponse {
     spouses: string;
     weddingListDescription: string | null;
     weddingListBgUrl: string | null;
+    landingBgUrl: string | null;
   };
   items: WeddingListItem[];
 }
@@ -51,6 +52,7 @@ export default function GuestWeddingListPage() {
 
   const event = data?.event;
   const items = data?.items ?? [];
+  const headerBgUrl = event?.weddingListBgUrl ?? event?.landingBgUrl ?? null;
 
   if (isLoading) {
     return (
@@ -99,8 +101,8 @@ export default function GuestWeddingListPage() {
       {/* ── Header ── */}
       <Box
         sx={{
-          backgroundImage: event.weddingListBgUrl
-            ? `linear-gradient(160deg, ${theme.palette.common.black}88 0%, ${theme.palette.common.black}55 100%), url(${event.weddingListBgUrl})`
+          backgroundImage: headerBgUrl
+            ? `linear-gradient(160deg, ${theme.palette.common.black}88 0%, ${theme.palette.common.black}55 100%), url(${headerBgUrl})`
             : `linear-gradient(160deg, ${theme.palette.secondary.main}22 0%, ${theme.palette.primary.main}22 100%)`,
           backgroundSize: "cover",
           backgroundPosition: "center",
@@ -112,7 +114,7 @@ export default function GuestWeddingListPage() {
         <Typography
           variant="overline"
           sx={{
-            color: event.weddingListBgUrl
+            color: headerBgUrl
               ? theme.palette.common.white
               : theme.palette.text.secondary,
             letterSpacing: "0.18em",
@@ -127,7 +129,7 @@ export default function GuestWeddingListPage() {
           component="h1"
           sx={{
             fontFamily: '"Playfair Display", serif',
-            color: event.weddingListBgUrl
+            color: headerBgUrl
               ? theme.palette.common.white
               : theme.palette.text.primary,
             fontSize: { xs: "2rem", sm: "2.8rem" },

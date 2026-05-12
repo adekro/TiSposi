@@ -1,5 +1,5 @@
 import { Box, Button, Typography } from "@mui/material";
-import LogoutIcon from "@mui/icons-material/Logout";
+import { Logout as LogoutIcon } from "@mui/icons-material";
 
 interface Props {
   email: string;

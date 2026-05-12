@@ -9,7 +9,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import EditIcon from "@mui/icons-material/Edit";
+import { Edit as EditIcon } from "@mui/icons-material";
 import DOMPurify from "dompurify";
 
 interface DedicaDialogProps {

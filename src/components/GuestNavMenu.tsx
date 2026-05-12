@@ -13,11 +13,11 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
-import HomeIcon from "@mui/icons-material/Home";
-import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
-import HowToRegIcon from "@mui/icons-material/HowToReg";
-import CardGiftcardIcon from "@mui/icons-material/CardGiftcard";
+import { Menu as MenuIcon } from "@mui/icons-material";
+import { Home as HomeIcon } from "@mui/icons-material";
+import { PhotoCamera as PhotoCameraIcon } from "@mui/icons-material";
+import { HowToReg as HowToRegIcon } from "@mui/icons-material";
+import { CardGiftcard as CardGiftcardIcon } from "@mui/icons-material";
 import { Link as RouterLink, useLocation } from "react-router-dom";
 
 interface Props {

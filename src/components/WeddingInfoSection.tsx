@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Box, Tab, Tabs, Typography, useTheme, Button } from "@mui/material";
-import LocationOnIcon from "@mui/icons-material/LocationOn";
+import { LocationOn as LocationOnIcon } from "@mui/icons-material";
 import type { PublicEventSummary } from "../types";
 
 interface Props {

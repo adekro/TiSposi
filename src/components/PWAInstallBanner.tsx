@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Box, Button, Paper, Typography } from '@mui/material'
-import GetAppIcon from '@mui/icons-material/GetApp'
+import { GetApp as GetAppIcon } from "@mui/icons-material";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>

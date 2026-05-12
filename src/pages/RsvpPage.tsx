@@ -19,8 +19,8 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import HowToRegIcon from "@mui/icons-material/HowToReg";
-import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import { HowToReg as HowToRegIcon } from "@mui/icons-material";
+import { CheckCircleOutline as CheckCircleOutlineIcon } from "@mui/icons-material";
 import LegalFooter from "../components/LegalFooter";
 import GuestNavbar from "../components/GuestNavbar";
 

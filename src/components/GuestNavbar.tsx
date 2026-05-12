@@ -15,11 +15,6 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
-import HomeIcon from "@mui/icons-material/Home";
-import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
-import HowToRegIcon from "@mui/icons-material/HowToReg";
-import CardGiftcardIcon from "@mui/icons-material/CardGiftcard";
 import { Link as RouterLink, useLocation } from "react-router-dom";
 
 interface NavItemDef {
@@ -32,22 +27,22 @@ interface NavItemDef {
 const NAV_ITEMS: NavItemDef[] = [
   {
     label: "Benvenuto",
-    icon: <HomeIcon fontSize="small" />,
+    icon: <Box component="span">🏠</Box>,
     path: (id) => `/${id}/landing`,
   },
   {
     label: "Galleria",
-    icon: <PhotoCameraIcon fontSize="small" />,
+    icon: <Box component="span">📷</Box>,
     path: (id) => `/${id}/gallery`,
   },
   {
     label: "RSVP",
-    icon: <HowToRegIcon fontSize="small" />,
+    icon: <Box component="span">✅</Box>,
     path: (id) => `/${id}/rsvp`,
   },
   {
     label: "Lista nozze",
-    icon: <CardGiftcardIcon fontSize="small" />,
+    icon: <Box component="span">🎁</Box>,
     path: (id) => `/${id}/listanozze`,
     requiresWeddingList: true,
   },
@@ -177,7 +172,9 @@ export default function GuestNavbar({
             }}
             aria-label="Apri menu navigazione"
           >
-            <MenuIcon />
+            <Box component="span" sx={{ fontSize: 20, lineHeight: 1 }}>
+              ☰
+            </Box>
           </IconButton>
         </Toolbar>
       </AppBar>

@@ -22,14 +22,14 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import PrintIcon from "@mui/icons-material/Print";
-import FileDownloadIcon from "@mui/icons-material/FileDownload";
+import { Add as AddIcon } from "@mui/icons-material";
+import { Delete as DeleteIcon } from "@mui/icons-material";
+import { Edit as EditIcon } from "@mui/icons-material";
+import { ExpandMore as ExpandMoreIcon } from "@mui/icons-material";
+import { KeyboardArrowUp as KeyboardArrowUpIcon } from "@mui/icons-material";
+import { KeyboardArrowDown as KeyboardArrowDownIcon } from "@mui/icons-material";
+import { Print as PrintIcon } from "@mui/icons-material";
+import { FileDownload as FileDownloadIcon } from "@mui/icons-material";
 import type { useActivities } from "../hooks/useActivities";
 import type { ActivityFormData } from "../types";
 

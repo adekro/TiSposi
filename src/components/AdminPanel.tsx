@@ -14,7 +14,7 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
+import { ManageAccounts as ManageAccountsIcon } from "@mui/icons-material";
 import { useAuth } from "../contexts/AuthContext";
 import type { AdminEventRow } from "../types";
 

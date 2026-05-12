@@ -10,13 +10,13 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import DownloadIcon from "@mui/icons-material/Download";
-import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
-import FavoriteIcon from "@mui/icons-material/Favorite";
-import PeopleIcon from "@mui/icons-material/People";
-import MusicNoteIcon from "@mui/icons-material/MusicNote";
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
-import VisibilityIcon from "@mui/icons-material/Visibility";
+import { Download as DownloadIcon } from "@mui/icons-material";
+import { PhotoCamera as PhotoCameraIcon } from "@mui/icons-material";
+import { Favorite as FavoriteIcon } from "@mui/icons-material";
+import { People as PeopleIcon } from "@mui/icons-material";
+import { MusicNote as MusicNoteIcon } from "@mui/icons-material";
+import { PersonAdd as PersonAddIcon } from "@mui/icons-material";
+import { Visibility as VisibilityIcon } from "@mui/icons-material";
 import { useAuth } from "../contexts/AuthContext";
 import { useStats } from "../hooks/useStats";
 

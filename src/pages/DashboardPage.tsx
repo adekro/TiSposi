@@ -18,9 +18,9 @@ import {
   Tabs,
   Typography,
 } from "@mui/material";
-import DownloadIcon from "@mui/icons-material/Download";
-import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
-import SwitchAccountIcon from "@mui/icons-material/SwitchAccount";
+import { Download as DownloadIcon } from "@mui/icons-material";
+import { AdminPanelSettings as AdminPanelSettingsIcon } from "@mui/icons-material";
+import { SwitchAccount as SwitchAccountIcon } from "@mui/icons-material";
 import { useAuth } from "../contexts/AuthContext";
 import AdminPanel from "../components/AdminPanel";
 import { useEventSettings } from "../hooks/useEventSettings";
