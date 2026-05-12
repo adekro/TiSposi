@@ -31,10 +31,6 @@ export default function RsvpPage() {
   const guestIdParam = searchParams.get("guest_id") ?? "";
 
   const [guestName, setGuestName] = useState("");
-
-  useEffect(() => {
-    if (prefilledName) setGuestName(prefilledName);
-  }, [prefilledName]);
   const [attending, setAttending] = useState<"yes" | "no" | "">("");
   const [numGuests, setNumGuests] = useState("1");
   const [menuChoice, setMenuChoice] = useState("");
@@ -45,9 +41,34 @@ export default function RsvpPage() {
   const [needsShuttle, setNeedsShuttle] = useState(false);
   const [needsAccommodation, setNeedsAccommodation] = useState(false);
   const [accommodationNotes, setAccommodationNotes] = useState("");
+  const [rsvpBgUrl, setRsvpBgUrl] = useState<string | null>(null);
+  const [spouses, setSpouses] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    if (prefilledName) setGuestName(prefilledName);
+  }, [prefilledName]);
+
+  useEffect(() => {
+    if (!publicId.trim()) return;
+
+    void fetch(`/api/rsvp?publicId=${encodeURIComponent(publicId)}`)
+      .then(async (res) => {
+        if (!res.ok) return;
+        const json = (await res.json()) as {
+          event?: { spouses?: string; rsvpBgUrl?: string | null };
+        };
+        setSpouses(json.event?.spouses ?? "");
+        setRsvpBgUrl(json.event?.rsvpBgUrl ?? null);
+      })
+      .catch(() => {
+        setRsvpBgUrl(null);
+      });
+  }, [publicId]);
+
+  const hasRsvpBg = Boolean(rsvpBgUrl);
 
   const sanitize = (val: string) =>
     DOMPurify.sanitize(val, { ALLOWED_TAGS: [] });
@@ -113,21 +134,39 @@ export default function RsvpPage() {
     <Box
       sx={{
         minHeight: "100vh",
-        background: "linear-gradient(180deg, #faf7f2 0%, #ffffff 100%)",
+        backgroundImage: hasRsvpBg
+          ? `linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.35) 100%), url(${rsvpBgUrl})`
+          : "linear-gradient(180deg, #faf7f2 0%, #ffffff 100%)",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
         display: "flex",
         flexDirection: "column",
       }}
     >
-      <GuestNavbar publicId={publicId} />
+      <GuestNavbar publicId={publicId} spouses={spouses} />
 
       <Container maxWidth="sm" sx={{ flex: 1, py: { xs: 4, md: 6 } }}>
         {/* Header */}
         <Stack spacing={1} alignItems="center" sx={{ mb: 5 }}>
-          <HowToRegIcon sx={{ fontSize: 48, color: "primary.main" }} />
-          <Typography variant="h4" textAlign="center" fontWeight={700}>
+          <HowToRegIcon
+            sx={{
+              fontSize: 48,
+              color: hasRsvpBg ? "common.white" : "primary.main",
+            }}
+          />
+          <Typography
+            variant="h4"
+            textAlign="center"
+            fontWeight={700}
+            color={hasRsvpBg ? "common.white" : "text.primary"}
+          >
             Conferma la tua presenza
           </Typography>
-          <Typography variant="body2" color="text.secondary" textAlign="center">
+          <Typography
+            variant="body2"
+            color={hasRsvpBg ? "grey.100" : "text.secondary"}
+            textAlign="center"
+          >
             Compila il form per far sapere agli sposi se sarai presente.
           </Typography>
         </Stack>

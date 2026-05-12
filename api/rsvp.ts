@@ -3,10 +3,6 @@ import { getEventByPublicId } from "./_lib/events.js";
 import { getServiceSupabaseClient } from "./_lib/supabase.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
-
   const publicId =
     typeof req.query.publicId === "string" ? req.query.publicId : "";
   if (!publicId.trim()) {
@@ -17,6 +13,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const event = await getEventByPublicId(publicId);
     if (!event) {
       return res.status(404).json({ error: "Evento non trovato" });
+    }
+
+    if (req.method === "GET") {
+      const supabase = getServiceSupabaseClient();
+      const { data: rsvpBg } = await supabase
+        .from("event_rsvp_backgrounds")
+        .select("event_id")
+        .eq("event_id", event.id)
+        .maybeSingle();
+
+      return res.status(200).json({
+        event: {
+          id: event.id,
+          spouses: event.spouses,
+          rsvpBgUrl: rsvpBg ? `/api/upload-rsvp-bg?eventId=${event.id}` : null,
+        },
+      });
+    }
+
+    if (req.method !== "POST") {
+      return res.status(405).json({ error: "Method not allowed" });
     }
 
     const body = req.body as Record<string, unknown>;

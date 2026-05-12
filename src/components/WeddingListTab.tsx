@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import {
   Alert,
   Box,
@@ -18,13 +18,11 @@ import {
   Typography,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
-import { supabase } from "../lib/supabase";
 import type { useWeddingList } from "../hooks/useWeddingList";
 import type { WeddingListFormData } from "../types";
 
@@ -43,7 +41,6 @@ const EMPTY_FORM: WeddingListFormData = {
 
 export default function WeddingListTab({ hook }: Props) {
   const {
-    eventId,
     items,
     loading,
     error,
@@ -64,14 +61,6 @@ export default function WeddingListTab({ hook }: Props) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
-
-  // Wedding list background
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploadingBg, setUploadingBg] = useState(false);
-  const [bgError, setBgError] = useState("");
-  const [bgMessage, setBgMessage] = useState("");
-  const [bgVersion, setBgVersion] = useState(0);
-  const [bgImgError, setBgImgError] = useState(false);
 
   const openAdd = () => {
     setEditId(null);
@@ -125,78 +114,6 @@ export default function WeddingListTab({ hook }: Props) {
     }
   };
 
-  const bgPreviewUrl = eventId
-    ? `/api/upload-wedding-list-bg?eventId=${eventId}&v=${bgVersion}`
-    : null;
-
-  const handleUploadBg = async (file: File) => {
-    if (!supabase) {
-      setBgError("Supabase non configurato.");
-      return;
-    }
-    setUploadingBg(true);
-    setBgError("");
-    setBgMessage("");
-    try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData.session?.access_token;
-      if (!token) {
-        setBgError("Sessione scaduta. Rieffettua il login.");
-        return;
-      }
-      const res = await fetch("/api/upload-wedding-list-bg", {
-        method: "POST",
-        headers: {
-          "Content-Type": file.type,
-          Authorization: `Bearer ${token}`,
-        },
-        body: file,
-      });
-      if (!res.ok) {
-        const json = (await res.json()) as { error?: string };
-        setBgError(json.error ?? "Errore nel caricamento dello sfondo.");
-        return;
-      }
-      setBgImgError(false);
-      setBgVersion((v) => v + 1);
-      setBgMessage("Sfondo lista nozze caricato.");
-    } catch (err) {
-      setBgError(err instanceof Error ? err.message : "Errore sconosciuto.");
-    } finally {
-      setUploadingBg(false);
-    }
-  };
-
-  const handleDeleteBg = async () => {
-    if (!supabase) return;
-    setUploadingBg(true);
-    setBgError("");
-    setBgMessage("");
-    try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData.session?.access_token;
-      if (!token) {
-        setBgError("Sessione scaduta. Rieffettua il login.");
-        return;
-      }
-      const res = await fetch("/api/upload-wedding-list-bg", {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) {
-        const json = (await res.json()) as { error?: string };
-        setBgError(json.error ?? "Errore nella rimozione dello sfondo.");
-        return;
-      }
-      setBgImgError(true);
-      setBgVersion((v) => v + 1);
-      setBgMessage("Sfondo lista nozze rimosso.");
-    } catch (err) {
-      setBgError(err instanceof Error ? err.message : "Errore sconosciuto.");
-    } finally {
-      setUploadingBg(false);
-    }
-  };
 
   const openDelete = (id: string) => {
     setDeleteId(id);
@@ -228,72 +145,6 @@ export default function WeddingListTab({ hook }: Props) {
   return (
     <Stack spacing={2}>
       {error && <Alert severity="error">{error}</Alert>}
-
-      <Card variant="outlined" sx={{ borderRadius: 3 }}>
-        <CardContent sx={{ p: 2.5 }}>
-          <Stack spacing={2}>
-            <Typography fontWeight={600}>Sfondo lista nozze</Typography>
-            {bgError && <Alert severity="error">{bgError}</Alert>}
-            {bgMessage && <Alert severity="success">{bgMessage}</Alert>}
-
-            {bgPreviewUrl && !bgImgError ? (
-              <Box
-                component="img"
-                src={bgPreviewUrl}
-                alt="Anteprima sfondo lista nozze"
-                onError={() => setBgImgError(true)}
-                sx={{
-                  width: "100%",
-                  maxWidth: 360,
-                  maxHeight: 180,
-                  objectFit: "cover",
-                  borderRadius: 2,
-                  border: "1px solid",
-                  borderColor: "divider",
-                }}
-              />
-            ) : (
-              <Typography variant="body2" color="text.secondary">
-                Nessuno sfondo caricato.
-              </Typography>
-            )}
-
-            <Stack direction="row" spacing={1}>
-              <Button
-                variant="outlined"
-                startIcon={<CloudUploadIcon />}
-                disabled={uploadingBg}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                {uploadingBg ? "Caricamento..." : "Carica sfondo"}
-              </Button>
-              <Button
-                variant="text"
-                color="error"
-                startIcon={<DeleteIcon />}
-                disabled={uploadingBg}
-                onClick={() => void handleDeleteBg()}
-              >
-                Rimuovi
-              </Button>
-            </Stack>
-
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              hidden
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  void handleUploadBg(file);
-                }
-                e.currentTarget.value = "";
-              }}
-            />
-          </Stack>
-        </CardContent>
-      </Card>
 
       <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
         <Button

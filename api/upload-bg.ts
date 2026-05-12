@@ -55,7 +55,13 @@ async function resolveOwnerEvent(
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const supabase = getServiceSupabaseClient();
+  let supabase;
+  try {
+    supabase = getServiceSupabaseClient();
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
+    return res.status(500).json({ error: "Config server incompleta", detail });
+  }
 
   // ── GET: serve l'immagine di sfondo ─────────────────────────────────────────
   if (req.method === "GET") {

@@ -556,6 +556,62 @@ create policy "Owners can manage own event background"
     )
   );
 
+create table if not exists public.event_gallery_backgrounds (
+  id uuid primary key default gen_random_uuid(),
+  event_id uuid not null unique references public.events (id) on delete cascade,
+  image_base64 text not null,
+  image_mime_type text not null,
+  updated_at timestamptz not null default timezone('utc', now())
+);
+
+alter table public.event_gallery_backgrounds enable row level security;
+
+drop policy if exists "Owners can manage own gallery background" on public.event_gallery_backgrounds;
+create policy "Owners can manage own gallery background"
+  on public.event_gallery_backgrounds for all
+  using (
+    exists (
+      select 1 from public.events
+      where events.id = event_gallery_backgrounds.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.events
+      where events.id = event_gallery_backgrounds.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  );
+
+create table if not exists public.event_rsvp_backgrounds (
+  id uuid primary key default gen_random_uuid(),
+  event_id uuid not null unique references public.events (id) on delete cascade,
+  image_base64 text not null,
+  image_mime_type text not null,
+  updated_at timestamptz not null default timezone('utc', now())
+);
+
+alter table public.event_rsvp_backgrounds enable row level security;
+
+drop policy if exists "Owners can manage own rsvp background" on public.event_rsvp_backgrounds;
+create policy "Owners can manage own rsvp background"
+  on public.event_rsvp_backgrounds for all
+  using (
+    exists (
+      select 1 from public.events
+      where events.id = event_rsvp_backgrounds.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.events
+      where events.id = event_rsvp_backgrounds.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  );
+
 create table if not exists public.event_wedding_list_backgrounds (
   id uuid primary key default gen_random_uuid(),
   event_id uuid not null unique references public.events (id) on delete cascade,

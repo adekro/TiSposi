@@ -42,6 +42,7 @@ export default function GalleryPage() {
   console.log("GalleryPage render", { publicId, data, isLoading, error });
   const items = data?.items ?? [];
   const event = data?.event;
+  const hasGalleryBg = Boolean(event?.galleryBgUrl);
 
   const captureRef = useRef<PhotoCaptureHandle>(null);
   const [dedicaOpen, setDedicaOpen] = useState(false);
@@ -111,7 +112,11 @@ export default function GalleryPage() {
       {/* ── Hero ── */}
       <Box
         sx={{
-          background: `linear-gradient(160deg, ${theme.palette.primary.main}22 0%, ${theme.palette.secondary.main}22 100%)`,
+          backgroundImage: hasGalleryBg
+            ? `linear-gradient(160deg, ${theme.palette.common.black}88 0%, ${theme.palette.common.black}55 100%), url(${event?.galleryBgUrl})`
+            : `linear-gradient(160deg, ${theme.palette.primary.main}22 0%, ${theme.palette.secondary.main}22 100%)`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
           borderBottom: `1px solid ${theme.palette.primary.main}33`,
           py: { xs: 4, sm: 6 },
           textAlign: "center",
@@ -142,7 +147,9 @@ export default function GalleryPage() {
           component="h1"
           sx={{
             fontFamily: '"Playfair Display", serif',
-            color: theme.palette.text.primary,
+            color: hasGalleryBg
+              ? theme.palette.common.white
+              : theme.palette.text.primary,
             letterSpacing: "0.02em",
             mb: 0.5,
           }}
@@ -152,7 +159,9 @@ export default function GalleryPage() {
         <Typography
           variant="subtitle1"
           sx={{
-            color: theme.palette.primary.main,
+            color: hasGalleryBg
+              ? theme.palette.common.white
+              : theme.palette.primary.main,
             fontWeight: 600,
             letterSpacing: "0.08em",
             textTransform: "uppercase",
@@ -161,12 +170,20 @@ export default function GalleryPage() {
         >
           {event?.spouses}
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>
+        <Typography
+          variant="body2"
+          color={hasGalleryBg ? "grey.100" : "text.secondary"}
+          sx={{ mt: 1.5 }}
+        >
           📸 {items.filter((i) => i.type === "photo").length} foto · ✏️{" "}
           {items.filter((i) => i.type === "dedica").length} dediche
           {musicItems.length > 0 && ` · 🎵 ${musicItems.length} in playlist`}
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
+        <Typography
+          variant="body2"
+          color={hasGalleryBg ? "grey.200" : "text.secondary"}
+          sx={{ mt: 0.75 }}
+        >
           Condividi questa pagina con gli invitati: /{event?.publicId}/gallery
         </Typography>
       </Box>

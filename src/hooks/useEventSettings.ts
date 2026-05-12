@@ -89,6 +89,13 @@ export function useEventSettings(userId: string, userEmail?: string) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingBg, setUploadingBg] = useState(false);
+  const [uploadingGalleryBg, setUploadingGalleryBg] = useState(false);
+  const [uploadingRsvpBg, setUploadingRsvpBg] = useState(false);
+  const [uploadingWeddingListBg, setUploadingWeddingListBg] = useState(false);
+  const [landingBgVersion, setLandingBgVersion] = useState(0);
+  const [galleryBgVersion, setGalleryBgVersion] = useState(0);
+  const [rsvpBgVersion, setRsvpBgVersion] = useState(0);
+  const [weddingListBgVersion, setWeddingListBgVersion] = useState(0);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
@@ -281,7 +288,24 @@ export function useEventSettings(userId: string, userEmail?: string) {
     link.click();
   };
 
-  const bgPreviewUrl = eventId ? `/api/upload-bg?eventId=${eventId}` : null;
+  const bgPreviewUrl = eventId
+    ? `/api/upload-bg?eventId=${eventId}&v=${landingBgVersion}`
+    : null;
+  const galleryBgPreviewUrl = eventId
+    ? `/api/upload-gallery-bg?eventId=${eventId}&v=${galleryBgVersion}`
+    : null;
+  const rsvpBgPreviewUrl = eventId
+    ? `/api/upload-rsvp-bg?eventId=${eventId}&v=${rsvpBgVersion}`
+    : null;
+  const weddingListBgPreviewUrl = eventId
+    ? `/api/upload-wedding-list-bg?eventId=${eventId}&v=${weddingListBgVersion}`
+    : null;
+
+  const getAccessToken = async () => {
+    if (!supabase) return null;
+    const { data: sessionData } = await supabase.auth.getSession();
+    return sessionData.session?.access_token;
+  };
 
   const onUploadBg = async (file: File): Promise<void> => {
     if (!supabase) {
@@ -309,6 +333,7 @@ export function useEventSettings(userId: string, userEmail?: string) {
         const json = (await res.json()) as { error?: string };
         setError(json.error ?? "Errore nel caricamento dello sfondo.");
       } else {
+        setLandingBgVersion((v) => v + 1);
         setMessage("Immagine di sfondo caricata.");
       }
     } catch (err) {
@@ -337,12 +362,206 @@ export function useEventSettings(userId: string, userEmail?: string) {
         const json = (await res.json()) as { error?: string };
         setError(json.error ?? "Errore nella rimozione dello sfondo.");
       } else {
+        setLandingBgVersion((v) => v + 1);
         setMessage("Immagine di sfondo rimossa.");
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Errore sconosciuto.");
     } finally {
       setUploadingBg(false);
+    }
+  };
+
+  const onUploadGalleryBg = async (file: File): Promise<void> => {
+    if (!supabase) {
+      setError("Supabase non configurato.");
+      return;
+    }
+    setUploadingGalleryBg(true);
+    setError("");
+    try {
+      const token = await getAccessToken();
+      if (!token) {
+        setError("Sessione scaduta. Rieffettua il login.");
+        return;
+      }
+      const res = await fetch("/api/upload-gallery-bg", {
+        method: "POST",
+        headers: {
+          "Content-Type": file.type,
+          Authorization: `Bearer ${token}`,
+        },
+        body: file,
+      });
+      if (!res.ok) {
+        const json = (await res.json()) as { error?: string };
+        setError(json.error ?? "Errore nel caricamento dello sfondo galleria.");
+      } else {
+        setGalleryBgVersion((v) => v + 1);
+        setMessage("Sfondo galleria caricato.");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Errore sconosciuto.");
+    } finally {
+      setUploadingGalleryBg(false);
+    }
+  };
+
+  const onDeleteGalleryBg = async (): Promise<void> => {
+    if (!supabase) return;
+    setUploadingGalleryBg(true);
+    setError("");
+    try {
+      const token = await getAccessToken();
+      if (!token) {
+        setError("Sessione scaduta. Rieffettua il login.");
+        return;
+      }
+      const res = await fetch("/api/upload-gallery-bg", {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const json = (await res.json()) as { error?: string };
+        setError(json.error ?? "Errore nella rimozione dello sfondo galleria.");
+      } else {
+        setGalleryBgVersion((v) => v + 1);
+        setMessage("Sfondo galleria rimosso.");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Errore sconosciuto.");
+    } finally {
+      setUploadingGalleryBg(false);
+    }
+  };
+
+  const onUploadRsvpBg = async (file: File): Promise<void> => {
+    if (!supabase) {
+      setError("Supabase non configurato.");
+      return;
+    }
+    setUploadingRsvpBg(true);
+    setError("");
+    try {
+      const token = await getAccessToken();
+      if (!token) {
+        setError("Sessione scaduta. Rieffettua il login.");
+        return;
+      }
+      const res = await fetch("/api/upload-rsvp-bg", {
+        method: "POST",
+        headers: {
+          "Content-Type": file.type,
+          Authorization: `Bearer ${token}`,
+        },
+        body: file,
+      });
+      if (!res.ok) {
+        const json = (await res.json()) as { error?: string };
+        setError(json.error ?? "Errore nel caricamento dello sfondo RSVP.");
+      } else {
+        setRsvpBgVersion((v) => v + 1);
+        setMessage("Sfondo RSVP caricato.");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Errore sconosciuto.");
+    } finally {
+      setUploadingRsvpBg(false);
+    }
+  };
+
+  const onDeleteRsvpBg = async (): Promise<void> => {
+    if (!supabase) return;
+    setUploadingRsvpBg(true);
+    setError("");
+    try {
+      const token = await getAccessToken();
+      if (!token) {
+        setError("Sessione scaduta. Rieffettua il login.");
+        return;
+      }
+      const res = await fetch("/api/upload-rsvp-bg", {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const json = (await res.json()) as { error?: string };
+        setError(json.error ?? "Errore nella rimozione dello sfondo RSVP.");
+      } else {
+        setRsvpBgVersion((v) => v + 1);
+        setMessage("Sfondo RSVP rimosso.");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Errore sconosciuto.");
+    } finally {
+      setUploadingRsvpBg(false);
+    }
+  };
+
+  const onUploadWeddingListBg = async (file: File): Promise<void> => {
+    if (!supabase) {
+      setError("Supabase non configurato.");
+      return;
+    }
+    setUploadingWeddingListBg(true);
+    setError("");
+    try {
+      const token = await getAccessToken();
+      if (!token) {
+        setError("Sessione scaduta. Rieffettua il login.");
+        return;
+      }
+      const res = await fetch("/api/upload-wedding-list-bg", {
+        method: "POST",
+        headers: {
+          "Content-Type": file.type,
+          Authorization: `Bearer ${token}`,
+        },
+        body: file,
+      });
+      if (!res.ok) {
+        const json = (await res.json()) as { error?: string };
+        setError(
+          json.error ?? "Errore nel caricamento dello sfondo lista nozze.",
+        );
+      } else {
+        setWeddingListBgVersion((v) => v + 1);
+        setMessage("Sfondo lista nozze caricato.");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Errore sconosciuto.");
+    } finally {
+      setUploadingWeddingListBg(false);
+    }
+  };
+
+  const onDeleteWeddingListBg = async (): Promise<void> => {
+    if (!supabase) return;
+    setUploadingWeddingListBg(true);
+    setError("");
+    try {
+      const token = await getAccessToken();
+      if (!token) {
+        setError("Sessione scaduta. Rieffettua il login.");
+        return;
+      }
+      const res = await fetch("/api/upload-wedding-list-bg", {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const json = (await res.json()) as { error?: string };
+        setError(
+          json.error ?? "Errore nella rimozione dello sfondo lista nozze.",
+        );
+      } else {
+        setWeddingListBgVersion((v) => v + 1);
+        setMessage("Sfondo lista nozze rimosso.");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Errore sconosciuto.");
+    } finally {
+      setUploadingWeddingListBg(false);
     }
   };
 
@@ -361,8 +580,20 @@ export function useEventSettings(userId: string, userEmail?: string) {
     publicIdValid,
     bgPreviewUrl,
     uploadingBg,
+    galleryBgPreviewUrl,
+    rsvpBgPreviewUrl,
+    weddingListBgPreviewUrl,
+    uploadingGalleryBg,
+    uploadingRsvpBg,
+    uploadingWeddingListBg,
     onUploadBg,
     onDeleteBg,
+    onUploadGalleryBg,
+    onDeleteGalleryBg,
+    onUploadRsvpBg,
+    onDeleteRsvpBg,
+    onUploadWeddingListBg,
+    onDeleteWeddingListBg,
     handleSave,
     handleDownloadQr,
     handleDownloadRsvpQr,

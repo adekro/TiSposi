@@ -32,6 +32,9 @@ interface Props {
   loading: boolean;
   saving: boolean;
   uploadingBg: boolean;
+  uploadingGalleryBg: boolean;
+  uploadingRsvpBg: boolean;
+  uploadingWeddingListBg: boolean;
   error: string;
   message: string;
   normalizedPublicId: string;
@@ -40,11 +43,20 @@ interface Props {
   landingUrl: string;
   publicIdValid: boolean;
   bgPreviewUrl: string | null;
+  galleryBgPreviewUrl: string | null;
+  rsvpBgPreviewUrl: string | null;
+  weddingListBgPreviewUrl: string | null;
   onSave: () => Promise<void>;
   onDownloadQr: () => Promise<void>;
   onDownloadRsvpQr: () => Promise<void>;
   onUploadBg: (file: File) => Promise<void>;
   onDeleteBg: () => Promise<void>;
+  onUploadGalleryBg: (file: File) => Promise<void>;
+  onDeleteGalleryBg: () => Promise<void>;
+  onUploadRsvpBg: (file: File) => Promise<void>;
+  onDeleteRsvpBg: () => Promise<void>;
+  onUploadWeddingListBg: (file: File) => Promise<void>;
+  onDeleteWeddingListBg: () => Promise<void>;
 }
 
 export default function EventSettingsForm({
@@ -53,6 +65,9 @@ export default function EventSettingsForm({
   loading,
   saving,
   uploadingBg,
+  uploadingGalleryBg,
+  uploadingRsvpBg,
+  uploadingWeddingListBg,
   error,
   message,
   normalizedPublicId,
@@ -61,15 +76,30 @@ export default function EventSettingsForm({
   landingUrl,
   publicIdValid,
   bgPreviewUrl,
+  galleryBgPreviewUrl,
+  rsvpBgPreviewUrl,
+  weddingListBgPreviewUrl,
   onSave,
   onDownloadQr,
   onDownloadRsvpQr,
   onUploadBg,
   onDeleteBg,
+  onUploadGalleryBg,
+  onDeleteGalleryBg,
+  onUploadRsvpBg,
+  onDeleteRsvpBg,
+  onUploadWeddingListBg,
+  onDeleteWeddingListBg,
 }: Props) {
   const disabled = loading || saving;
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const galleryFileInputRef = useRef<HTMLInputElement>(null);
+  const rsvpFileInputRef = useRef<HTMLInputElement>(null);
+  const weddingListFileInputRef = useRef<HTMLInputElement>(null);
   const [bgImgError, setBgImgError] = useState(false);
+  const [galleryBgImgError, setGalleryBgImgError] = useState(false);
+  const [rsvpBgImgError, setRsvpBgImgError] = useState(false);
+  const [weddingListBgImgError, setWeddingListBgImgError] = useState(false);
 
   return (
     <Card sx={{ borderRadius: 5 }}>
@@ -400,6 +430,202 @@ export default function EventSettingsForm({
             }}
           >
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography fontWeight={600}>🖼️ Sfondo galleria</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Stack spacing={2}>
+                <Typography variant="body2" color="text.secondary">
+                  Carica un&apos;immagine (JPG, PNG, WebP - max 4 MB) da usare come sfondo dell&apos;hero nella pagina galleria.
+                </Typography>
+                {galleryBgPreviewUrl && !galleryBgImgError ? (
+                  <Box
+                    component="img"
+                    src={galleryBgPreviewUrl}
+                    alt="Anteprima sfondo galleria"
+                    onError={() => setGalleryBgImgError(true)}
+                    sx={{
+                      width: "100%",
+                      maxWidth: 320,
+                      height: 180,
+                      objectFit: "cover",
+                      borderRadius: 2,
+                      border: "1px solid",
+                      borderColor: "divider",
+                    }}
+                  />
+                ) : (
+                  <Box
+                    sx={{
+                      width: "100%",
+                      maxWidth: 320,
+                      height: 180,
+                      borderRadius: 2,
+                      border: "1px dashed",
+                      borderColor: "divider",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Typography variant="body2" color="text.disabled">
+                      Nessuna immagine caricata
+                    </Typography>
+                  </Box>
+                )}
+                <input
+                  ref={galleryFileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  style={{ display: "none" }}
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setGalleryBgImgError(false);
+                    await onUploadGalleryBg(file);
+                    if (galleryFileInputRef.current) {
+                      galleryFileInputRef.current.value = "";
+                    }
+                  }}
+                />
+                <Stack direction="row" spacing={1}>
+                  <Button
+                    variant="outlined"
+                    startIcon={
+                      uploadingGalleryBg ? <CircularProgress size={16} /> : <CloudUploadIcon />
+                    }
+                    disabled={disabled || uploadingGalleryBg}
+                    onClick={() => galleryFileInputRef.current?.click()}
+                  >
+                    {galleryBgPreviewUrl && !galleryBgImgError ? "Sostituisci" : "Carica immagine"}
+                  </Button>
+                  {galleryBgPreviewUrl && !galleryBgImgError && (
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      startIcon={<DeleteIcon />}
+                      disabled={disabled || uploadingGalleryBg}
+                      onClick={async () => {
+                        await onDeleteGalleryBg();
+                        setGalleryBgImgError(true);
+                      }}
+                    >
+                      Rimuovi
+                    </Button>
+                  )}
+                </Stack>
+              </Stack>
+            </AccordionDetails>
+          </Accordion>
+
+          <Accordion
+            disableGutters
+            elevation={0}
+            sx={{
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 3,
+              "&:before": { display: "none" },
+            }}
+          >
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography fontWeight={600}>🖼️ Sfondo RSVP</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Stack spacing={2}>
+                <Typography variant="body2" color="text.secondary">
+                  Carica un&apos;immagine (JPG, PNG, WebP - max 4 MB) da usare come sfondo della pagina RSVP.
+                </Typography>
+                {rsvpBgPreviewUrl && !rsvpBgImgError ? (
+                  <Box
+                    component="img"
+                    src={rsvpBgPreviewUrl}
+                    alt="Anteprima sfondo RSVP"
+                    onError={() => setRsvpBgImgError(true)}
+                    sx={{
+                      width: "100%",
+                      maxWidth: 320,
+                      height: 180,
+                      objectFit: "cover",
+                      borderRadius: 2,
+                      border: "1px solid",
+                      borderColor: "divider",
+                    }}
+                  />
+                ) : (
+                  <Box
+                    sx={{
+                      width: "100%",
+                      maxWidth: 320,
+                      height: 180,
+                      borderRadius: 2,
+                      border: "1px dashed",
+                      borderColor: "divider",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Typography variant="body2" color="text.disabled">
+                      Nessuna immagine caricata
+                    </Typography>
+                  </Box>
+                )}
+                <input
+                  ref={rsvpFileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  style={{ display: "none" }}
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setRsvpBgImgError(false);
+                    await onUploadRsvpBg(file);
+                    if (rsvpFileInputRef.current) {
+                      rsvpFileInputRef.current.value = "";
+                    }
+                  }}
+                />
+                <Stack direction="row" spacing={1}>
+                  <Button
+                    variant="outlined"
+                    startIcon={
+                      uploadingRsvpBg ? <CircularProgress size={16} /> : <CloudUploadIcon />
+                    }
+                    disabled={disabled || uploadingRsvpBg}
+                    onClick={() => rsvpFileInputRef.current?.click()}
+                  >
+                    {rsvpBgPreviewUrl && !rsvpBgImgError ? "Sostituisci" : "Carica immagine"}
+                  </Button>
+                  {rsvpBgPreviewUrl && !rsvpBgImgError && (
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      startIcon={<DeleteIcon />}
+                      disabled={disabled || uploadingRsvpBg}
+                      onClick={async () => {
+                        await onDeleteRsvpBg();
+                        setRsvpBgImgError(true);
+                      }}
+                    >
+                      Rimuovi
+                    </Button>
+                  )}
+                </Stack>
+              </Stack>
+            </AccordionDetails>
+          </Accordion>
+
+          <Accordion
+            disableGutters
+            elevation={0}
+            sx={{
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 3,
+              "&:before": { display: "none" },
+            }}
+          >
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
               <Typography fontWeight={600}>🖼️ Pagina di benvenuto ospiti</Typography>
             </AccordionSummary>
             <AccordionDetails>
@@ -504,17 +730,98 @@ export default function EventSettingsForm({
               <Typography fontWeight={600}>💍 Lista Nozze</Typography>
             </AccordionSummary>
             <AccordionDetails>
-              <TextField
-                label="Descrizione lista nozze"
-                value={form.weddingListDescription}
-                onChange={(e) => updateField("weddingListDescription", e.target.value)}
-                placeholder="Invece dei regali tradizionali, abbiamo scelto dei desideri speciali..."
-                fullWidth
-                multiline
-                minRows={3}
-                disabled={disabled}
-                helperText="Testo introduttivo mostrato agli ospiti nella pagina della lista nozze"
-              />
+              <Stack spacing={2}>
+                <TextField
+                  label="Descrizione lista nozze"
+                  value={form.weddingListDescription}
+                  onChange={(e) => updateField("weddingListDescription", e.target.value)}
+                  placeholder="Invece dei regali tradizionali, abbiamo scelto dei desideri speciali..."
+                  fullWidth
+                  multiline
+                  minRows={3}
+                  disabled={disabled}
+                  helperText="Testo introduttivo mostrato agli ospiti nella pagina della lista nozze"
+                />
+                <Typography variant="body2" color="text.secondary">
+                  Carica un&apos;immagine (JPG, PNG, WebP - max 4 MB) da usare come sfondo della pagina lista nozze.
+                </Typography>
+                {weddingListBgPreviewUrl && !weddingListBgImgError ? (
+                  <Box
+                    component="img"
+                    src={weddingListBgPreviewUrl}
+                    alt="Anteprima sfondo lista nozze"
+                    onError={() => setWeddingListBgImgError(true)}
+                    sx={{
+                      width: "100%",
+                      maxWidth: 320,
+                      height: 180,
+                      objectFit: "cover",
+                      borderRadius: 2,
+                      border: "1px solid",
+                      borderColor: "divider",
+                    }}
+                  />
+                ) : (
+                  <Box
+                    sx={{
+                      width: "100%",
+                      maxWidth: 320,
+                      height: 180,
+                      borderRadius: 2,
+                      border: "1px dashed",
+                      borderColor: "divider",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Typography variant="body2" color="text.disabled">
+                      Nessuna immagine caricata
+                    </Typography>
+                  </Box>
+                )}
+                <input
+                  ref={weddingListFileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  style={{ display: "none" }}
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setWeddingListBgImgError(false);
+                    await onUploadWeddingListBg(file);
+                    if (weddingListFileInputRef.current) {
+                      weddingListFileInputRef.current.value = "";
+                    }
+                  }}
+                />
+                <Stack direction="row" spacing={1}>
+                  <Button
+                    variant="outlined"
+                    startIcon={
+                      uploadingWeddingListBg ? <CircularProgress size={16} /> : <CloudUploadIcon />
+                    }
+                    disabled={disabled || uploadingWeddingListBg}
+                    onClick={() => weddingListFileInputRef.current?.click()}
+                  >
+                    {weddingListBgPreviewUrl && !weddingListBgImgError ? "Sostituisci" : "Carica immagine"}
+                  </Button>
+                  {weddingListBgPreviewUrl && !weddingListBgImgError && (
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      startIcon={<DeleteIcon />}
+                      disabled={disabled || uploadingWeddingListBg}
+                      onClick={async () => {
+                        await onDeleteWeddingListBg();
+                        setWeddingListBgImgError(true);
+                      }}
+                    >
+                      Rimuovi
+                    </Button>
+                  )}
+                </Stack>
+              </Stack>
             </AccordionDetails>
           </Accordion>
 

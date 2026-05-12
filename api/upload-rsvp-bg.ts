@@ -71,7 +71,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const { data, error } = await supabase
-      .from("event_wedding_list_backgrounds")
+      .from("event_rsvp_backgrounds")
       .select("image_base64, image_mime_type")
       .eq("event_id", eventId)
       .maybeSingle();
@@ -120,7 +120,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const base64 = rawBody.toString("base64");
     const { error: upsertErr } = await supabase
-      .from("event_wedding_list_backgrounds")
+      .from("event_rsvp_backgrounds")
       .upsert(
         {
           event_id: event.id,
@@ -137,7 +137,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     return res.status(200).json({
       ok: true,
-      url: `/api/upload-wedding-list-bg?eventId=${event.id as string}`,
+      url: `/api/upload-rsvp-bg?eventId=${event.id as string}`,
     });
   }
 
@@ -151,7 +151,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const { error: delErr } = await supabase
-      .from("event_wedding_list_backgrounds")
+      .from("event_rsvp_backgrounds")
       .delete()
       .eq("event_id", event.id);
 

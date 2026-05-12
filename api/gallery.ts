@@ -35,7 +35,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       p_event_id: event.id,
     });
 
-    // Controlla se esiste un'immagine di sfondo nella tabella dedicata
+    // Controlla se esiste un'immagine di sfondo landing nella tabella dedicata
     const supabaseForBg = getServiceSupabaseClient();
     const { data: bgRow } = await supabaseForBg
       .from("event_backgrounds")
@@ -45,6 +45,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const landingBgUrl = bgRow
       ? `/api/upload-bg?eventId=${event.id}`
       : (event.landing_bg_url ?? null);
+
+    const { data: galleryBgRow } = await supabaseForBg
+      .from("event_gallery_backgrounds")
+      .select("event_id")
+      .eq("event_id", event.id)
+      .maybeSingle();
+    const galleryBgUrl = galleryBgRow
+      ? `/api/upload-gallery-bg?eventId=${event.id}`
+      : null;
 
     let items: GalleryItem[] = [];
 
@@ -127,6 +136,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         receptionVenueMapsUrl: event.reception_venue_maps_url,
         receptionTime: event.reception_time,
         landingBgUrl: landingBgUrl,
+        galleryBgUrl,
         weddingListDescription: event.wedding_list_description,
       },
       items,
