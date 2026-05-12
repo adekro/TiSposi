@@ -1,17 +1,33 @@
 import {
   Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   IconButton,
   Paper,
   Stack,
+  TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import { FormatBold as FormatBoldIcon } from "@mui/icons-material";
+import { FormatUnderlined as FormatUnderlinedIcon } from "@mui/icons-material";
 import { FormatItalic as FormatItalicIcon } from "@mui/icons-material";
 import { FormatListBulleted as FormatListBulletedIcon } from "@mui/icons-material";
 import { FormatListNumbered as FormatListNumberedIcon } from "@mui/icons-material";
+import { FormatAlignLeft as FormatAlignLeftIcon } from "@mui/icons-material";
+import { FormatAlignCenter as FormatAlignCenterIcon } from "@mui/icons-material";
+import { Link as LinkIcon } from "@mui/icons-material";
+import { LinkOff as LinkOffIcon } from "@mui/icons-material";
+import { Preview as PreviewIcon } from "@mui/icons-material";
+import { Title as TitleIcon } from "@mui/icons-material";
+import { Subject as SubjectIcon } from "@mui/icons-material";
 import { Undo as UndoIcon } from "@mui/icons-material";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import IsolatedHtmlContent from "./IsolatedHtmlContent";
 
 interface RichTextEditorProps {
   value: string;
@@ -30,7 +46,32 @@ function normalizeHtml(value: string) {
     return "";
   }
 
-  return value;
+  if (typeof document === "undefined") {
+    return value;
+  }
+
+  const container = document.createElement("div");
+  container.innerHTML = value;
+
+  container.querySelectorAll("div").forEach((block) => {
+    const paragraph = document.createElement("p");
+    const blockHtml = block.innerHTML.trim();
+
+    Array.from(block.attributes).forEach((attribute) => {
+      paragraph.setAttribute(attribute.name, attribute.value);
+    });
+
+    paragraph.innerHTML = !blockHtml || blockHtml === "<br>" ? "<br>" : block.innerHTML;
+    block.replaceWith(paragraph);
+  });
+
+  const normalized = container.innerHTML.trim();
+
+  if (!normalized || normalized === "<br>" || normalized === "<p><br></p>") {
+    return "";
+  }
+
+  return normalized;
 }
 
 export default function RichTextEditor({
@@ -44,6 +85,10 @@ export default function RichTextEditor({
 }: RichTextEditorProps) {
   const theme = useTheme();
   const editorRef = useRef<HTMLDivElement>(null);
+  const selectionRef = useRef<Range | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+  const [linkUrl, setLinkUrl] = useState("");
 
   useEffect(() => {
     if (!editorRef.current) return;
@@ -51,21 +96,126 @@ export default function RichTextEditor({
     editorRef.current.innerHTML = value;
   }, [value]);
 
+  const saveSelection = () => {
+    if (!editorRef.current || typeof window === "undefined") return;
+
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+
+    const range = selection.getRangeAt(0);
+    if (!editorRef.current.contains(range.commonAncestorContainer)) return;
+
+    selectionRef.current = range.cloneRange();
+  };
+
+  const restoreSelection = () => {
+    if (typeof window === "undefined" || !selectionRef.current) return;
+
+    const selection = window.getSelection();
+    if (!selection) return;
+
+    selection.removeAllRanges();
+    selection.addRange(selectionRef.current);
+  };
+
   const emitChange = () => {
     if (!editorRef.current) return;
     onChange(normalizeHtml(editorRef.current.innerHTML));
   };
 
-  const runCommand = (command: string) => {
+  const runCommand = (command: string, commandValue?: string) => {
     if (disabled || !editorRef.current) return;
 
     editorRef.current.focus();
-    document.execCommand(command, false);
+    restoreSelection();
+    document.execCommand(command, false, commandValue);
     emitChange();
+    saveSelection();
+  };
+
+  const runBlockCommand = (tagName: "p" | "h2" | "h3") => {
+    runCommand("formatBlock", `<${tagName}>`);
+  };
+
+  const getSelectedLink = () => {
+    if (typeof window === "undefined") return null;
+
+    const selection = window.getSelection();
+    const anchorNode = selection?.anchorNode;
+
+    if (!anchorNode) return null;
+    if (anchorNode instanceof Element) return anchorNode.closest("a");
+
+    return anchorNode.parentElement?.closest("a") ?? null;
+  };
+
+  const normalizeLinkUrl = (rawValue: string) => {
+    const trimmed = rawValue.trim();
+    if (!trimmed) return "";
+
+    if (
+      trimmed.startsWith("http://") ||
+      trimmed.startsWith("https://") ||
+      trimmed.startsWith("mailto:") ||
+      trimmed.startsWith("tel:") ||
+      trimmed.startsWith("/") ||
+      trimmed.startsWith("#")
+    ) {
+      return trimmed;
+    }
+
+    return `https://${trimmed}`;
+  };
+
+  const openLinkDialog = () => {
+    if (disabled || !editorRef.current) return;
+
+    saveSelection();
+    setLinkUrl(getSelectedLink()?.getAttribute("href") ?? "");
+    setLinkDialogOpen(true);
+  };
+
+  const applyLink = () => {
+    if (disabled || !editorRef.current) return;
+
+    const normalizedUrl = normalizeLinkUrl(linkUrl);
+    if (!normalizedUrl) {
+      setLinkDialogOpen(false);
+      setLinkUrl("");
+      return;
+    }
+
+    editorRef.current.focus();
+    restoreSelection();
+
+    const selection = typeof window !== "undefined" ? window.getSelection() : null;
+    const hasSelection = selection && !selection.isCollapsed;
+
+    if (hasSelection) {
+      document.execCommand("createLink", false, normalizedUrl);
+    } else {
+      const link = document.createElement("a");
+      link.href = normalizedUrl;
+      link.target = "_blank";
+      link.rel = "noreferrer noopener";
+      link.textContent = normalizedUrl;
+      document.execCommand("insertHTML", false, link.outerHTML);
+    }
+
+    const selectedLink = getSelectedLink();
+    if (selectedLink instanceof HTMLAnchorElement) {
+      selectedLink.target = "_blank";
+      selectedLink.rel = "noreferrer noopener";
+    }
+
+    emitChange();
+    saveSelection();
+    setLinkDialogOpen(false);
+    setLinkUrl("");
   };
 
   return (
-    <Stack spacing={1}>
+    <Stack spacing={1.5}>
       {label ? (
         <Typography variant="body2" fontWeight={600} color="text.primary">
           {label}
@@ -84,6 +234,8 @@ export default function RichTextEditor({
         <Stack
           direction="row"
           spacing={0.5}
+          useFlexGap
+          flexWrap="wrap"
           sx={{
             px: 1,
             py: 0.75,
@@ -92,46 +244,171 @@ export default function RichTextEditor({
             backgroundColor: alpha(theme.palette.primary.main, 0.04),
           }}
         >
-          <IconButton
+          <Tooltip title="Grassetto">
+            <span>
+              <IconButton
+                size="small"
+                onClick={() => runCommand("bold")}
+                disabled={disabled}
+                aria-label="Grassetto"
+              >
+                <FormatBoldIcon fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+          <Tooltip title="Corsivo">
+            <span>
+              <IconButton
+                size="small"
+                onClick={() => runCommand("italic")}
+                disabled={disabled}
+                aria-label="Corsivo"
+              >
+                <FormatItalicIcon fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+          <Tooltip title="Sottolineato">
+            <span>
+              <IconButton
+                size="small"
+                onClick={() => runCommand("underline")}
+                disabled={disabled}
+                aria-label="Sottolineato"
+              >
+                <FormatUnderlinedIcon fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+          <Tooltip title="Paragrafo">
+            <span>
+              <IconButton
+                size="small"
+                onClick={() => runBlockCommand("p")}
+                disabled={disabled}
+                aria-label="Paragrafo"
+              >
+                <SubjectIcon fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+          <Tooltip title="Titolo">
+            <span>
+              <IconButton
+                size="small"
+                onClick={() => runBlockCommand("h2")}
+                disabled={disabled}
+                aria-label="Titolo"
+              >
+                <TitleIcon fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+          <Tooltip title="Sottotitolo">
+            <span>
+              <IconButton
+                size="small"
+                onClick={() => runBlockCommand("h3")}
+                disabled={disabled}
+                aria-label="Sottotitolo"
+              >
+                <TitleIcon sx={{ fontSize: 18 }} />
+              </IconButton>
+            </span>
+          </Tooltip>
+          <Tooltip title="Elenco puntato">
+            <span>
+              <IconButton
+                size="small"
+                onClick={() => runCommand("insertUnorderedList")}
+                disabled={disabled}
+                aria-label="Elenco puntato"
+              >
+                <FormatListBulletedIcon fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+          <Tooltip title="Elenco numerato">
+            <span>
+              <IconButton
+                size="small"
+                onClick={() => runCommand("insertOrderedList")}
+                disabled={disabled}
+                aria-label="Elenco numerato"
+              >
+                <FormatListNumberedIcon fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+          <Tooltip title="Allinea a sinistra">
+            <span>
+              <IconButton
+                size="small"
+                onClick={() => runCommand("justifyLeft")}
+                disabled={disabled}
+                aria-label="Allinea a sinistra"
+              >
+                <FormatAlignLeftIcon fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+          <Tooltip title="Centra testo">
+            <span>
+              <IconButton
+                size="small"
+                onClick={() => runCommand("justifyCenter")}
+                disabled={disabled}
+                aria-label="Centra testo"
+              >
+                <FormatAlignCenterIcon fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+          <Tooltip title="Inserisci o modifica link">
+            <span>
+              <IconButton
+                size="small"
+                onClick={openLinkDialog}
+                disabled={disabled}
+                aria-label="Inserisci link"
+              >
+                <LinkIcon fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+          <Tooltip title="Rimuovi link">
+            <span>
+              <IconButton
+                size="small"
+                onClick={() => runCommand("unlink")}
+                disabled={disabled}
+                aria-label="Rimuovi link"
+              >
+                <LinkOffIcon fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+          <Tooltip title="Rimuovi formattazione">
+            <span>
+              <IconButton
+                size="small"
+                onClick={() => runCommand("removeFormat")}
+                disabled={disabled}
+                aria-label="Rimuovi formattazione"
+              >
+                <UndoIcon fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+          <Button
             size="small"
-            onClick={() => runCommand("bold")}
-            disabled={disabled}
-            aria-label="Grassetto"
+            startIcon={<PreviewIcon fontSize="small" />}
+            onClick={() => setPreviewOpen((current) => !current)}
+            disabled={disabled && !value}
+            sx={{ ml: "auto" }}
           >
-            <FormatBoldIcon fontSize="small" />
-          </IconButton>
-          <IconButton
-            size="small"
-            onClick={() => runCommand("italic")}
-            disabled={disabled}
-            aria-label="Corsivo"
-          >
-            <FormatItalicIcon fontSize="small" />
-          </IconButton>
-          <IconButton
-            size="small"
-            onClick={() => runCommand("insertUnorderedList")}
-            disabled={disabled}
-            aria-label="Elenco puntato"
-          >
-            <FormatListBulletedIcon fontSize="small" />
-          </IconButton>
-          <IconButton
-            size="small"
-            onClick={() => runCommand("insertOrderedList")}
-            disabled={disabled}
-            aria-label="Elenco numerato"
-          >
-            <FormatListNumberedIcon fontSize="small" />
-          </IconButton>
-          <IconButton
-            size="small"
-            onClick={() => runCommand("removeFormat")}
-            disabled={disabled}
-            aria-label="Rimuovi formattazione"
-          >
-            <UndoIcon fontSize="small" />
-          </IconButton>
+            {previewOpen ? "Nascondi anteprima" : "Anteprima isolata"}
+          </Button>
         </Stack>
 
         <Box
@@ -141,6 +418,8 @@ export default function RichTextEditor({
           suppressContentEditableWarning
           onInput={emitChange}
           onBlur={emitChange}
+          onMouseUp={saveSelection}
+          onKeyUp={saveSelection}
           data-placeholder={placeholder ?? ""}
           sx={{
             minHeight,
@@ -173,11 +452,70 @@ export default function RichTextEditor({
         />
       </Paper>
 
+      {previewOpen ? (
+        <Paper
+          variant="outlined"
+          sx={{
+            borderRadius: 3,
+            p: 2,
+            borderColor: "divider",
+            backgroundColor: alpha(theme.palette.secondary.main, 0.03),
+          }}
+        >
+          <Stack spacing={1.5}>
+            <Typography variant="body2" fontWeight={600} color="text.primary">
+              Anteprima isolata
+            </Typography>
+            {value.trim() ? (
+              <IsolatedHtmlContent html={value} />
+            ) : (
+              <Typography variant="body2" color="text.secondary">
+                Nessun contenuto da mostrare nell&apos;anteprima.
+              </Typography>
+            )}
+          </Stack>
+        </Paper>
+      ) : null}
+
       {helperText ? (
         <Typography variant="caption" color="text.secondary">
           {helperText}
         </Typography>
       ) : null}
+
+      <Dialog
+        open={linkDialogOpen}
+        onClose={() => setLinkDialogOpen(false)}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle>Inserisci link</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="URL"
+            placeholder="https://esempio.it"
+            fullWidth
+            value={linkUrl}
+            onChange={(event) => setLinkUrl(event.target.value)}
+            helperText="Se manca il protocollo verrà aggiunto https://"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setLinkDialogOpen(false);
+              setLinkUrl("");
+            }}
+          >
+            Annulla
+          </Button>
+          <Button onClick={applyLink} variant="contained">
+            Applica
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }

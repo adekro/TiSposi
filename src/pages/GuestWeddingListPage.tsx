@@ -1,4 +1,3 @@
-import DOMPurify from "dompurify";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -15,6 +14,7 @@ import {
 import { CardGiftcard as CardGiftcardIcon } from "@mui/icons-material";
 import { OpenInNew as OpenInNewIcon } from "@mui/icons-material";
 import GuestNavbar from "../components/GuestNavbar";
+import IsolatedHtmlContent from "../components/IsolatedHtmlContent";
 import LegalFooter from "../components/LegalFooter";
 import PWAInstallBanner from "../components/PWAInstallBanner";
 import type { WeddingListItem } from "../types";
@@ -39,31 +39,6 @@ async function fetchWeddingList(
   return res.json() as Promise<WeddingListPublicResponse>;
 }
 
-function escapeHtml(value: string) {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/\"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
-
-function formatRichTextHtml(value: string | null) {
-  if (!value?.trim()) {
-    return "";
-  }
-
-  const hasHtmlTags = /<\/?[a-z][\s\S]*>/i.test(value);
-  const source = hasHtmlTags
-    ? value
-    : escapeHtml(value).replace(/\n/g, "<br />");
-
-  return DOMPurify.sanitize(source, {
-    ALLOWED_TAGS: ["p", "br", "strong", "b", "em", "i", "ul", "ol", "li"],
-    ALLOWED_ATTR: [],
-  });
-}
-
 export default function GuestWeddingListPage() {
   const { publicId = "" } = useParams();
   const theme = useTheme();
@@ -79,9 +54,6 @@ export default function GuestWeddingListPage() {
   const items = data?.items ?? [];
   const headerBgUrl = event?.weddingListBgUrl ?? event?.landingBgUrl ?? null;
   const hasHeroBg = Boolean(headerBgUrl);
-  const weddingListDescriptionHtml = formatRichTextHtml(
-    event?.weddingListDescription ?? null,
-  );
 
   if (isLoading) {
     return (
@@ -212,33 +184,15 @@ export default function GuestWeddingListPage() {
 
       {/* ── Contenuto ── */}
       <Container maxWidth="sm" sx={{ flex: 1, py: { xs: 4, sm: 6 } }}>
-        {weddingListDescriptionHtml && (
-          <Box
-            sx={{
-              textAlign: "center",
-              mb: 5,
-              fontStyle: "italic",
-              lineHeight: 1.8,
-              fontSize: "1rem",
-              maxWidth: 600,
-              mx: "auto",
-              color: "text.secondary",
-              "& p": {
-                my: 0,
-              },
-              "& p + p": {
-                mt: 1.5,
-              },
-              "& ul, & ol": {
-                display: "inline-block",
-                textAlign: "left",
-                my: 1,
-                pl: 3,
-              },
-            }}
-            dangerouslySetInnerHTML={{ __html: weddingListDescriptionHtml }}
-          />
-        )}
+        <IsolatedHtmlContent
+          html={event.weddingListDescription}
+          sx={{
+            mb: 5,
+            maxWidth: 600,
+            mx: "auto",
+            width: "100%",
+          }}
+        />
 
         {items.length === 0 ? (
           <Box sx={{ textAlign: "center", py: 10 }}>
