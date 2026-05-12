@@ -14,6 +14,7 @@ import { useGallery } from "../hooks/useGallery";
 import LegalFooter from "../components/LegalFooter";
 import PWAInstallBanner from "../components/PWAInstallBanner";
 import GuestNavbar from "../components/GuestNavbar";
+import WeddingInfoSection from "../components/WeddingInfoSection";
 
 export default function GuestLandingPage() {
   const { publicId = "" } = useParams();
@@ -270,6 +271,10 @@ export default function GuestLandingPage() {
             >
               Lista nozze
             </Button>
+          </Box>
+
+          <Box sx={{ mt: 4 }}>
+            <WeddingInfoSection event={event} />
           </Box>
         </Container>
       </Box>
