@@ -22,6 +22,7 @@ import { Delete as DeleteIcon } from "@mui/icons-material";
 import { useRef, useState } from "react";
 import type { EventFormState } from "../hooks/useEventSettings";
 import { normalizePublicId } from "../hooks/useEventSettings";
+import RichTextEditor from "./RichTextEditor";
 
 interface Props {
   form: EventFormState;
@@ -731,14 +732,11 @@ export default function EventSettingsForm({
             </AccordionSummary>
             <AccordionDetails>
               <Stack spacing={2}>
-                <TextField
+                <RichTextEditor
                   label="Descrizione lista nozze"
                   value={form.weddingListDescription}
-                  onChange={(e) => updateField("weddingListDescription", e.target.value)}
+                  onChange={(value) => updateField("weddingListDescription", value)}
                   placeholder="Invece dei regali tradizionali, abbiamo scelto dei desideri speciali..."
-                  fullWidth
-                  multiline
-                  minRows={3}
                   disabled={disabled}
                   helperText="Testo introduttivo mostrato agli ospiti nella pagina della lista nozze"
                 />

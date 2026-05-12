@@ -1,3 +1,4 @@
+import DOMPurify from "dompurify";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -38,6 +39,31 @@ async function fetchWeddingList(
   return res.json() as Promise<WeddingListPublicResponse>;
 }
 
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function formatRichTextHtml(value: string | null) {
+  if (!value?.trim()) {
+    return "";
+  }
+
+  const hasHtmlTags = /<\/?[a-z][\s\S]*>/i.test(value);
+  const source = hasHtmlTags
+    ? value
+    : escapeHtml(value).replace(/\n/g, "<br />");
+
+  return DOMPurify.sanitize(source, {
+    ALLOWED_TAGS: ["p", "br", "strong", "b", "em", "i", "ul", "ol", "li"],
+    ALLOWED_ATTR: [],
+  });
+}
+
 export default function GuestWeddingListPage() {
   const { publicId = "" } = useParams();
   const theme = useTheme();
@@ -53,6 +79,9 @@ export default function GuestWeddingListPage() {
   const items = data?.items ?? [];
   const headerBgUrl = event?.weddingListBgUrl ?? event?.landingBgUrl ?? null;
   const hasHeroBg = Boolean(headerBgUrl);
+  const weddingListDescriptionHtml = formatRichTextHtml(
+    event?.weddingListDescription ?? null,
+  );
 
   if (isLoading) {
     return (
@@ -183,10 +212,8 @@ export default function GuestWeddingListPage() {
 
       {/* ── Contenuto ── */}
       <Container maxWidth="sm" sx={{ flex: 1, py: { xs: 4, sm: 6 } }}>
-        {event.weddingListDescription && (
-          <Typography
-            variant="body1"
-            color="text.secondary"
+        {weddingListDescriptionHtml && (
+          <Box
             sx={{
               textAlign: "center",
               mb: 5,
@@ -195,10 +222,22 @@ export default function GuestWeddingListPage() {
               fontSize: "1rem",
               maxWidth: 600,
               mx: "auto",
+              color: "text.secondary",
+              "& p": {
+                my: 0,
+              },
+              "& p + p": {
+                mt: 1.5,
+              },
+              "& ul, & ol": {
+                display: "inline-block",
+                textAlign: "left",
+                my: 1,
+                pl: 3,
+              },
             }}
-          >
-            {event.weddingListDescription}
-          </Typography>
+            dangerouslySetInnerHTML={{ __html: weddingListDescriptionHtml }}
+          />
         )}
 
         {items.length === 0 ? (
