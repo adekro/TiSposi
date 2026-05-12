@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   Alert,
   Box,
@@ -18,11 +18,13 @@ import {
   Typography,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import { supabase } from "../lib/supabase";
 import type { useWeddingList } from "../hooks/useWeddingList";
 import type { WeddingListFormData } from "../types";
 
@@ -35,12 +37,21 @@ interface Props {
 const EMPTY_FORM: WeddingListFormData = {
   title: "",
   description: null,
-  url: "",
+  url: null,
   order: 0,
 };
 
 export default function WeddingListTab({ hook }: Props) {
-  const { items, loading, error, addItem, updateItem, deleteItem, reorderItem } = hook;
+  const {
+    eventId,
+    items,
+    loading,
+    error,
+    addItem,
+    updateItem,
+    deleteItem,
+    reorderItem,
+  } = hook;
 
   // Add/edit dialog
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -54,9 +65,18 @@ export default function WeddingListTab({ hook }: Props) {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  // Wedding list background
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingBg, setUploadingBg] = useState(false);
+  const [bgError, setBgError] = useState("");
+  const [bgMessage, setBgMessage] = useState("");
+  const [bgVersion, setBgVersion] = useState(0);
+  const [bgImgError, setBgImgError] = useState(false);
+
   const openAdd = () => {
     setEditId(null);
-    const nextOrder = items.length > 0 ? Math.max(...items.map((i) => i.order)) + 1 : 0;
+    const nextOrder =
+      items.length > 0 ? Math.max(...items.map((i) => i.order)) + 1 : 0;
     setForm({ ...EMPTY_FORM, order: nextOrder });
     setFormError("");
     setDialogOpen(true);
@@ -81,17 +101,13 @@ export default function WeddingListTab({ hook }: Props) {
       setFormError("Il titolo è obbligatorio.");
       return;
     }
-    if (!form.url.trim()) {
-      setFormError("L'URL è obbligatorio.");
-      return;
-    }
     setSaving(true);
     setFormError("");
     try {
       const payload: WeddingListFormData = {
         title: form.title.trim(),
         description: form.description?.trim() || null,
-        url: form.url.trim(),
+        url: form.url?.trim() || null,
         order: form.order,
       };
       if (editId) {
@@ -101,9 +117,84 @@ export default function WeddingListTab({ hook }: Props) {
       }
       setDialogOpen(false);
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : "Errore nel salvataggio.");
+      setFormError(
+        err instanceof Error ? err.message : "Errore nel salvataggio.",
+      );
     } finally {
       setSaving(false);
+    }
+  };
+
+  const bgPreviewUrl = eventId
+    ? `/api/upload-wedding-list-bg?eventId=${eventId}&v=${bgVersion}`
+    : null;
+
+  const handleUploadBg = async (file: File) => {
+    if (!supabase) {
+      setBgError("Supabase non configurato.");
+      return;
+    }
+    setUploadingBg(true);
+    setBgError("");
+    setBgMessage("");
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) {
+        setBgError("Sessione scaduta. Rieffettua il login.");
+        return;
+      }
+      const res = await fetch("/api/upload-wedding-list-bg", {
+        method: "POST",
+        headers: {
+          "Content-Type": file.type,
+          Authorization: `Bearer ${token}`,
+        },
+        body: file,
+      });
+      if (!res.ok) {
+        const json = (await res.json()) as { error?: string };
+        setBgError(json.error ?? "Errore nel caricamento dello sfondo.");
+        return;
+      }
+      setBgImgError(false);
+      setBgVersion((v) => v + 1);
+      setBgMessage("Sfondo lista nozze caricato.");
+    } catch (err) {
+      setBgError(err instanceof Error ? err.message : "Errore sconosciuto.");
+    } finally {
+      setUploadingBg(false);
+    }
+  };
+
+  const handleDeleteBg = async () => {
+    if (!supabase) return;
+    setUploadingBg(true);
+    setBgError("");
+    setBgMessage("");
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) {
+        setBgError("Sessione scaduta. Rieffettua il login.");
+        return;
+      }
+      const res = await fetch("/api/upload-wedding-list-bg", {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const json = (await res.json()) as { error?: string };
+        setBgError(json.error ?? "Errore nella rimozione dello sfondo.");
+        return;
+      }
+      setBgImgError(true);
+      setBgVersion((v) => v + 1);
+      setBgMessage("Sfondo lista nozze rimosso.");
+    } catch (err) {
+      setBgError(err instanceof Error ? err.message : "Errore sconosciuto.");
+    } finally {
+      setUploadingBg(false);
     }
   };
 
@@ -138,8 +229,79 @@ export default function WeddingListTab({ hook }: Props) {
     <Stack spacing={2}>
       {error && <Alert severity="error">{error}</Alert>}
 
+      <Card variant="outlined" sx={{ borderRadius: 3 }}>
+        <CardContent sx={{ p: 2.5 }}>
+          <Stack spacing={2}>
+            <Typography fontWeight={600}>Sfondo lista nozze</Typography>
+            {bgError && <Alert severity="error">{bgError}</Alert>}
+            {bgMessage && <Alert severity="success">{bgMessage}</Alert>}
+
+            {bgPreviewUrl && !bgImgError ? (
+              <Box
+                component="img"
+                src={bgPreviewUrl}
+                alt="Anteprima sfondo lista nozze"
+                onError={() => setBgImgError(true)}
+                sx={{
+                  width: "100%",
+                  maxWidth: 360,
+                  maxHeight: 180,
+                  objectFit: "cover",
+                  borderRadius: 2,
+                  border: "1px solid",
+                  borderColor: "divider",
+                }}
+              />
+            ) : (
+              <Typography variant="body2" color="text.secondary">
+                Nessuno sfondo caricato.
+              </Typography>
+            )}
+
+            <Stack direction="row" spacing={1}>
+              <Button
+                variant="outlined"
+                startIcon={<CloudUploadIcon />}
+                disabled={uploadingBg}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {uploadingBg ? "Caricamento..." : "Carica sfondo"}
+              </Button>
+              <Button
+                variant="text"
+                color="error"
+                startIcon={<DeleteIcon />}
+                disabled={uploadingBg}
+                onClick={() => void handleDeleteBg()}
+              >
+                Rimuovi
+              </Button>
+            </Stack>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              hidden
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  void handleUploadBg(file);
+                }
+                e.currentTarget.value = "";
+              }}
+            />
+          </Stack>
+        </CardContent>
+      </Card>
+
       <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={openAdd} size="small">
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={openAdd}
+          size="small"
+        >
           Aggiungi regalo
         </Button>
       </Box>
@@ -186,20 +348,33 @@ export default function WeddingListTab({ hook }: Props) {
                   {item.title}
                 </Typography>
                 {item.description && (
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mt: 0.5 }}
+                  >
                     {item.description}
                   </Typography>
                 )}
-                <Link
-                  href={item.url}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  variant="body2"
-                  sx={{ display: "inline-flex", alignItems: "center", gap: 0.5, mt: 0.5 }}
-                >
-                  {item.url.length > 60 ? item.url.slice(0, 60) + "…" : item.url}
-                  <OpenInNewIcon sx={{ fontSize: 14 }} />
-                </Link>
+                {item.url && (
+                  <Link
+                    href={item.url}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    variant="body2"
+                    sx={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 0.5,
+                      mt: 0.5,
+                    }}
+                  >
+                    {item.url.length > 60
+                      ? item.url.slice(0, 60) + "…"
+                      : item.url}
+                    <OpenInNewIcon sx={{ fontSize: 14 }} />
+                  </Link>
+                )}
               </Box>
 
               {/* Azioni */}
@@ -210,7 +385,11 @@ export default function WeddingListTab({ hook }: Props) {
                   </IconButton>
                 </Tooltip>
                 <Tooltip title="Elimina">
-                  <IconButton size="small" color="error" onClick={() => openDelete(item.id)}>
+                  <IconButton
+                    size="small"
+                    color="error"
+                    onClick={() => openDelete(item.id)}
+                  >
                     <DeleteIcon fontSize="small" />
                   </IconButton>
                 </Tooltip>
@@ -221,15 +400,24 @@ export default function WeddingListTab({ hook }: Props) {
       ))}
 
       {/* ── Dialog Add/Edit ── */}
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>{editId ? "Modifica regalo" : "Aggiungi regalo"}</DialogTitle>
+      <Dialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          {editId ? "Modifica regalo" : "Aggiungi regalo"}
+        </DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             {formError && <Alert severity="error">{formError}</Alert>}
             <TextField
               label="Titolo *"
               value={form.title}
-              onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, title: e.target.value }))
+              }
               fullWidth
               autoFocus
               placeholder="Robot da cucina, Weekend spa..."
@@ -246,12 +434,14 @@ export default function WeddingListTab({ hook }: Props) {
               placeholder="Modello consigliato, colore preferito..."
             />
             <TextField
-              label="URL *"
-              value={form.url}
-              onChange={(e) => setForm((f) => ({ ...f, url: e.target.value }))}
+              label="URL"
+              value={form.url ?? ""}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, url: e.target.value || null }))
+              }
               fullWidth
               placeholder="https://www.amazon.it/..."
-              helperText="Link al negozio o alla pagina del prodotto"
+              helperText="Opzionale: link al negozio o alla pagina del prodotto"
             />
           </Stack>
         </DialogContent>
@@ -270,7 +460,11 @@ export default function WeddingListTab({ hook }: Props) {
       </Dialog>
 
       {/* ── Dialog conferma eliminazione ── */}
-      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)} maxWidth="xs">
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        maxWidth="xs"
+      >
         <DialogTitle>Elimina regalo</DialogTitle>
         <DialogContent>
           <Typography>
@@ -278,7 +472,10 @@ export default function WeddingListTab({ hook }: Props) {
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)} disabled={deleting}>
+          <Button
+            onClick={() => setDeleteDialogOpen(false)}
+            disabled={deleting}
+          >
             Annulla
           </Button>
           <Button

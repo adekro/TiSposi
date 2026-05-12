@@ -23,6 +23,7 @@ interface WeddingListPublicResponse {
   event: {
     spouses: string;
     weddingListDescription: string | null;
+    weddingListBgUrl: string | null;
   };
   items: WeddingListItem[];
 }
@@ -98,7 +99,11 @@ export default function GuestWeddingListPage() {
       {/* ── Header ── */}
       <Box
         sx={{
-          background: `linear-gradient(160deg, ${theme.palette.secondary.main}22 0%, ${theme.palette.primary.main}22 100%)`,
+          backgroundImage: event.weddingListBgUrl
+            ? `linear-gradient(160deg, ${theme.palette.common.black}88 0%, ${theme.palette.common.black}55 100%), url(${event.weddingListBgUrl})`
+            : `linear-gradient(160deg, ${theme.palette.secondary.main}22 0%, ${theme.palette.primary.main}22 100%)`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
           borderBottom: `1px solid ${theme.palette.secondary.main}33`,
           py: { xs: 4, sm: 6 },
           textAlign: "center",
@@ -107,7 +112,9 @@ export default function GuestWeddingListPage() {
         <Typography
           variant="overline"
           sx={{
-            color: theme.palette.text.secondary,
+            color: event.weddingListBgUrl
+              ? theme.palette.common.white
+              : theme.palette.text.secondary,
             letterSpacing: "0.18em",
             fontWeight: 600,
             fontSize: "0.75rem",
@@ -120,7 +127,9 @@ export default function GuestWeddingListPage() {
           component="h1"
           sx={{
             fontFamily: '"Playfair Display", serif',
-            color: theme.palette.text.primary,
+            color: event.weddingListBgUrl
+              ? theme.palette.common.white
+              : theme.palette.text.primary,
             fontSize: { xs: "2rem", sm: "2.8rem" },
             mt: 0.5,
             mb: 0.5,
@@ -185,7 +194,10 @@ export default function GuestWeddingListPage() {
                     <Typography
                       variant="h6"
                       gutterBottom
-                      sx={{ fontFamily: '"Playfair Display", serif', fontSize: "1.05rem" }}
+                      sx={{
+                        fontFamily: '"Playfair Display", serif',
+                        fontSize: "1.05rem",
+                      }}
                     >
                       {item.title}
                     </Typography>
@@ -195,25 +207,27 @@ export default function GuestWeddingListPage() {
                       </Typography>
                     )}
                   </CardContent>
-                  <CardActions sx={{ px: 2, pb: 2, pt: 1 }}>
-                    <Button
-                      variant="contained"
-                      size="small"
-                      endIcon={<OpenInNewIcon fontSize="small" />}
-                      href={item.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      sx={{
-                        borderRadius: 2,
-                        background: `linear-gradient(135deg, ${theme.palette.secondary.main} 0%, ${theme.palette.secondary.dark} 100%)`,
-                        color: theme.palette.secondary.contrastText,
-                        fontWeight: 600,
-                        "&:hover": { opacity: 0.88 },
-                      }}
-                    >
-                      Scopri
-                    </Button>
-                  </CardActions>
+                  {item.url && (
+                    <CardActions sx={{ px: 2, pb: 2, pt: 1 }}>
+                      <Button
+                        variant="contained"
+                        size="small"
+                        endIcon={<OpenInNewIcon fontSize="small" />}
+                        href={item.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        sx={{
+                          borderRadius: 2,
+                          background: `linear-gradient(135deg, ${theme.palette.secondary.main} 0%, ${theme.palette.secondary.dark} 100%)`,
+                          color: theme.palette.secondary.contrastText,
+                          fontWeight: 600,
+                          "&:hover": { opacity: 0.88 },
+                        }}
+                      >
+                        Scopri
+                      </Button>
+                    </CardActions>
+                  )}
                 </Card>
               </Grid>
             ))}

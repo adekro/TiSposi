@@ -45,6 +45,7 @@ export interface PublicEventSummary {
   // Fase 17: sito ospite
   landingBgUrl?: string | null;
   weddingListDescription?: string | null;
+  weddingListBgUrl?: string | null;
 }
 
 export interface PublicGalleryResponse {
@@ -111,7 +112,10 @@ export interface RsvpEntry {
 }
 
 // Fase 16: campi editabili di rsvp_entries (esclude id, event_id, guest_id, created_at)
-export type RsvpFormData = Omit<RsvpEntry, "id" | "event_id" | "guest_id" | "created_at">;
+export type RsvpFormData = Omit<
+  RsvpEntry,
+  "id" | "event_id" | "guest_id" | "created_at"
+>;
 
 // ── Fase 3: Wedding Planning ──────────────────────────────────────────────────
 export interface ChecklistItem {
@@ -232,9 +236,12 @@ export interface WeddingListItem {
   event_id: string;
   title: string;
   description: string | null;
-  url: string;
+  url: string | null;
   order: number;
   created_at: string;
 }
 
-export type WeddingListFormData = Omit<WeddingListItem, "id" | "event_id" | "created_at">;
+export type WeddingListFormData = Omit<
+  WeddingListItem,
+  "id" | "event_id" | "created_at"
+>;

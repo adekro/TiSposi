@@ -4,6 +4,7 @@ import type { WeddingListItem, WeddingListFormData } from "../types";
 
 export function useWeddingList(userId: string) {
   const [items, setItems] = useState<WeddingListItem[]>([]);
+  const [eventId, setEventId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -28,10 +29,12 @@ export function useWeddingList(userId: string) {
     try {
       const eventId = await resolveEventId();
       if (!eventId) {
+        setEventId(null);
         setItems([]);
         setLoading(false);
         return;
       }
+      setEventId(eventId);
       const { data, error: err } = await supabase!
         .from("wedding_list_items")
         .select("*")
@@ -52,20 +55,26 @@ export function useWeddingList(userId: string) {
     if (!userId || !supabase) return;
     const eventId = await resolveEventId();
     if (!eventId) return;
+    setEventId(eventId);
     const nextOrder =
       items.length > 0 ? Math.max(...items.map((i) => i.order)) + 1 : 0;
     const { data, error: err } = await supabase
       .from("wedding_list_items")
-      .insert({ event_id: eventId, ...formData, order: formData.order ?? nextOrder })
+      .insert({
+        event_id: eventId,
+        ...formData,
+        order: formData.order ?? nextOrder,
+      })
       .select()
       .single<WeddingListItem>();
     if (err || !data) throw new Error(err?.message ?? "Errore inserimento.");
-    setItems((prev) =>
-      [...prev, data].sort((a, b) => a.order - b.order)
-    );
+    setItems((prev) => [...prev, data].sort((a, b) => a.order - b.order));
   };
 
-  const updateItem = async (id: string, formData: Partial<WeddingListFormData>) => {
+  const updateItem = async (
+    id: string,
+    formData: Partial<WeddingListFormData>,
+  ) => {
     if (!supabase) return;
     const { data, error: err } = await supabase
       .from("wedding_list_items")
@@ -77,7 +86,7 @@ export function useWeddingList(userId: string) {
     setItems((prev) =>
       prev
         .map((i) => (i.id === id ? data : i))
-        .sort((a, b) => a.order - b.order)
+        .sort((a, b) => a.order - b.order),
     );
   };
 
@@ -135,6 +144,7 @@ export function useWeddingList(userId: string) {
   }, [userId]);
 
   return {
+    eventId,
     items,
     loading,
     error,

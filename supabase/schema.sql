@@ -556,16 +556,47 @@ create policy "Owners can manage own event background"
     )
   );
 
+create table if not exists public.event_wedding_list_backgrounds (
+  id uuid primary key default gen_random_uuid(),
+  event_id uuid not null unique references public.events (id) on delete cascade,
+  image_base64 text not null,
+  image_mime_type text not null,
+  updated_at timestamptz not null default timezone('utc', now())
+);
+
+alter table public.event_wedding_list_backgrounds enable row level security;
+
+drop policy if exists "Owners can manage own wedding list background" on public.event_wedding_list_backgrounds;
+create policy "Owners can manage own wedding list background"
+  on public.event_wedding_list_backgrounds for all
+  using (
+    exists (
+      select 1 from public.events
+      where events.id = event_wedding_list_backgrounds.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.events
+      where events.id = event_wedding_list_backgrounds.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  );
+
 -- Tabella lista nozze
 create table if not exists public.wedding_list_items (
   id uuid primary key default gen_random_uuid(),
   event_id uuid not null references public.events (id) on delete cascade,
   title text not null check (char_length(title) between 1 and 200),
   description text,
-  url text not null check (char_length(url) between 1 and 2000),
+  url text check (char_length(url) between 1 and 2000),
   "order" integer not null default 0,
   created_at timestamptz not null default timezone('utc', now())
 );
+
+alter table public.wedding_list_items
+  alter column url drop not null;
 
 create index if not exists idx_wedding_list_items_event_id
   on public.wedding_list_items (event_id, "order", created_at);

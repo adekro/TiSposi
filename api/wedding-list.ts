@@ -7,6 +7,7 @@ interface WeddingListPublicResponse {
   event: {
     spouses: string;
     weddingListDescription: string | null;
+    weddingListBgUrl: string | null;
   };
   items: WeddingListItem[];
 }
@@ -41,10 +42,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       throw new Error(error.message);
     }
 
+    const { data: bgData, error: bgError } = await supabase
+      .from("event_wedding_list_backgrounds")
+      .select("event_id")
+      .eq("event_id", event.id)
+      .maybeSingle();
+
+    if (bgError) {
+      throw new Error(bgError.message);
+    }
+
     const payload: WeddingListPublicResponse = {
       event: {
         spouses: event.spouses,
         weddingListDescription: event.wedding_list_description,
+        weddingListBgUrl: bgData
+          ? `/api/upload-wedding-list-bg?eventId=${event.id}`
+          : null,
       },
       items: data ?? [],
     };
