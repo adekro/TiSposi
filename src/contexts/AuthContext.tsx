@@ -1,5 +1,5 @@
 import type { Session, User } from "@supabase/supabase-js";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { supabase, supabaseConfigError } from "../lib/supabase";
 
 interface AuthContextValue {
@@ -8,11 +8,6 @@ interface AuthContextValue {
   user: User | null;
   configError: string | null;
   signOut: () => Promise<void>;
-  // Fase 15: impersonazione admin
-  impersonatedUserId: string | null;
-  impersonatedEmail: string | null;
-  startImpersonation: (userId: string, email: string) => void;
-  stopImpersonation: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -21,8 +16,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [impersonatedUserId, setImpersonatedUserId] = useState<string | null>(null);
-  const [impersonatedEmail, setImpersonatedEmail] = useState<string | null>(null);
 
   useEffect(() => {
     if (!supabase) {
@@ -57,31 +50,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
+  const value = useMemo<AuthContextValue>(
+    () => ({
+      loading,
+      session,
+      user,
+      configError: supabaseConfigError,
+      signOut: async () => {
+        if (!supabase) return;
+        await supabase.auth.signOut();
+      },
+    }),
+    [loading, session, user],
+  );
+
   return (
-    <AuthContext.Provider
-      value={{
-        loading,
-        session,
-        user,
-        configError: supabaseConfigError,
-        signOut: async () => {
-          if (!supabase) return;
-          setImpersonatedUserId(null);
-          setImpersonatedEmail(null);
-          await supabase.auth.signOut();
-        },
-        impersonatedUserId,
-        impersonatedEmail,
-        startImpersonation: (userId: string, email: string) => {
-          setImpersonatedUserId(userId);
-          setImpersonatedEmail(email);
-        },
-        stopImpersonation: () => {
-          setImpersonatedUserId(null);
-          setImpersonatedEmail(null);
-        },
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
