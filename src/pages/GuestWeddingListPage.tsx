@@ -8,7 +8,6 @@ import {
   CardContent,
   CircularProgress,
   Container,
-  Grid,
   Typography,
   useTheme,
 } from "@mui/material";
@@ -183,7 +182,7 @@ export default function GuestWeddingListPage() {
       </Box>
 
       {/* ── Contenuto ── */}
-      <Container maxWidth="md" sx={{ flex: 1, py: { xs: 4, sm: 6 } }}>
+      <Container maxWidth="sm" sx={{ flex: 1, py: { xs: 4, sm: 6 } }}>
         {event.weddingListDescription && (
           <Typography
             variant="body1"
@@ -215,66 +214,72 @@ export default function GuestWeddingListPage() {
             </Typography>
           </Box>
         ) : (
-          <Grid container spacing={3}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 3,
+            }}
+          >
             {items.map((item) => (
-              <Grid item xs={12} sm={6} md={4} key={item.id}>
-                <Card
-                  elevation={0}
-                  sx={{
-                    height: "100%",
-                    display: "flex",
-                    flexDirection: "column",
-                    borderRadius: 3,
-                    border: `1px solid ${theme.palette.divider}`,
-                    transition: "box-shadow 0.2s, transform 0.2s",
-                    "&:hover": {
-                      boxShadow: `0 6px 24px ${theme.palette.secondary.main}33`,
-                      transform: "translateY(-2px)",
-                    },
-                  }}
-                >
-                  <CardContent sx={{ flex: 1, pb: 0 }}>
-                    <Typography
-                      variant="h6"
-                      gutterBottom
+              <Card
+                key={item.id}
+                elevation={0}
+                sx={{
+                  width: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  borderRadius: 3,
+                  border: `1px solid ${theme.palette.divider}`,
+                  transition: "box-shadow 0.2s, transform 0.2s",
+                  "&:hover": {
+                    boxShadow: `0 6px 24px ${theme.palette.secondary.main}33`,
+                    transform: "translateY(-2px)",
+                  },
+                }}
+              >
+                <CardContent sx={{ flex: 1, pb: 0 }}>
+                  <Typography
+                    variant="h6"
+                    gutterBottom
+                    sx={{
+                      fontFamily: '"Playfair Display", serif',
+                      fontSize: "1.05rem",
+                    }}
+                  >
+                    {item.title}
+                  </Typography>
+                  {item.description && (
+                    <Typography variant="body2" color="text.secondary">
+                      {item.description}
+                    </Typography>
+                  )}
+                </CardContent>
+                {item.url && (
+                  <CardActions sx={{ px: 2, pb: 2, pt: 1 }}>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      endIcon={<OpenInNewIcon fontSize="small" />}
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       sx={{
-                        fontFamily: '"Playfair Display", serif',
-                        fontSize: "1.05rem",
+                        borderRadius: 2,
+                        background: `linear-gradient(135deg, ${theme.palette.secondary.main} 0%, ${theme.palette.secondary.dark} 100%)`,
+                        color: theme.palette.secondary.contrastText,
+                        fontWeight: 600,
+                        "&:hover": { opacity: 0.88 },
                       }}
                     >
-                      {item.title}
-                    </Typography>
-                    {item.description && (
-                      <Typography variant="body2" color="text.secondary">
-                        {item.description}
-                      </Typography>
-                    )}
-                  </CardContent>
-                  {item.url && (
-                    <CardActions sx={{ px: 2, pb: 2, pt: 1 }}>
-                      <Button
-                        variant="contained"
-                        size="small"
-                        endIcon={<OpenInNewIcon fontSize="small" />}
-                        href={item.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        sx={{
-                          borderRadius: 2,
-                          background: `linear-gradient(135deg, ${theme.palette.secondary.main} 0%, ${theme.palette.secondary.dark} 100%)`,
-                          color: theme.palette.secondary.contrastText,
-                          fontWeight: 600,
-                          "&:hover": { opacity: 0.88 },
-                        }}
-                      >
-                        Scopri
-                      </Button>
-                    </CardActions>
-                  )}
-                </Card>
-              </Grid>
+                      Scopri
+                    </Button>
+                  </CardActions>
+                )}
+              </Card>
             ))}
-          </Grid>
+          </Box>
         )}
       </Container>
 

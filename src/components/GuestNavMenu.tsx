@@ -13,11 +13,6 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import { Menu as MenuIcon } from "@mui/icons-material";
-import { Home as HomeIcon } from "@mui/icons-material";
-import { PhotoCamera as PhotoCameraIcon } from "@mui/icons-material";
-import { HowToReg as HowToRegIcon } from "@mui/icons-material";
-import { CardGiftcard as CardGiftcardIcon } from "@mui/icons-material";
 import { Link as RouterLink, useLocation } from "react-router-dom";
 
 interface Props {
@@ -28,22 +23,22 @@ interface Props {
 const NAV_ITEMS = [
   {
     label: "Benvenuto",
-    icon: <HomeIcon fontSize="small" />,
+    icon: <Box component="span">🏠</Box>,
     path: (id: string) => `/${id}/landing`,
   },
   {
     label: "Galleria & dediche",
-    icon: <PhotoCameraIcon fontSize="small" />,
+    icon: <Box component="span">📷</Box>,
     path: (id: string) => `/${id}/gallery`,
   },
   {
     label: "RSVP — Conferma presenza",
-    icon: <HowToRegIcon fontSize="small" />,
+    icon: <Box component="span">✅</Box>,
     path: (id: string) => `/${id}/rsvp`,
   },
   {
     label: "Lista nozze",
-    icon: <CardGiftcardIcon fontSize="small" />,
+    icon: <Box component="span">🎁</Box>,
     path: (id: string) => `/${id}/listanozze`,
   },
 ];
@@ -70,7 +65,9 @@ export default function GuestNavMenu({ publicId, spouses }: Props) {
           }}
           aria-label="Apri menu navigazione"
         >
-          <MenuIcon />
+          <Box component="span" sx={{ fontSize: 20, lineHeight: 1 }}>
+            ☰
+          </Box>
         </IconButton>
       </Tooltip>
 
