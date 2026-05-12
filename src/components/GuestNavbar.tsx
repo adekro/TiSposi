@@ -18,6 +18,9 @@ import {
 import { Link as RouterLink, useLocation } from "react-router-dom";
 
 import {Home as HomeIcon} from "@mui/icons-material";
+import { Celebration as CelebrationIcon } from "@mui/icons-material";
+import { Edit as EditIcon } from "@mui/icons-material";
+import { PhotoCamera as PhotoCameraIcon } from "@mui/icons-material";
 
 
 interface NavItemDef {
@@ -35,17 +38,17 @@ const NAV_ITEMS: NavItemDef[] = [
   },
   {
     label: "Galleria",
-    icon: <Box component="span">📷</Box>,
+    icon: <PhotoCameraIcon color="primary" />,
     path: (id) => `/${id}/gallery`,
   },
   {
     label: "RSVP",
-    icon: <Box component="span">✅</Box>,
+    icon: <EditIcon color="primary" />,
     path: (id) => `/${id}/rsvp`,
   },
   {
     label: "Lista nozze",
-    icon: <Box component="span">🎁</Box>,
+    icon:  <CelebrationIcon color="primary" />,
     path: (id) => `/${id}/listanozze`,
     requiresWeddingList: true,
   },
