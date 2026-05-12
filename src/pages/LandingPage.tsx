@@ -12,6 +12,10 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import LegalFooter from "../components/LegalFooter";
+import {Celebration as CelebrationIcon} from "@mui/icons-material";
+import { Edit as EditIcon } from "@mui/icons-material";
+import { PhotoCamera as PhotoCameraIcon } from "@mui/icons-material";
+
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -117,17 +121,17 @@ export default function LandingPage() {
 
           <Stack direction={{ xs: "column", md: "row" }} spacing={3} sx={{ width: "100%" }}>
             <FeatureCard
-              icon="📸"
+              icon={<PhotoCameraIcon color="primary" />}
               title="Gallery pubblica"
               body="Gli invitati caricano foto, scrivono dediche e sfogliano la galleria dell'evento dal proprio smartphone."
             />
             <FeatureCard
-              icon="📝"
+              icon={<EditIcon color="primary" />}
               title="RSVP online"
               body="Raccoglie le conferme di presenza con scelta menu, intolleranze e note. Export CSV immediato."
             />
             <FeatureCard
-              icon="🎉"
+              icon={<CelebrationIcon color="primary" />}
               title="Pagina evento"
               body="Countdown, storia della coppia, informazioni sulla location, dress code e programma della giornata."
             />
@@ -135,7 +139,7 @@ export default function LandingPage() {
 
           <Stack direction={{ xs: "column", md: "row" }} spacing={3} sx={{ width: "100%" }}>
             <FeatureCard
-              icon="👥"
+              icon= "👥"
               title="Lista invitati"
               body="Gestisci nome, contatti, tavolo assegnato e stato RSVP di ogni invitato direttamente dalla dashboard."
             />

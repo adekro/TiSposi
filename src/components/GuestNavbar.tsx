@@ -17,6 +17,9 @@ import {
 } from "@mui/material";
 import { Link as RouterLink, useLocation } from "react-router-dom";
 
+import {Home as HomeIcon} from "@mui/icons-material";
+
+
 interface NavItemDef {
   label: string;
   icon: React.ReactElement;
@@ -27,7 +30,7 @@ interface NavItemDef {
 const NAV_ITEMS: NavItemDef[] = [
   {
     label: "Benvenuto",
-    icon: <Box component="span">🏠</Box>,
+    icon: <HomeIcon color="primary" />,
     path: (id) => `/${id}/landing`,
   },
   {
@@ -54,6 +57,35 @@ interface Props {
   hasWeddingList?: boolean;
 }
 
+function getCoupleInitials(spouses?: string) {
+  if (!spouses) return "T + S";
+
+  const letterPattern = /\p{L}/u;
+  const segments = spouses
+    .split(/\s*(?:&|\+|\/|\be\b|\band\b)\s*/iu)
+    .map((segment) => segment.trim())
+    .filter(Boolean);
+
+  const names =
+    segments.length >= 2
+      ? segments.slice(0, 2)
+      : spouses
+          .split(/\s+/)
+          .map((segment) => segment.trim())
+          .filter(Boolean);
+
+  const initials = names
+    .map((name) => Array.from(name).find((char) => letterPattern.test(char)))
+    .filter((char): char is string => Boolean(char))
+    .slice(0, 2)
+    .map((char) => char.toUpperCase());
+
+  if (initials.length === 2) return `${initials[0]} + ${initials[1]}`;
+  if (initials.length === 1) return initials[0];
+
+  return "T + S";
+}
+
 export default function GuestNavbar({
   publicId,
   spouses,
@@ -62,6 +94,7 @@ export default function GuestNavbar({
   const theme = useTheme();
   const { pathname } = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const coupleInitials = getCoupleInitials(spouses);
 
   const visibleItems = NAV_ITEMS.filter(
     (item) => !item.requiresWeddingList || hasWeddingList,
@@ -80,7 +113,11 @@ export default function GuestNavbar({
         }}
       >
         <Toolbar
-          sx={{ minHeight: { xs: 52, sm: 56 }, px: { xs: 2, sm: 3 } }}
+          sx={{
+            position: "relative",
+            minHeight: { xs: 64, sm: 72 },
+            px: { xs: 2, sm: 3 },
+          }}
           disableGutters
         >
           {/* Logo */}
@@ -102,29 +139,88 @@ export default function GuestNavbar({
             TiSposi
           </Typography>
 
-          {spouses && (
-            <Typography
-              variant="caption"
+          <Box
+            sx={{
+              position: "absolute",
+              left: "50%",
+              top: "50%",
+              transform: "translate(-50%, -50%)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              pointerEvents: "none",
+              zIndex: 0,
+            }}
+          >
+            <Box
               sx={{
-                color: theme.palette.text.secondary,
-                fontStyle: "italic",
-                fontSize: "0.75rem",
-                display: { xs: "none", sm: "block" },
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                maxWidth: 200,
+                position: "relative",
+                width: { xs: 66, sm: 82 },
+                height: { xs: 58, sm: 72 },
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                filter: "drop-shadow(0 6px 14px rgba(201,160,176,0.22))",
               }}
             >
-              {spouses}
-            </Typography>
-          )}
+              <Box
+                component="svg"
+                viewBox="0 0 100 90"
+                aria-hidden="true"
+                sx={{
+                  position: "absolute",
+                  inset: 0,
+                  width: "100%",
+                  height: "100%",
+                  overflow: "visible",
+                }}
+              >
+                <defs>
+                  <linearGradient id="guest-navbar-heart" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#F9DDE5" />
+                    <stop offset="100%" stopColor="#F6E7CF" />
+                  </linearGradient>
+                </defs>
+                <path
+                  d="M50 78C45 74 38 68 29 60C18 50 10 42 10 28C10 17 18 9 29 9C37 9 44 13 50 20C56 13 63 9 71 9C82 9 90 17 90 28C90 42 82 50 71 60C62 68 55 74 50 78Z"
+                  fill="url(#guest-navbar-heart)"
+                  stroke={theme.palette.secondary.dark}
+                  strokeWidth="2.5"
+                />
+              </Box>
+
+              <Typography
+                component="span"
+                sx={{
+                  position: "relative",
+                  zIndex: 1,
+                  fontFamily: '"Playfair Display", serif',
+                  fontSize: { xs: "0.82rem", sm: "0.98rem" },
+                  fontWeight: 700,
+                  letterSpacing: "0.08em",
+                  color: theme.palette.text.primary,
+                  textAlign: "center",
+                  lineHeight: 1,
+                  transform: "translateY(2px)",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {coupleInitials}
+              </Typography>
+            </Box>
+          </Box>
 
           <Box sx={{ flex: 1 }} />
 
           {/* Desktop nav */}
           <Box
-            sx={{ display: { xs: "none", md: "flex" }, gap: 0.5, pr: { sm: 2 } }}
+            sx={{
+              display: { xs: "none", md: "flex" },
+              gap: 0.5,
+              pr: { sm: 2 },
+              position: "relative",
+              zIndex: 1,
+            }}
           >
             {visibleItems.map((item) => {
               const href = item.path(publicId);
@@ -169,6 +265,8 @@ export default function GuestNavbar({
               display: { xs: "flex", md: "none" },
               color: theme.palette.primary.main,
               mr: 1,
+              position: "relative",
+              zIndex: 1,
             }}
             aria-label="Apri menu navigazione"
           >
