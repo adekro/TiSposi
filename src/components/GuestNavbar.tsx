@@ -89,6 +89,90 @@ function getCoupleInitials(spouses?: string) {
   return "T + S";
 }
 
+interface CoupleHeartBadgeProps {
+  initials: string;
+  gradientId: string;
+  size?: {
+    xs: number;
+    sm: number;
+  };
+  textSize?: {
+    xs: string;
+    sm: string;
+  };
+}
+
+function CoupleHeartBadge({
+  initials,
+  gradientId,
+  size = { xs: 66, sm: 82 },
+  textSize = { xs: "0.82rem", sm: "0.98rem" },
+}: CoupleHeartBadgeProps) {
+  const theme = useTheme();
+
+  return (
+    <Box
+      sx={{
+        position: "relative",
+        width: size,
+        height: { xs: Math.round(size.xs * 0.88), sm: Math.round(size.sm * 0.88) },
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        filter: "drop-shadow(0 6px 14px rgba(201,160,176,0.22))",
+      }}
+    >
+      <Box
+        component="svg"
+        viewBox="0 0 100 90"
+        aria-hidden="true"
+        sx={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          overflow: "visible",
+        }}
+      >
+        <defs>
+          <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#F9DDE5" />
+            <stop offset="100%" stopColor="#F6E7CF" />
+          </linearGradient>
+        </defs>
+        <path
+          d="M50 78C45 74 38 68 29 60C18 50 10 42 10 28C10 17 18 9 29 9C37 9 44 13 50 20C56 13 63 9 71 9C82 9 90 17 90 28C90 42 82 50 71 60C62 68 55 74 50 78Z"
+          fill={`url(#${gradientId})`}
+          stroke={theme.palette.secondary.dark}
+          strokeWidth="2.5"
+        />
+      </Box>
+
+      <Typography
+        component="span"
+        sx={{
+          position: "relative",
+          zIndex: 1,
+          fontFamily: '"Great Vibes", "Playfair Display", serif',
+          fontSize: {
+            xs: `calc(${textSize.xs} + 0.42rem)`,
+            sm: `calc(${textSize.sm} + 0.5rem)`,
+          },
+          fontWeight: 400,
+          letterSpacing: "0.02em",
+          color: theme.palette.text.primary,
+          textAlign: "center",
+          lineHeight: 1,
+          transform: "translateY(4px)",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {initials}
+      </Typography>
+    </Box>
+  );
+}
+
 export default function GuestNavbar({
   publicId,
   spouses,
@@ -155,62 +239,7 @@ export default function GuestNavbar({
               zIndex: 0,
             }}
           >
-            <Box
-              sx={{
-                position: "relative",
-                width: { xs: 66, sm: 82 },
-                height: { xs: 58, sm: 72 },
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                filter: "drop-shadow(0 6px 14px rgba(201,160,176,0.22))",
-              }}
-            >
-              <Box
-                component="svg"
-                viewBox="0 0 100 90"
-                aria-hidden="true"
-                sx={{
-                  position: "absolute",
-                  inset: 0,
-                  width: "100%",
-                  height: "100%",
-                  overflow: "visible",
-                }}
-              >
-                <defs>
-                  <linearGradient id="guest-navbar-heart" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#F9DDE5" />
-                    <stop offset="100%" stopColor="#F6E7CF" />
-                  </linearGradient>
-                </defs>
-                <path
-                  d="M50 78C45 74 38 68 29 60C18 50 10 42 10 28C10 17 18 9 29 9C37 9 44 13 50 20C56 13 63 9 71 9C82 9 90 17 90 28C90 42 82 50 71 60C62 68 55 74 50 78Z"
-                  fill="url(#guest-navbar-heart)"
-                  stroke={theme.palette.secondary.dark}
-                  strokeWidth="2.5"
-                />
-              </Box>
-
-              <Typography
-                component="span"
-                sx={{
-                  position: "relative",
-                  zIndex: 1,
-                  fontFamily: '"Playfair Display", serif',
-                  fontSize: { xs: "0.82rem", sm: "0.98rem" },
-                  fontWeight: 700,
-                  letterSpacing: "0.08em",
-                  color: theme.palette.text.primary,
-                  textAlign: "center",
-                  lineHeight: 1,
-                  transform: "translateY(2px)",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {coupleInitials}
-              </Typography>
-            </Box>
+            <CoupleHeartBadge initials={coupleInitials} gradientId="guest-navbar-heart" />
           </Box>
 
           <Box sx={{ flex: 1 }} />
@@ -299,6 +328,10 @@ export default function GuestNavbar({
             py: 3,
             background: `linear-gradient(135deg, ${theme.palette.primary.main}18 0%, ${theme.palette.secondary.main}18 100%)`,
             borderBottom: `1px solid ${theme.palette.divider}`,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            textAlign: "center",
           }}
         >
           <Typography
@@ -312,6 +345,14 @@ export default function GuestNavbar({
           >
             Matrimonio di
           </Typography>
+          <Box sx={{ mt: 1, mb: 1.25 }}>
+            <CoupleHeartBadge
+              initials={coupleInitials}
+              gradientId="guest-drawer-heart"
+              size={{ xs: 78, sm: 90 }}
+              textSize={{ xs: "0.96rem", sm: "1.05rem" }}
+            />
+          </Box>
           <Typography
             variant="h6"
             sx={{
