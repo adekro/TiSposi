@@ -44,9 +44,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const { data: bgData, error: bgError } = await supabase
       .from("event_wedding_list_backgrounds")
-      .select("event_id")
+      .select("event_id, updated_at")
       .eq("event_id", event.id)
-      .maybeSingle();
+      .maybeSingle<{ event_id: string; updated_at: string | null }>();
 
     if (bgError) {
       throw new Error(bgError.message);
@@ -57,7 +57,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         spouses: event.spouses,
         weddingListDescription: event.wedding_list_description,
         weddingListBgUrl: bgData
-          ? `/api/upload-wedding-list-bg?eventId=${event.id}`
+          ? `/api/upload-wedding-list-bg?eventId=${event.id}&v=${encodeURIComponent(bgData.updated_at ?? "")}`
           : null,
       },
       items: data ?? [],
