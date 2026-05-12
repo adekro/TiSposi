@@ -43,7 +43,7 @@ export default function GalleryPage() {
   const items = data?.items ?? [];
   const event = data?.event;
   const headerBgUrl = event?.galleryBgUrl ?? event?.landingBgUrl ?? null;
-  const hasGalleryBg = Boolean(headerBgUrl);
+  const hasHeroBg = Boolean(headerBgUrl);
 
   const captureRef = useRef<PhotoCaptureHandle>(null);
   const [dedicaOpen, setDedicaOpen] = useState(false);
@@ -113,17 +113,34 @@ export default function GalleryPage() {
       {/* ── Hero ── */}
       <Box
         sx={{
-          backgroundImage: hasGalleryBg
-            ? `linear-gradient(160deg, ${theme.palette.common.black}88 0%, ${theme.palette.common.black}55 100%), url(${headerBgUrl})`
-            : `linear-gradient(160deg, ${theme.palette.primary.main}22 0%, ${theme.palette.secondary.main}22 100%)`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          borderBottom: `1px solid ${theme.palette.primary.main}33`,
-          py: { xs: 4, sm: 6 },
-          textAlign: "center",
           position: "relative",
+          minHeight: { xs: "52vh", sm: "60vh" },
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          overflow: "hidden",
+          borderBottom: `1px solid ${theme.palette.primary.main}33`,
+          ...(hasHeroBg
+            ? {
+                backgroundImage: `url(${headerBgUrl})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }
+            : {
+                background: `linear-gradient(160deg, ${theme.palette.primary.main}22 0%, ${theme.palette.secondary.main}22 100%)`,
+              }),
         }}
       >
+        <Box
+          sx={{
+            position: "absolute",
+            inset: 0,
+            background: hasHeroBg
+              ? "rgba(0,0,0,0.45)"
+              : `linear-gradient(180deg, ${theme.palette.background.default}00 0%, ${theme.palette.background.default}88 100%)`,
+          }}
+        />
+
         {/* Indicatore di refresh in corso */}
         {isFetching && !isLoading && (
           <AutorenewIcon
@@ -132,61 +149,103 @@ export default function GalleryPage() {
               top: 12,
               right: 16,
               fontSize: 18,
-              color: theme.palette.primary.main,
-              opacity: 0.6,
+              color: hasHeroBg
+                ? theme.palette.common.white
+                : theme.palette.primary.main,
+              opacity: hasHeroBg ? 0.85 : 0.6,
               animation: "spin 1.2s linear infinite",
               "@keyframes spin": {
                 from: { transform: "rotate(0deg)" },
                 to: { transform: "rotate(360deg)" },
               },
+              zIndex: 1,
             }}
           />
         )}
 
-        <Typography
-          variant="h3"
-          component="h1"
+        <Container
+          maxWidth="sm"
           sx={{
-            fontFamily: '"Playfair Display", serif',
-            color: hasGalleryBg
-              ? theme.palette.common.white
-              : theme.palette.text.primary,
-            letterSpacing: "0.02em",
-            mb: 0.5,
+            position: "relative",
+            zIndex: 1,
+            textAlign: "center",
+            py: { xs: 6, sm: 8 },
           }}
         >
-          {event?.title}
-        </Typography>
-        <Typography
-          variant="subtitle1"
-          sx={{
-            color: hasGalleryBg
-              ? theme.palette.common.white
-              : theme.palette.primary.main,
-            fontWeight: 600,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            fontSize: "0.85rem",
-          }}
-        >
-          {event?.spouses}
-        </Typography>
-        <Typography
-          variant="body2"
-          color={hasGalleryBg ? "grey.100" : "text.secondary"}
-          sx={{ mt: 1.5 }}
-        >
-          📸 {items.filter((i) => i.type === "photo").length} foto · ✏️{" "}
-          {items.filter((i) => i.type === "dedica").length} dediche
-          {musicItems.length > 0 && ` · 🎵 ${musicItems.length} in playlist`}
-        </Typography>
-        <Typography
-          variant="body2"
-          color={hasGalleryBg ? "grey.200" : "text.secondary"}
-          sx={{ mt: 0.75 }}
-        >
-          Condividi questa pagina con gli invitati: /{event?.publicId}/gallery
-        </Typography>
+          <Typography
+            variant="overline"
+            sx={{
+              color: hasHeroBg
+                ? "rgba(255,255,255,0.85)"
+                : theme.palette.primary.main,
+              letterSpacing: "0.18em",
+              fontWeight: 600,
+              fontSize: "0.75rem",
+            }}
+          >
+            Galleria del matrimonio
+          </Typography>
+
+          <Typography
+            variant="h2"
+            component="h1"
+            sx={{
+              fontFamily: '"Playfair Display", serif',
+              color: hasHeroBg ? "#ffffff" : theme.palette.text.primary,
+              fontSize: { xs: "2.3rem", sm: "3rem" },
+              lineHeight: 1.15,
+              mt: 1,
+              mb: 1,
+              textShadow: hasHeroBg ? "0 2px 12px rgba(0,0,0,0.55)" : "none",
+            }}
+          >
+            {event?.spouses}
+          </Typography>
+
+          {event?.title && event.title !== event.spouses && (
+            <Typography
+              variant="subtitle1"
+              sx={{
+                color: hasHeroBg
+                  ? "rgba(255,255,255,0.8)"
+                  : theme.palette.text.secondary,
+                fontStyle: "italic",
+                mb: 1.5,
+                textShadow: hasHeroBg ? "0 1px 6px rgba(0,0,0,0.45)" : "none",
+              }}
+            >
+              {event.title}
+            </Typography>
+          )}
+
+          <Typography
+            variant="body1"
+            sx={{
+              color: hasHeroBg
+                ? "rgba(255,255,255,0.92)"
+                : theme.palette.text.secondary,
+              fontWeight: 500,
+              textShadow: hasHeroBg ? "0 1px 6px rgba(0,0,0,0.45)" : "none",
+            }}
+          >
+            📸 {items.filter((i) => i.type === "photo").length} foto · ✏️{" "}
+            {items.filter((i) => i.type === "dedica").length} dediche
+            {musicItems.length > 0 && ` · 🎵 ${musicItems.length} in playlist`}
+          </Typography>
+
+          <Typography
+            variant="body2"
+            sx={{
+              mt: 1,
+              color: hasHeroBg
+                ? "rgba(255,255,255,0.78)"
+                : theme.palette.text.secondary,
+              textShadow: hasHeroBg ? "0 1px 6px rgba(0,0,0,0.35)" : "none",
+            }}
+          >
+            Condividi questa pagina con gli invitati: /{event?.publicId}/gallery
+          </Typography>
+        </Container>
       </Box>
 
       {/* ── Fase 1: Countdown + Info ── */}

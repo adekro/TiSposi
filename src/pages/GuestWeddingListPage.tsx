@@ -53,6 +53,7 @@ export default function GuestWeddingListPage() {
   const event = data?.event;
   const items = data?.items ?? [];
   const headerBgUrl = event?.weddingListBgUrl ?? event?.landingBgUrl ?? null;
+  const hasHeroBg = Boolean(headerBgUrl);
 
   if (isLoading) {
     return (
@@ -98,47 +99,87 @@ export default function GuestWeddingListPage() {
       <PWAInstallBanner />
       <GuestNavbar publicId={publicId} spouses={event.spouses} hasWeddingList />
 
-      {/* ── Header ── */}
+      {/* ── Hero ── */}
       <Box
         sx={{
-          backgroundImage: headerBgUrl
-            ? `linear-gradient(160deg, ${theme.palette.common.black}88 0%, ${theme.palette.common.black}55 100%), url(${headerBgUrl})`
-            : `linear-gradient(160deg, ${theme.palette.secondary.main}22 0%, ${theme.palette.primary.main}22 100%)`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
+          position: "relative",
+          minHeight: { xs: "48vh", sm: "56vh" },
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          overflow: "hidden",
           borderBottom: `1px solid ${theme.palette.secondary.main}33`,
-          py: { xs: 4, sm: 6 },
-          textAlign: "center",
+          ...(hasHeroBg
+            ? {
+                backgroundImage: `url(${headerBgUrl})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }
+            : {
+                background: `linear-gradient(160deg, ${theme.palette.secondary.main}22 0%, ${theme.palette.primary.main}22 100%)`,
+              }),
         }}
       >
-        <Typography
-          variant="overline"
+        <Box
           sx={{
-            color: headerBgUrl
-              ? theme.palette.common.white
-              : theme.palette.text.secondary,
-            letterSpacing: "0.18em",
-            fontWeight: 600,
-            fontSize: "0.75rem",
+            position: "absolute",
+            inset: 0,
+            background: hasHeroBg
+              ? "rgba(0,0,0,0.45)"
+              : `linear-gradient(180deg, ${theme.palette.background.default}00 0%, ${theme.palette.background.default}88 100%)`,
+          }}
+        />
+
+        <Container
+          maxWidth="sm"
+          sx={{
+            position: "relative",
+            zIndex: 1,
+            textAlign: "center",
+            py: { xs: 6, sm: 8 },
           }}
         >
-          Lista Nozze
-        </Typography>
-        <Typography
-          variant="h3"
-          component="h1"
-          sx={{
-            fontFamily: '"Playfair Display", serif',
-            color: headerBgUrl
-              ? theme.palette.common.white
-              : theme.palette.text.primary,
-            fontSize: { xs: "2rem", sm: "2.8rem" },
-            mt: 0.5,
-            mb: 0.5,
-          }}
-        >
-          {event.spouses}
-        </Typography>
+          <Typography
+            variant="overline"
+            sx={{
+              color: hasHeroBg
+                ? "rgba(255,255,255,0.85)"
+                : theme.palette.secondary.main,
+              letterSpacing: "0.18em",
+              fontWeight: 600,
+              fontSize: "0.75rem",
+            }}
+          >
+            Lista nozze
+          </Typography>
+          <Typography
+            variant="h2"
+            component="h1"
+            sx={{
+              fontFamily: '"Playfair Display", serif',
+              color: hasHeroBg ? "#ffffff" : theme.palette.text.primary,
+              fontSize: { xs: "2.3rem", sm: "3rem" },
+              lineHeight: 1.15,
+              mt: 1,
+              mb: 1,
+              textShadow: hasHeroBg ? "0 2px 12px rgba(0,0,0,0.55)" : "none",
+            }}
+          >
+            {event.spouses}
+          </Typography>
+          <Typography
+            variant="subtitle1"
+            sx={{
+              color: hasHeroBg
+                ? "rgba(255,255,255,0.82)"
+                : theme.palette.text.secondary,
+              fontStyle: "italic",
+              textShadow: hasHeroBg ? "0 1px 6px rgba(0,0,0,0.45)" : "none",
+            }}
+          >
+            Un pensiero speciale per accompagnare il nostro viaggio insieme
+          </Typography>
+        </Container>
       </Box>
 
       {/* ── Contenuto ── */}
