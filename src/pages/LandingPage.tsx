@@ -8,13 +8,19 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { BusinessCenter as BusinessCenterIcon } from "@mui/icons-material";
+import { Celebration as CelebrationIcon } from "@mui/icons-material";
+import { Checklist as ChecklistIcon } from "@mui/icons-material";
+import { Collections as CollectionsIcon } from "@mui/icons-material";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import LegalFooter from "../components/LegalFooter";
-import {Celebration as CelebrationIcon} from "@mui/icons-material";
 import { Edit as EditIcon } from "@mui/icons-material";
+import { Group as GroupIcon } from "@mui/icons-material";
 import { PhotoCamera as PhotoCameraIcon } from "@mui/icons-material";
+import { QueryStats as QueryStatsIcon } from "@mui/icons-material";
+import { Savings as SavingsIcon } from "@mui/icons-material";
 
 
 export default function LandingPage() {
@@ -139,17 +145,17 @@ export default function LandingPage() {
 
           <Stack direction={{ xs: "column", md: "row" }} spacing={3} sx={{ width: "100%" }}>
             <FeatureCard
-              icon= "👥"
+              icon={<GroupIcon color="primary" />}
               title="Lista invitati"
               body="Gestisci nome, contatti, tavolo assegnato e stato RSVP di ogni invitato direttamente dalla dashboard."
             />
             <FeatureCard
-              icon="✅"
+              icon={<ChecklistIcon color="primary" />}
               title="Checklist"
               body="Checklist pre-compilata con scadenze dalla firma del contratto al giorno del matrimonio."
             />
             <FeatureCard
-              icon="💶"
+              icon={<SavingsIcon color="primary" />}
               title="Budget tracker"
               body="Tieni traccia di ogni voce di spesa con importo previsto e reale, suddiviso per categoria."
             />
@@ -157,17 +163,17 @@ export default function LandingPage() {
 
           <Stack direction={{ xs: "column", md: "row" }} spacing={3} sx={{ width: "100%" }}>
             <FeatureCard
-              icon="💼"
+              icon={<BusinessCenterIcon color="primary" />}
               title="Gestione fornitori"
               body="Centralizza nome, categoria, contatti, importo e stato contratto di ogni fornitore."
             />
             <FeatureCard
-              icon="📊"
+              icon={<QueryStatsIcon color="primary" />}
               title="Statistiche"
               body="Visite galleria, foto caricate, dediche, RSVP ricevuti e richieste musicali in tempo reale."
             />
             <FeatureCard
-              icon="🖼️"
+              icon={<CollectionsIcon color="primary" />}
               title="Gestione media"
               body="Elimina singolarmente foto e dediche dalla dashboard. Scarica tutte le foto in ZIP con dediche incluse."
             />
