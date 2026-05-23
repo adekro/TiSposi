@@ -61,6 +61,7 @@ const THEME_OPTIONS: Array<{ value: LandingThemePreset; label: string }> = [
   { value: "wallpaper_ivory", label: "Carta da parati Avorio" },
   { value: "eucalyptus_mint", label: "Eucalipto Soft" },
   { value: "blush_watercolor", label: "Acquerello Blush" },
+  { value: "floral_frame", label: "Cornice Floreale" },
 ];
 
 const MENU_CTA_SLOT_LABELS = [

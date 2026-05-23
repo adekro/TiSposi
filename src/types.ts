@@ -8,7 +8,8 @@ export type LandingThemePreset =
   | "classic"
   | "wallpaper_ivory"
   | "eucalyptus_mint"
-  | "blush_watercolor";
+  | "blush_watercolor"
+  | "floral_frame";
 
 export type LandingBlockType =
   | "text"

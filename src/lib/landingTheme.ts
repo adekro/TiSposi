@@ -92,6 +92,19 @@ export const LANDING_THEME_PRESETS: Record<LandingThemePreset, LandingThemeView>
     titleFont: '"Playfair Display", Georgia, serif',
     bodyFont: '"Open Sans", "Helvetica Neue", Arial, sans-serif',
   },
+  floral_frame: {
+    pageBackground: "#F8F5EF",
+    pagePattern:
+      "radial-gradient(ellipse at 0% 0%, rgba(111,150,122,0.26) 0 15%, transparent 16% 100%), radial-gradient(ellipse at 100% 0%, rgba(111,150,122,0.26) 0 15%, transparent 16% 100%), radial-gradient(ellipse at 0% 100%, rgba(111,150,122,0.24) 0 15%, transparent 16% 100%), radial-gradient(ellipse at 100% 100%, rgba(111,150,122,0.24) 0 15%, transparent 16% 100%), linear-gradient(to bottom, rgba(111,150,122,0.18), rgba(111,150,122,0.18)), linear-gradient(to top, rgba(111,150,122,0.18), rgba(111,150,122,0.18)), linear-gradient(to right, rgba(111,150,122,0.18), rgba(111,150,122,0.18)), linear-gradient(to left, rgba(111,150,122,0.18), rgba(111,150,122,0.18)), radial-gradient(circle at 18% 22%, rgba(212,170,121,0.18) 0 2px, transparent 2px 100%), radial-gradient(circle at 82% 78%, rgba(212,170,121,0.14) 0 2px, transparent 2px 100%)",
+    cardBackground: "#FFFDF9",
+    textColor: "#2D3D33",
+    mutedTextColor: "#5A6F63",
+    accent: "#6F967A",
+    accentAlt: "#D4AA79",
+    heroFallback: "linear-gradient(135deg, #E4EFE6 0%, #F1E6D9 100%)",
+    titleFont: '"Cormorant Garamond", Georgia, serif',
+    bodyFont: '"Open Sans", "Helvetica Neue", Arial, sans-serif',
+  },
 };
 
 export function resolveLandingTheme(theme: LandingThemePreset | null | undefined) {

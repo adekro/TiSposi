@@ -9,6 +9,7 @@ const ALLOWED_THEMES: LandingThemePreset[] = [
   "wallpaper_ivory",
   "eucalyptus_mint",
   "blush_watercolor",
+  "floral_frame",
 ];
 const ALLOWED_BLOCK_TYPES = [
   "text",
