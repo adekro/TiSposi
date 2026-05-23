@@ -259,7 +259,8 @@ Unificare le pagine ospite con una navigation bar comune.
 - [x] **Editor admin a blocchi**: UI drag & drop (add/edit/delete/reorder/visibility) integrata in dashboard (`Landing Builder` tab)
 - [x] **Blocco Hero editor avanzato**: gestione immagini separate desktop/tablet/mobile via upload dedicato + URL automatici nel Landing Builder
 - [x] **Blocco Immagine editor avanzato**: upload/rimozione file diretta nel blocco `image` con persistenza server-side per `block_id`
-- [ ] **Blocco Menu CTA editor**: gestione bottoni/link con anteprima
+- [x] **Blocco Menu CTA editor**: gestione bottoni con link fissati lato sistema (non visibili/modificabili in UI) + naming slot dedicato (Gallery/RSVP/Lista Nozze)
+- [x] **Hardening API admin landing**: validazione schema blocchi `menu_cta`, `image`, `gallery`, `story`, `text` lato `PATCH /api/admin/landing-config`
 - [ ] **Blocchi Story/Scritta/Image/Gallery editor**: form dedicati con riuso RichTextEditor
 - [ ] **Integrazione Dashboard**: nuova sezione/tab "Landing" in `EventSettingsForm` o route protetta dedicata
 - [ ] **QA finale**: test responsive, test permessi API admin, regressione guest pages

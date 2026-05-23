@@ -13,12 +13,18 @@ const ALLOWED_BLOCK_TYPES = [
   "gallery",
 ] as const;
 
+const MENU_CTA_ALLOWED_HREF = /^\/\{publicId\}\/(gallery|rsvp|listanozze)$/;
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function isStringOrNull(value: unknown): value is string | null {
   return typeof value === "string" || value === null;
+}
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length > 0;
 }
 
 function isTheme(value: unknown): value is LandingThemePreset {
@@ -61,6 +67,58 @@ function validateLandingConfig(value: unknown): value is LandingConfig {
       return false;
     }
     if (!isRecord(block.content)) return false;
+
+    if (block.type === "text") {
+      if (typeof block.content.html !== "string") return false;
+      continue;
+    }
+
+    if (block.type === "menu_cta") {
+      if (!isStringOrNull(block.content.title)) return false;
+      if (!Array.isArray(block.content.items)) return false;
+      if (block.content.items.length === 0) return false;
+
+      for (const item of block.content.items) {
+        if (!isRecord(item)) return false;
+        if (!isNonEmptyString(item.id)) return false;
+        if (!isNonEmptyString(item.label)) return false;
+        if (!isNonEmptyString(item.href)) return false;
+        if (!MENU_CTA_ALLOWED_HREF.test(item.href)) return false;
+        if (
+          item.variant !== undefined &&
+          item.variant !== "contained" &&
+          item.variant !== "outlined"
+        ) {
+          return false;
+        }
+      }
+
+      continue;
+    }
+
+    if (block.type === "story") {
+      if (!isStringOrNull(block.content.title)) return false;
+      if (typeof block.content.html !== "string") return false;
+      continue;
+    }
+
+    if (block.type === "event_info" || block.type === "wedding_menu") {
+      if (!isStringOrNull(block.content.title)) return false;
+      continue;
+    }
+
+    if (block.type === "image") {
+      if (typeof block.content.imageUrl !== "string") return false;
+      if (!isStringOrNull(block.content.caption)) return false;
+      continue;
+    }
+
+    if (block.type === "gallery") {
+      if (!isStringOrNull(block.content.title)) return false;
+      if (typeof block.content.limit !== "number") return false;
+      if (!Number.isInteger(block.content.limit)) return false;
+      if (block.content.limit < 1 || block.content.limit > 12) return false;
+    }
   }
 
   return true;

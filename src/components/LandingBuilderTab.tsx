@@ -60,6 +60,23 @@ const THEME_OPTIONS: Array<{ value: LandingThemePreset; label: string }> = [
   { value: "classic", label: "Classic" },
 ];
 
+const MENU_CTA_SLOT_LABELS = [
+  "Bottone Gallery",
+  "Bottone RSVP",
+  "Bottone Lista nozze",
+] as const;
+
+function getMenuCtaHrefByIndex(index: number) {
+  if (index === 0) return "/{publicId}/gallery";
+  if (index === 1) return "/{publicId}/rsvp";
+  if (index === 2) return "/{publicId}/listanozze";
+  return "/{publicId}/gallery";
+}
+
+function getMenuCtaSlotLabel(index: number) {
+  return MENU_CTA_SLOT_LABELS[index] ?? `Bottone ${index + 1}`;
+}
+
 function createId(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2, 10)}`;
 }
@@ -222,6 +239,30 @@ function normalizeOrders(blocks: LandingBlock[]) {
     .map((block, index) => ({ ...block, order: index }));
 }
 
+function normalizeLandingConfigBeforeSave(config: LandingConfig): LandingConfig {
+  return {
+    ...config,
+    blocks: normalizeOrders(config.blocks).map((block) => {
+      if (block.type !== "menu_cta") {
+        return block;
+      }
+
+      const items = block.content.items.map((item, index) => ({
+        ...item,
+        href: getMenuCtaHrefByIndex(index),
+      }));
+
+      return {
+        ...block,
+        content: {
+          ...block.content,
+          items,
+        },
+      };
+    }),
+  };
+}
+
 function getTypeLabel(type: LandingBlockType) {
   return BLOCK_OPTIONS.find((option) => option.type === type)?.label ?? type;
 }
@@ -295,12 +336,10 @@ export default function LandingBuilderTab({ userId, publicId, spouses }: Props) 
 
   const handleSave = async () => {
     if (!config || !landingHook.eventId) return;
+    const normalizedConfig = normalizeLandingConfigBeforeSave(config);
     await landingHook.save({
       eventId: landingHook.eventId,
-      landingConfig: {
-        ...config,
-        blocks: normalizeOrders(config.blocks),
-      },
+      landingConfig: normalizedConfig,
     });
   };
 
@@ -1068,7 +1107,7 @@ export default function LandingBuilderTab({ userId, publicId, spouses }: Props) 
                                   <CardContent>
                                     <Stack spacing={1}>
                                       <Typography variant="subtitle2">
-                                        Bottone {itemIndex + 1}
+                                        {getMenuCtaSlotLabel(itemIndex)}
                                       </Typography>
                                       <TextField
                                         label="Label"
@@ -1090,29 +1129,6 @@ export default function LandingBuilderTab({ userId, publicId, spouses }: Props) 
                                             };
                                           })
                                         }
-                                        fullWidth
-                                      />
-                                      <TextField
-                                        label="Link"
-                                        value={item.href}
-                                        onChange={(e) =>
-                                          updateBlock(block.id, (current) => {
-                                            if (current.type !== "menu_cta") return current;
-                                            const nextItems = current.content.items.map((entry) =>
-                                              entry.id === item.id
-                                                ? { ...entry, href: e.target.value }
-                                                : entry,
-                                            );
-                                            return {
-                                              ...current,
-                                              content: {
-                                                ...current.content,
-                                                items: nextItems,
-                                              },
-                                            };
-                                          })
-                                        }
-                                        helperText="Usa /{publicId}/gallery oppure URL esterno https://..."
                                         fullWidth
                                       />
                                       <Stack direction="row" spacing={1}>
@@ -1175,9 +1191,11 @@ export default function LandingBuilderTab({ userId, publicId, spouses }: Props) 
                             <Button
                               variant="outlined"
                               startIcon={<AddIcon />}
+                              disabled={block.content.items.length >= 3}
                               onClick={() =>
                                 updateBlock(block.id, (current) => {
                                   if (current.type !== "menu_cta") return current;
+                                  if (current.content.items.length >= 3) return current;
                                   return {
                                     ...current,
                                     content: {
@@ -1187,7 +1205,9 @@ export default function LandingBuilderTab({ userId, publicId, spouses }: Props) 
                                         {
                                           id: createId("cta"),
                                           label: "Nuovo bottone",
-                                          href: "/{publicId}/landing",
+                                          href: getMenuCtaHrefByIndex(
+                                            current.content.items.length,
+                                          ),
                                           variant: "outlined",
                                         },
                                       ],
@@ -1198,6 +1218,11 @@ export default function LandingBuilderTab({ userId, publicId, spouses }: Props) 
                             >
                               Aggiungi bottone
                             </Button>
+                            {block.content.items.length >= 3 ? (
+                              <Typography variant="caption" color="text.secondary">
+                                Limite raggiunto: il blocco CTA supporta 3 bottoni (Gallery, RSVP, Lista nozze).
+                              </Typography>
+                            ) : null}
                           </Stack>
                         )}
 
