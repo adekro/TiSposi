@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { getEventByPublicId } from "./_lib/events.js";
 import { getServiceSupabaseClient } from "./_lib/supabase.js";
-import type { WeddingListItem } from "../src/types";
+import type { LandingConfig, WeddingListItem } from "../src/types";
 
 interface WeddingListPublicResponse {
   event: {
@@ -9,6 +9,7 @@ interface WeddingListPublicResponse {
     weddingListDescription: string | null;
     weddingListBgUrl: string | null;
     landingBgUrl: string | null;
+    landingConfig: LandingConfig | null;
   };
   items: WeddingListItem[];
 }
@@ -73,6 +74,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         landingBgUrl: landingBgData
           ? `/api/upload-bg?eventId=${event.id}&v=${encodeURIComponent(landingBgData.updated_at ?? "")}`
           : null,
+        landingConfig: event.landing_config,
       },
       items: data ?? [],
     };

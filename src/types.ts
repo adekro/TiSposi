@@ -2,7 +2,13 @@ export type GalleryItemType = "photo" | "dedica";
 
 export type StorageProvider = "google_drive" | "supabase_db";
 
-export type LandingThemePreset = "gold" | "rose" | "classic";
+export type LandingThemePreset =
+  | "gold"
+  | "rose"
+  | "classic"
+  | "wallpaper_ivory"
+  | "eucalyptus_mint"
+  | "blush_watercolor";
 
 export type LandingBlockType =
   | "text"

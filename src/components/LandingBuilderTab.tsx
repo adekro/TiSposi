@@ -58,6 +58,9 @@ const THEME_OPTIONS: Array<{ value: LandingThemePreset; label: string }> = [
   { value: "gold", label: "Gold" },
   { value: "rose", label: "Rose" },
   { value: "classic", label: "Classic" },
+  { value: "wallpaper_ivory", label: "Carta da parati Avorio" },
+  { value: "eucalyptus_mint", label: "Eucalipto Soft" },
+  { value: "blush_watercolor", label: "Acquerello Blush" },
 ];
 
 const MENU_CTA_SLOT_LABELS = [

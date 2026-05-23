@@ -2,7 +2,14 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import type { LandingConfig, LandingThemePreset } from "../../src/types";
 import { getServiceSupabaseClient } from "../_lib/supabase.js";
 
-const ALLOWED_THEMES: LandingThemePreset[] = ["gold", "rose", "classic"];
+const ALLOWED_THEMES: LandingThemePreset[] = [
+  "gold",
+  "rose",
+  "classic",
+  "wallpaper_ivory",
+  "eucalyptus_mint",
+  "blush_watercolor",
+];
 const ALLOWED_BLOCK_TYPES = [
   "text",
   "menu_cta",

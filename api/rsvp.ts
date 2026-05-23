@@ -28,6 +28,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           id: event.id,
           spouses: event.spouses,
           rsvpBgUrl: rsvpBg ? `/api/upload-rsvp-bg?eventId=${event.id}` : null,
+          landingConfig: event.landing_config,
         },
       });
     }

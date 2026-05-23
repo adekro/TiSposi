@@ -26,57 +26,12 @@ import IsolatedHtmlContent from "../components/IsolatedHtmlContent";
 import type {
   LandingBlock,
   LandingConfig,
-  LandingThemePreset,
   PublicEventSummary,
 } from "../types";
-
-interface LandingThemeView {
-  pageBackground: string;
-  cardBackground: string;
-  textColor: string;
-  mutedTextColor: string;
-  accent: string;
-  accentAlt: string;
-  heroFallback: string;
-  titleFont: string;
-  bodyFont: string;
-}
-
-const LANDING_THEME_PRESETS: Record<LandingThemePreset, LandingThemeView> = {
-  gold: {
-    pageBackground: "#FAF7F2",
-    cardBackground: "#FFFFFF",
-    textColor: "#3D2B1F",
-    mutedTextColor: "#7A6055",
-    accent: "#C9A76C",
-    accentAlt: "#C9A0B0",
-    heroFallback: "linear-gradient(135deg, #F2E2C4 0%, #EBCFD8 100%)",
-    titleFont: '"Playfair Display", Georgia, serif',
-    bodyFont: '"Lato", "Helvetica Neue", Arial, sans-serif',
-  },
-  rose: {
-    pageBackground: "#FEF7F9",
-    cardBackground: "#FFFFFF",
-    textColor: "#4F2F39",
-    mutedTextColor: "#7C5A66",
-    accent: "#B9798D",
-    accentAlt: "#D7A868",
-    heroFallback: "linear-gradient(135deg, #F8D9E3 0%, #F6E2C8 100%)",
-    titleFont: '"Cormorant Garamond", Georgia, serif',
-    bodyFont: '"Open Sans", "Helvetica Neue", Arial, sans-serif',
-  },
-  classic: {
-    pageBackground: "#F7F3EA",
-    cardBackground: "#FFFDF8",
-    textColor: "#1E2B43",
-    mutedTextColor: "#4E5C75",
-    accent: "#2E4C7D",
-    accentAlt: "#B68D4C",
-    heroFallback: "linear-gradient(135deg, #DCE4F2 0%, #F0E7D8 100%)",
-    titleFont: '"Abril Fatface", "Times New Roman", serif',
-    bodyFont: '"Lato", "Helvetica Neue", Arial, sans-serif',
-  },
-};
+import {
+  type LandingThemeView,
+  resolveLandingTheme,
+} from "../lib/landingTheme";
 
 function isNonEmpty(value: string | null | undefined) {
   return Boolean(value && value.trim().length > 0);
@@ -396,7 +351,7 @@ export default function GuestLandingPage() {
   const fallbackConfig = buildLegacyLandingConfig(event);
   const persistedConfig = event.landingConfig ?? fallbackConfig;
   const landingConfig = isBuilderPreview ? previewConfig ?? persistedConfig : persistedConfig;
-  const palette = LANDING_THEME_PRESETS[landingConfig.theme] ?? LANDING_THEME_PRESETS.gold;
+  const palette = resolveLandingTheme(landingConfig.theme);
   const hasWeddingList = Boolean(event.weddingListDescription);
 
   const heroDesktop = landingConfig.hero.imageUrlDesktop ?? event.landingBgUrl ?? null;
@@ -684,7 +639,10 @@ export default function GuestLandingPage() {
         minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
-        background: palette.pageBackground,
+        backgroundColor: palette.pageBackground,
+        backgroundImage: palette.pagePattern,
+        backgroundSize: "220px 220px",
+        backgroundPosition: "center",
       }}
     >
       {isBuilderPreview ? (

@@ -30,6 +30,7 @@ import PWAInstallBanner from "../components/PWAInstallBanner";
 import LegalFooter from "../components/LegalFooter";
 import GuestNavbar from "../components/GuestNavbar";
 import { useParams } from "react-router-dom";
+import { resolveLandingTheme } from "../lib/landingTheme";
 
 export default function GalleryPage() {
   const { publicId = "" } = useParams();
@@ -42,6 +43,7 @@ export default function GalleryPage() {
   console.log("GalleryPage render", { publicId, data, isLoading, error });
   const items = data?.items ?? [];
   const event = data?.event;
+  const palette = resolveLandingTheme(event?.landingConfig?.theme ?? null);
   const headerBgUrl = event?.galleryBgUrl ?? event?.landingBgUrl ?? null;
   const hasHeroBg = Boolean(headerBgUrl);
 
@@ -104,7 +106,10 @@ export default function GalleryPage() {
     <Box
       sx={{
         minHeight: "100vh",
-        background: theme.palette.background.default,
+        backgroundColor: palette.pageBackground,
+        backgroundImage: palette.pagePattern,
+        backgroundSize: "220px 220px",
+        backgroundPosition: "center",
         pb: 14, // spazio per i FAB
       }}
     >
@@ -127,7 +132,7 @@ export default function GalleryPage() {
                 backgroundPosition: "center",
               }
             : {
-                background: `linear-gradient(160deg, ${theme.palette.primary.main}22 0%, ${theme.palette.secondary.main}22 100%)`,
+                background: palette.heroFallback,
               }),
         }}
       >
@@ -177,7 +182,7 @@ export default function GalleryPage() {
             sx={{
               color: hasHeroBg
                 ? "rgba(255,255,255,0.85)"
-                : theme.palette.primary.main,
+                : palette.accent,
               letterSpacing: "0.18em",
               fontWeight: 600,
               fontSize: "0.75rem",
@@ -191,7 +196,7 @@ export default function GalleryPage() {
             component="h1"
             sx={{
               fontFamily: '"Playfair Display", serif',
-              color: hasHeroBg ? "#ffffff" : theme.palette.text.primary,
+              color: hasHeroBg ? "#ffffff" : palette.textColor,
               fontSize: { xs: "2.3rem", sm: "3rem" },
               lineHeight: 1.15,
               mt: 1,
@@ -208,7 +213,7 @@ export default function GalleryPage() {
               sx={{
                 color: hasHeroBg
                   ? "rgba(255,255,255,0.8)"
-                  : theme.palette.text.secondary,
+                  : palette.mutedTextColor,
                 fontStyle: "italic",
                 mb: 1.5,
                 textShadow: hasHeroBg ? "0 1px 6px rgba(0,0,0,0.45)" : "none",
@@ -223,7 +228,7 @@ export default function GalleryPage() {
             sx={{
               color: hasHeroBg
                 ? "rgba(255,255,255,0.92)"
-                : theme.palette.text.secondary,
+                : palette.mutedTextColor,
               fontWeight: 500,
               textShadow: hasHeroBg ? "0 1px 6px rgba(0,0,0,0.45)" : "none",
             }}
@@ -239,7 +244,7 @@ export default function GalleryPage() {
               mt: 1,
               color: hasHeroBg
                 ? "rgba(255,255,255,0.78)"
-                : theme.palette.text.secondary,
+                : palette.mutedTextColor,
               textShadow: hasHeroBg ? "0 1px 6px rgba(0,0,0,0.35)" : "none",
             }}
           >
@@ -275,7 +280,7 @@ export default function GalleryPage() {
           sx={{
             fontFamily: '"Playfair Display", serif',
             mb: 2,
-            color: theme.palette.text.primary,
+            color: palette.textColor,
           }}
         >
           🎵 Playlist

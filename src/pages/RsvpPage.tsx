@@ -23,6 +23,8 @@ import { HowToReg as HowToRegIcon } from "@mui/icons-material";
 import { CheckCircleOutline as CheckCircleOutlineIcon } from "@mui/icons-material";
 import LegalFooter from "../components/LegalFooter";
 import GuestNavbar from "../components/GuestNavbar";
+import { resolveLandingTheme } from "../lib/landingTheme";
+import type { LandingConfig } from "../types";
 
 export default function RsvpPage() {
   const { publicId = "" } = useParams();
@@ -43,6 +45,7 @@ export default function RsvpPage() {
   const [accommodationNotes, setAccommodationNotes] = useState("");
   const [rsvpBgUrl, setRsvpBgUrl] = useState<string | null>(null);
   const [spouses, setSpouses] = useState("");
+  const [landingConfig, setLandingConfig] = useState<LandingConfig | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
@@ -58,17 +61,24 @@ export default function RsvpPage() {
       .then(async (res) => {
         if (!res.ok) return;
         const json = (await res.json()) as {
-          event?: { spouses?: string; rsvpBgUrl?: string | null };
+          event?: {
+            spouses?: string;
+            rsvpBgUrl?: string | null;
+            landingConfig?: LandingConfig | null;
+          };
         };
         setSpouses(json.event?.spouses ?? "");
         setRsvpBgUrl(json.event?.rsvpBgUrl ?? null);
+        setLandingConfig(json.event?.landingConfig ?? null);
       })
       .catch(() => {
         setRsvpBgUrl(null);
+        setLandingConfig(null);
       });
   }, [publicId]);
 
   const hasRsvpBg = Boolean(rsvpBgUrl);
+  const palette = resolveLandingTheme(landingConfig?.theme ?? null);
 
   const sanitize = (val: string) =>
     DOMPurify.sanitize(val, { ALLOWED_TAGS: [] });
@@ -134,11 +144,12 @@ export default function RsvpPage() {
     <Box
       sx={{
         minHeight: "100vh",
+        backgroundColor: palette.pageBackground,
         backgroundImage: hasRsvpBg
-          ? `linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.35) 100%), url(${rsvpBgUrl})`
-          : "linear-gradient(180deg, #faf7f2 0%, #ffffff 100%)",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
+          ? `${palette.pagePattern}, linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.35) 100%), url(${rsvpBgUrl})`
+          : `${palette.pagePattern}, ${palette.heroFallback}`,
+        backgroundSize: hasRsvpBg ? "220px 220px, cover, cover" : "220px 220px, cover",
+        backgroundPosition: "center, center, center",
         display: "flex",
         flexDirection: "column",
       }}
@@ -151,20 +162,20 @@ export default function RsvpPage() {
           <HowToRegIcon
             sx={{
               fontSize: 48,
-              color: hasRsvpBg ? "common.white" : "primary.main",
+              color: hasRsvpBg ? "common.white" : palette.accent,
             }}
           />
           <Typography
             variant="h4"
             textAlign="center"
             fontWeight={700}
-            color={hasRsvpBg ? "common.white" : "text.primary"}
+            color={hasRsvpBg ? "common.white" : palette.textColor}
           >
             Conferma la tua presenza
           </Typography>
           <Typography
             variant="body2"
-            color={hasRsvpBg ? "grey.100" : "text.secondary"}
+            color={hasRsvpBg ? "grey.100" : palette.mutedTextColor}
             textAlign="center"
           >
             Compila il form per far sapere agli sposi se sarai presente.

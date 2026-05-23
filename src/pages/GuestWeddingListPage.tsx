@@ -17,7 +17,8 @@ import GuestNavbar from "../components/GuestNavbar";
 import IsolatedHtmlContent from "../components/IsolatedHtmlContent";
 import LegalFooter from "../components/LegalFooter";
 import PWAInstallBanner from "../components/PWAInstallBanner";
-import type { WeddingListItem } from "../types";
+import type { LandingConfig, WeddingListItem } from "../types";
+import { resolveLandingTheme } from "../lib/landingTheme";
 
 interface WeddingListPublicResponse {
   event: {
@@ -25,6 +26,7 @@ interface WeddingListPublicResponse {
     weddingListDescription: string | null;
     weddingListBgUrl: string | null;
     landingBgUrl: string | null;
+    landingConfig: LandingConfig | null;
   };
   items: WeddingListItem[];
 }
@@ -54,6 +56,7 @@ export default function GuestWeddingListPage() {
   const items = data?.items ?? [];
   const headerBgUrl = event?.weddingListBgUrl ?? event?.landingBgUrl ?? null;
   const hasHeroBg = Boolean(headerBgUrl);
+  const palette = resolveLandingTheme(event?.landingConfig?.theme ?? null);
 
   if (isLoading) {
     return (
@@ -93,7 +96,10 @@ export default function GuestWeddingListPage() {
         minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
-        background: theme.palette.background.default,
+        backgroundColor: palette.pageBackground,
+        backgroundImage: palette.pagePattern,
+        backgroundSize: "220px 220px",
+        backgroundPosition: "center",
       }}
     >
       <PWAInstallBanner />
@@ -116,7 +122,7 @@ export default function GuestWeddingListPage() {
                 backgroundPosition: "center",
               }
             : {
-                background: `linear-gradient(160deg, ${theme.palette.secondary.main}22 0%, ${theme.palette.primary.main}22 100%)`,
+                background: palette.heroFallback,
               }),
         }}
       >
@@ -144,7 +150,7 @@ export default function GuestWeddingListPage() {
             sx={{
               color: hasHeroBg
                 ? "rgba(255,255,255,0.85)"
-                : theme.palette.secondary.main,
+                : palette.accent,
               letterSpacing: "0.18em",
               fontWeight: 600,
               fontSize: "0.75rem",
@@ -157,7 +163,7 @@ export default function GuestWeddingListPage() {
             component="h1"
             sx={{
               fontFamily: '"Playfair Display", serif',
-              color: hasHeroBg ? "#ffffff" : theme.palette.text.primary,
+              color: hasHeroBg ? "#ffffff" : palette.textColor,
               fontSize: { xs: "2.3rem", sm: "3rem" },
               lineHeight: 1.15,
               mt: 1,
@@ -172,7 +178,7 @@ export default function GuestWeddingListPage() {
             sx={{
               color: hasHeroBg
                 ? "rgba(255,255,255,0.82)"
-                : theme.palette.text.secondary,
+                : palette.mutedTextColor,
               fontStyle: "italic",
               textShadow: hasHeroBg ? "0 1px 6px rgba(0,0,0,0.45)" : "none",
             }}
@@ -260,8 +266,8 @@ export default function GuestWeddingListPage() {
                       rel="noopener noreferrer"
                       sx={{
                         borderRadius: 2,
-                        background: `linear-gradient(135deg, ${theme.palette.secondary.main} 0%, ${theme.palette.secondary.dark} 100%)`,
-                        color: theme.palette.secondary.contrastText,
+                        background: `linear-gradient(135deg, ${palette.accent} 0%, ${palette.accentAlt} 100%)`,
+                        color: "#fff",
                         fontWeight: 600,
                         "&:hover": { opacity: 0.88 },
                       }}
