@@ -2,6 +2,110 @@ export type GalleryItemType = "photo" | "dedica";
 
 export type StorageProvider = "google_drive" | "supabase_db";
 
+export type LandingThemePreset = "gold" | "rose" | "classic";
+
+export type LandingBlockType =
+  | "text"
+  | "menu_cta"
+  | "story"
+  | "event_info"
+  | "wedding_menu"
+  | "image"
+  | "gallery";
+
+export interface LandingHeroConfig {
+  title: string;
+  subtitle: string | null;
+  imageUrlDesktop: string | null;
+  imageUrlTablet: string | null;
+  imageUrlMobile: string | null;
+  overlayOpacity: number;
+  textAlign: "left" | "center" | "right";
+}
+
+export interface LandingMenuCtaItem {
+  id: string;
+  label: string;
+  href: string;
+  variant?: "contained" | "outlined";
+}
+
+export interface LandingBlockBase {
+  id: string;
+  type: LandingBlockType;
+  order: number;
+  visible: boolean;
+}
+
+export interface LandingTextBlock extends LandingBlockBase {
+  type: "text";
+  content: {
+    html: string;
+  };
+}
+
+export interface LandingMenuCtaBlock extends LandingBlockBase {
+  type: "menu_cta";
+  content: {
+    title: string | null;
+    items: LandingMenuCtaItem[];
+  };
+}
+
+export interface LandingStoryBlock extends LandingBlockBase {
+  type: "story";
+  content: {
+    title: string | null;
+    html: string;
+  };
+}
+
+export interface LandingEventInfoBlock extends LandingBlockBase {
+  type: "event_info";
+  content: {
+    title: string | null;
+  };
+}
+
+export interface LandingWeddingMenuBlock extends LandingBlockBase {
+  type: "wedding_menu";
+  content: {
+    title: string | null;
+  };
+}
+
+export interface LandingImageBlock extends LandingBlockBase {
+  type: "image";
+  content: {
+    imageUrl: string;
+    caption: string | null;
+  };
+}
+
+export interface LandingGalleryBlock extends LandingBlockBase {
+  type: "gallery";
+  content: {
+    title: string | null;
+    limit: number;
+  };
+}
+
+export type LandingBlock =
+  | LandingTextBlock
+  | LandingMenuCtaBlock
+  | LandingStoryBlock
+  | LandingEventInfoBlock
+  | LandingWeddingMenuBlock
+  | LandingImageBlock
+  | LandingGalleryBlock;
+
+export interface LandingConfig {
+  headerFixed: boolean;
+  theme: LandingThemePreset;
+  hero: LandingHeroConfig;
+  blocks: LandingBlock[];
+}
+
 export interface GalleryItem {
   id: string;
   type: GalleryItemType;
@@ -46,6 +150,7 @@ export interface PublicEventSummary {
   landingBgUrl?: string | null;
   galleryBgUrl?: string | null;
   rsvpBgUrl?: string | null;
+  landingConfig?: LandingConfig | null;
   weddingListDescription?: string | null;
   weddingListBgUrl?: string | null;
 }
@@ -90,6 +195,7 @@ export interface EventSettingsRow {
   reception_time: string | null;
   // Fase 17: sito ospite
   landing_bg_url: string | null;
+  landing_config: LandingConfig | null;
   wedding_list_description: string | null;
 }
 

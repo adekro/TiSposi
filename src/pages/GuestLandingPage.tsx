@@ -1,40 +1,275 @@
 import {
   Box,
   Button,
+  Card,
+  CardContent,
   CircularProgress,
   Container,
+  Stack,
   Typography,
+  alpha,
   useTheme,
 } from "@mui/material";
 import { PhotoCamera as PhotoCameraIcon } from "@mui/icons-material";
 import { Checklist as ChecklistIcon } from "@mui/icons-material";
 import { CardGiftcard as CardGiftcardIcon } from "@mui/icons-material";
+import { RestaurantMenu as RestaurantMenuIcon } from "@mui/icons-material";
 import { useParams, Link as RouterLink } from "react-router-dom";
 import { useGallery } from "../hooks/useGallery";
 import LegalFooter from "../components/LegalFooter";
 import PWAInstallBanner from "../components/PWAInstallBanner";
 import GuestNavbar from "../components/GuestNavbar";
 import WeddingInfoSection from "../components/WeddingInfoSection";
+import IsolatedHtmlContent from "../components/IsolatedHtmlContent";
+import type {
+  LandingBlock,
+  LandingConfig,
+  LandingThemePreset,
+  PublicEventSummary,
+} from "../types";
+
+interface LandingThemeView {
+  pageBackground: string;
+  cardBackground: string;
+  textColor: string;
+  mutedTextColor: string;
+  accent: string;
+  accentAlt: string;
+  heroFallback: string;
+  titleFont: string;
+  bodyFont: string;
+}
+
+const LANDING_THEME_PRESETS: Record<LandingThemePreset, LandingThemeView> = {
+  gold: {
+    pageBackground: "#FAF7F2",
+    cardBackground: "#FFFFFF",
+    textColor: "#3D2B1F",
+    mutedTextColor: "#7A6055",
+    accent: "#C9A76C",
+    accentAlt: "#C9A0B0",
+    heroFallback: "linear-gradient(135deg, #F2E2C4 0%, #EBCFD8 100%)",
+    titleFont: '"Playfair Display", Georgia, serif',
+    bodyFont: '"Lato", "Helvetica Neue", Arial, sans-serif',
+  },
+  rose: {
+    pageBackground: "#FEF7F9",
+    cardBackground: "#FFFFFF",
+    textColor: "#4F2F39",
+    mutedTextColor: "#7C5A66",
+    accent: "#B9798D",
+    accentAlt: "#D7A868",
+    heroFallback: "linear-gradient(135deg, #F8D9E3 0%, #F6E2C8 100%)",
+    titleFont: '"Cormorant Garamond", Georgia, serif',
+    bodyFont: '"Open Sans", "Helvetica Neue", Arial, sans-serif',
+  },
+  classic: {
+    pageBackground: "#F7F3EA",
+    cardBackground: "#FFFDF8",
+    textColor: "#1E2B43",
+    mutedTextColor: "#4E5C75",
+    accent: "#2E4C7D",
+    accentAlt: "#B68D4C",
+    heroFallback: "linear-gradient(135deg, #DCE4F2 0%, #F0E7D8 100%)",
+    titleFont: '"Abril Fatface", "Times New Roman", serif',
+    bodyFont: '"Lato", "Helvetica Neue", Arial, sans-serif',
+  },
+};
+
+function isNonEmpty(value: string | null | undefined) {
+  return Boolean(value && value.trim().length > 0);
+}
+
+function buildLegacyLandingConfig(event: PublicEventSummary): LandingConfig {
+  const hasStory = isNonEmpty(event.coupleStory);
+  const hasMenu =
+    isNonEmpty(event.menu) ||
+    isNonEmpty(event.menuAntipasto) ||
+    isNonEmpty(event.menuPrimo) ||
+    isNonEmpty(event.menuSecondo) ||
+    isNonEmpty(event.menuContorno) ||
+    isNonEmpty(event.menuDolce) ||
+    isNonEmpty(event.menuBevande);
+
+  const blocks: LandingBlock[] = [
+    {
+      id: "legacy-menu-cta",
+      type: "menu_cta",
+      order: 0,
+      visible: true,
+      content: {
+        title: "Scopri tutto quello che abbiamo preparato per voi",
+        items: [
+          {
+            id: "legacy-cta-gallery",
+            label: "Galleria foto & dediche",
+            href: "/{publicId}/gallery",
+            variant: "contained",
+          },
+          {
+            id: "legacy-cta-rsvp",
+            label: "Conferma la tua presenza (RSVP)",
+            href: "/{publicId}/rsvp",
+            variant: "outlined",
+          },
+          {
+            id: "legacy-cta-wl",
+            label: "Lista nozze",
+            href: "/{publicId}/listanozze",
+            variant: "outlined",
+          },
+        ],
+      },
+    },
+    {
+      id: "legacy-event-info",
+      type: "event_info",
+      order: 1,
+      visible: true,
+      content: {
+        title: null,
+      },
+    },
+  ];
+
+  if (hasStory) {
+    blocks.push({
+      id: "legacy-story",
+      type: "story",
+      order: 2,
+      visible: true,
+      content: {
+        title: "La nostra storia",
+        html: event.coupleStory ?? "",
+      },
+    });
+  }
+
+  if (hasMenu) {
+    blocks.push({
+      id: "legacy-menu",
+      type: "wedding_menu",
+      order: 3,
+      visible: true,
+      content: {
+        title: "Menu",
+      },
+    });
+  }
+
+  return {
+    headerFixed: true,
+    theme: "gold",
+    hero: {
+      title: event.spouses || "Benvenuti",
+      subtitle: event.weddingDate ?? null,
+      imageUrlDesktop: event.landingBgUrl ?? null,
+      imageUrlTablet: null,
+      imageUrlMobile: null,
+      overlayOpacity: 0.45,
+      textAlign: "center",
+    },
+    blocks,
+  };
+}
+
+function resolveLandingPath(rawHref: string, publicId: string) {
+  const href = rawHref.trim();
+  if (!href) return `/${publicId}/landing`;
+  if (href.startsWith("http://") || href.startsWith("https://")) return href;
+  return href.replaceAll("{publicId}", publicId);
+}
+
+function formatDisplayDate(dateStr?: string | null) {
+  if (!dateStr) return null;
+  try {
+    return new Date(dateStr).toLocaleDateString("it-IT", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  } catch {
+    return dateStr;
+  }
+}
+
+function renderWeddingMenu(event: PublicEventSummary, palette: LandingThemeView) {
+  const sections = [
+    { label: "Antipasto", value: event.menuAntipasto },
+    { label: "Primo piatto", value: event.menuPrimo },
+    { label: "Secondo piatto", value: event.menuSecondo },
+    { label: "Contorno", value: event.menuContorno },
+    { label: "Dolce", value: event.menuDolce },
+    { label: "Bevande e vini", value: event.menuBevande },
+  ].filter((item) => isNonEmpty(item.value));
+
+  if (sections.length === 0 && !isNonEmpty(event.menu)) {
+    return null;
+  }
+
+  return (
+    <Card
+      sx={{
+        borderRadius: 4,
+        background: palette.cardBackground,
+        boxShadow: `0 8px 22px ${alpha(palette.accent, 0.16)}`,
+      }}
+    >
+      <CardContent sx={{ p: { xs: 2.5, sm: 3 } }}>
+        <Stack direction="row" spacing={1.2} alignItems="center" sx={{ mb: 2 }}>
+          <RestaurantMenuIcon sx={{ color: palette.accent }} />
+          <Typography
+            variant="h5"
+            sx={{
+              fontFamily: palette.titleFont,
+              color: palette.textColor,
+            }}
+          >
+            Menu
+          </Typography>
+        </Stack>
+
+        {sections.length > 0 ? (
+          <Stack spacing={1.4}>
+            {sections.map((section) => (
+              <Box key={section.label}>
+                <Typography
+                  variant="subtitle2"
+                  sx={{
+                    fontWeight: 700,
+                    color: palette.accent,
+                    letterSpacing: "0.02em",
+                  }}
+                >
+                  {section.label}
+                </Typography>
+                <Typography
+                  sx={{
+                    whiteSpace: "pre-line",
+                    color: palette.textColor,
+                  }}
+                >
+                  {section.value}
+                </Typography>
+              </Box>
+            ))}
+          </Stack>
+        ) : (
+          <Typography sx={{ whiteSpace: "pre-line", color: palette.textColor }}>
+            {event.menu}
+          </Typography>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function GuestLandingPage() {
   const { publicId = "" } = useParams();
   const theme = useTheme();
   const { data, isLoading, error } = useGallery(publicId);
   const event = data?.event;
-
-  const formatDate = (dateStr?: string | null) => {
-    if (!dateStr) return null;
-    try {
-      return new Date(dateStr).toLocaleDateString("it-IT", {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      });
-    } catch {
-      return dateStr;
-    }
-  };
 
   if (isLoading) {
     return (
@@ -68,12 +303,305 @@ export default function GuestLandingPage() {
     );
   }
 
-  const hasBgImage = Boolean(event.landingBgUrl);
+  const fallbackConfig = buildLegacyLandingConfig(event);
+  const landingConfig = event.landingConfig ?? fallbackConfig;
+  const palette = LANDING_THEME_PRESETS[landingConfig.theme] ?? LANDING_THEME_PRESETS.gold;
+  const hasWeddingList = Boolean(event.weddingListDescription);
+
+  const heroDesktop = landingConfig.hero.imageUrlDesktop ?? event.landingBgUrl ?? null;
+  const heroTablet = landingConfig.hero.imageUrlTablet ?? heroDesktop;
+  const heroMobile = landingConfig.hero.imageUrlMobile ?? heroTablet;
+  const hasHeroImage = Boolean(heroDesktop || heroTablet || heroMobile);
+  const orderedBlocks = [...landingConfig.blocks]
+    .filter((block) => block.visible)
+    .sort((a, b) => a.order - b.order);
+
+  const align = landingConfig.hero.textAlign;
+
+  const renderBlock = (block: LandingBlock) => {
+    switch (block.type) {
+      case "text":
+        return (
+          <Card
+            key={block.id}
+            sx={{
+              borderRadius: 4,
+              background: palette.cardBackground,
+              boxShadow: `0 8px 22px ${alpha(palette.accent, 0.16)}`,
+            }}
+          >
+            <CardContent sx={{ p: { xs: 2.5, sm: 3 } }}>
+              <IsolatedHtmlContent html={block.content.html} />
+            </CardContent>
+          </Card>
+        );
+
+      case "menu_cta":
+        return (
+          <Card
+            key={block.id}
+            sx={{
+              borderRadius: 4,
+              background: palette.cardBackground,
+              boxShadow: `0 8px 22px ${alpha(palette.accent, 0.16)}`,
+            }}
+          >
+            <CardContent sx={{ p: { xs: 2.5, sm: 3 } }}>
+              {isNonEmpty(block.content.title) && (
+                <Typography
+                  variant="h5"
+                  sx={{
+                    mb: 2,
+                    color: palette.textColor,
+                    fontFamily: palette.titleFont,
+                    textAlign: "center",
+                  }}
+                >
+                  {block.content.title}
+                </Typography>
+              )}
+              <Stack spacing={1.5}>
+                {block.content.items.map((item) => {
+                  const href = resolveLandingPath(item.href, publicId);
+                  const isExternal = href.startsWith("http://") || href.startsWith("https://");
+                  const variant = item.variant ?? "outlined";
+
+                  if (isExternal) {
+                    return (
+                      <Button
+                        key={item.id}
+                        component="a"
+                        href={href}
+                        target="_blank"
+                        rel="noreferrer"
+                        variant={variant}
+                        size="large"
+                        sx={{
+                          py: 1.6,
+                          borderRadius: 3,
+                          fontFamily: palette.bodyFont,
+                          ...(variant === "contained"
+                            ? {
+                                backgroundColor: palette.accent,
+                                color: "#fff",
+                                "&:hover": {
+                                  backgroundColor: palette.accentAlt,
+                                },
+                              }
+                            : {
+                                borderColor: palette.accent,
+                                color: palette.accent,
+                              }),
+                        }}
+                      >
+                        {item.label}
+                      </Button>
+                    );
+                  }
+
+                  return (
+                    <Button
+                      key={item.id}
+                      component={RouterLink}
+                      to={href}
+                      variant={variant}
+                      size="large"
+                      sx={{
+                        py: 1.6,
+                        borderRadius: 3,
+                        fontFamily: palette.bodyFont,
+                        ...(variant === "contained"
+                          ? {
+                              backgroundColor: palette.accent,
+                              color: "#fff",
+                              "&:hover": {
+                                backgroundColor: palette.accentAlt,
+                              },
+                            }
+                          : {
+                              borderColor: palette.accent,
+                              color: palette.accent,
+                            }),
+                      }}
+                    >
+                      {item.label}
+                    </Button>
+                  );
+                })}
+              </Stack>
+            </CardContent>
+          </Card>
+        );
+
+      case "story":
+        return (
+          <Card
+            key={block.id}
+            sx={{
+              borderRadius: 4,
+              background: palette.cardBackground,
+              boxShadow: `0 8px 22px ${alpha(palette.accent, 0.16)}`,
+            }}
+          >
+            <CardContent sx={{ p: { xs: 2.5, sm: 3 } }}>
+              {isNonEmpty(block.content.title) && (
+                <Typography
+                  variant="h5"
+                  sx={{
+                    mb: 1.5,
+                    color: palette.textColor,
+                    fontFamily: palette.titleFont,
+                  }}
+                >
+                  {block.content.title}
+                </Typography>
+              )}
+              <IsolatedHtmlContent html={block.content.html} />
+            </CardContent>
+          </Card>
+        );
+
+      case "event_info":
+        return (
+          <Box key={block.id}>
+            <WeddingInfoSection event={event} />
+          </Box>
+        );
+
+      case "wedding_menu":
+        return <Box key={block.id}>{renderWeddingMenu(event, palette)}</Box>;
+
+      case "image":
+        return (
+          <Card
+            key={block.id}
+            sx={{
+              borderRadius: 4,
+              overflow: "hidden",
+              background: palette.cardBackground,
+              boxShadow: `0 8px 22px ${alpha(palette.accent, 0.16)}`,
+            }}
+          >
+            <Box
+              component="img"
+              src={block.content.imageUrl}
+              alt={block.content.caption ?? "Immagine landing"}
+              sx={{
+                width: "100%",
+                maxHeight: { xs: 300, sm: 420 },
+                objectFit: "cover",
+                display: "block",
+              }}
+            />
+            {isNonEmpty(block.content.caption) && (
+              <CardContent>
+                <Typography sx={{ color: palette.mutedTextColor }}>
+                  {block.content.caption}
+                </Typography>
+              </CardContent>
+            )}
+          </Card>
+        );
+
+      case "gallery": {
+        const maxItems = Math.max(1, Math.min(12, block.content.limit || 6));
+        const photos = (data?.items ?? [])
+          .filter((item) => item.type === "photo" && item.url)
+          .slice(0, maxItems);
+
+        return (
+          <Card
+            key={block.id}
+            sx={{
+              borderRadius: 4,
+              background: palette.cardBackground,
+              boxShadow: `0 8px 22px ${alpha(palette.accent, 0.16)}`,
+            }}
+          >
+            <CardContent sx={{ p: { xs: 2.5, sm: 3 } }}>
+              <Stack
+                direction="row"
+                alignItems="center"
+                justifyContent="space-between"
+                sx={{ mb: 2 }}
+              >
+                <Typography
+                  variant="h5"
+                  sx={{
+                    color: palette.textColor,
+                    fontFamily: palette.titleFont,
+                  }}
+                >
+                  {block.content.title || "Galleria"}
+                </Typography>
+                <Button
+                  component={RouterLink}
+                  to={`/${publicId}/gallery`}
+                  size="small"
+                  startIcon={<PhotoCameraIcon />}
+                  sx={{ color: palette.accent }}
+                >
+                  Apri
+                </Button>
+              </Stack>
+
+              {photos.length === 0 ? (
+                <Typography sx={{ color: palette.mutedTextColor }}>
+                  La galleria verrà popolata presto.
+                </Typography>
+              ) : (
+                <Box
+                  sx={{
+                    display: "grid",
+                    gap: 1.2,
+                    gridTemplateColumns: {
+                      xs: "repeat(2, minmax(0, 1fr))",
+                      sm: "repeat(3, minmax(0, 1fr))",
+                    },
+                  }}
+                >
+                  {photos.map((photo) => (
+                    <Box
+                      key={photo.id}
+                      component="img"
+                      src={photo.url}
+                      alt="Anteprima galleria"
+                      loading="lazy"
+                      sx={{
+                        width: "100%",
+                        height: { xs: 110, sm: 130 },
+                        borderRadius: 2,
+                        objectFit: "cover",
+                      }}
+                    />
+                  ))}
+                </Box>
+              )}
+            </CardContent>
+          </Card>
+        );
+      }
+
+      default:
+        return null;
+    }
+  };
 
   return (
-    <Box sx={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        background: palette.pageBackground,
+      }}
+    >
       <PWAInstallBanner />
-      <GuestNavbar publicId={publicId} spouses={event.spouses} />
+      <GuestNavbar
+        publicId={publicId}
+        spouses={event.spouses}
+        hasWeddingList={hasWeddingList}
+      />
 
       {/* ── Hero ── */}
       <Box
@@ -84,40 +612,57 @@ export default function GuestLandingPage() {
           alignItems: "center",
           justifyContent: "center",
           overflow: "hidden",
-          ...(hasBgImage
-            ? {
-                backgroundImage: `url(${event.landingBgUrl})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-              }
-            : {
-                background: `linear-gradient(135deg, ${theme.palette.primary.main}33 0%, ${theme.palette.secondary.main}44 100%)`,
-              }),
+          background: hasHeroImage ? undefined : palette.heroFallback,
         }}
       >
+        {hasHeroImage && (
+          <picture
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              display: "block",
+            }}
+          >
+            {heroMobile && <source media="(max-width: 599px)" srcSet={heroMobile} />}
+            {heroTablet && <source media="(max-width: 1023px)" srcSet={heroTablet} />}
+            <img
+              src={heroDesktop ?? heroTablet ?? heroMobile ?? ""}
+              alt="Sfondo hero"
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+          </picture>
+        )}
+
         {/* Overlay semi-trasparente */}
         <Box
           sx={{
             position: "absolute",
             inset: 0,
-            background: hasBgImage
-              ? "rgba(0,0,0,0.45)"
-              : `linear-gradient(180deg, ${theme.palette.background.default}00 0%, ${theme.palette.background.default}88 100%)`,
+            background: hasHeroImage
+              ? `rgba(0,0,0,${Math.max(0, Math.min(1, landingConfig.hero.overlayOpacity))})`
+              : `linear-gradient(180deg, ${alpha(palette.pageBackground, 0)} 0%, ${alpha(palette.pageBackground, 0.72)} 100%)`,
           }}
         />
 
         {/* Contenuto hero */}
         <Container
           maxWidth="sm"
-          sx={{ position: "relative", textAlign: "center", py: { xs: 6, sm: 8 } }}
+          sx={{
+            position: "relative",
+            textAlign: align,
+            py: { xs: 6, sm: 8 },
+          }}
         >
           <Typography
             variant="overline"
             sx={{
-              color: hasBgImage ? "rgba(255,255,255,0.85)" : theme.palette.primary.main,
+              color: hasHeroImage ? "rgba(255,255,255,0.88)" : palette.accent,
               letterSpacing: "0.18em",
               fontWeight: 600,
               fontSize: "0.75rem",
+              fontFamily: palette.bodyFont,
             }}
           >
             Benvenuti al matrimonio di
@@ -127,31 +672,48 @@ export default function GuestLandingPage() {
             variant="h2"
             component="h1"
             sx={{
-              fontFamily: '"Playfair Display", serif',
-              color: hasBgImage ? "#ffffff" : theme.palette.text.primary,
+              fontFamily: palette.titleFont,
+              color: hasHeroImage ? "#ffffff" : palette.textColor,
               fontSize: { xs: "2.4rem", sm: "3.2rem" },
               lineHeight: 1.15,
               mt: 1,
               mb: 1.5,
-              textShadow: hasBgImage ? "0 2px 12px rgba(0,0,0,0.55)" : "none",
+              textShadow: hasHeroImage ? "0 2px 12px rgba(0,0,0,0.55)" : "none",
             }}
           >
-            {event.spouses}
+            {landingConfig.hero.title || event.spouses}
           </Typography>
 
-          {event.weddingDate && (
+          {isNonEmpty(landingConfig.hero.subtitle) ? (
             <Typography
               variant="h6"
               sx={{
-                color: hasBgImage ? "rgba(255,255,255,0.9)" : theme.palette.primary.main,
+                color: hasHeroImage ? "rgba(255,255,255,0.92)" : palette.accent,
                 fontWeight: 400,
                 fontStyle: "italic",
                 fontSize: { xs: "1rem", sm: "1.15rem" },
-                textShadow: hasBgImage ? "0 1px 6px rgba(0,0,0,0.45)" : "none",
+                textShadow: hasHeroImage ? "0 1px 6px rgba(0,0,0,0.45)" : "none",
+                fontFamily: palette.bodyFont,
               }}
             >
-              {formatDate(event.weddingDate)}
+              {landingConfig.hero.subtitle}
             </Typography>
+          ) : (
+            event.weddingDate && (
+              <Typography
+                variant="h6"
+                sx={{
+                  color: hasHeroImage ? "rgba(255,255,255,0.92)" : palette.accent,
+                  fontWeight: 400,
+                  fontStyle: "italic",
+                  fontSize: { xs: "1rem", sm: "1.15rem" },
+                  textShadow: hasHeroImage ? "0 1px 6px rgba(0,0,0,0.45)" : "none",
+                  fontFamily: palette.bodyFont,
+                }}
+              >
+                {formatDisplayDate(event.weddingDate)}
+              </Typography>
+            )
           )}
 
           {event.title && event.title !== event.spouses && (
@@ -159,8 +721,9 @@ export default function GuestLandingPage() {
               variant="subtitle1"
               sx={{
                 mt: 1,
-                color: hasBgImage ? "rgba(255,255,255,0.75)" : theme.palette.text.secondary,
+                color: hasHeroImage ? "rgba(255,255,255,0.78)" : palette.mutedTextColor,
                 fontStyle: "italic",
+                fontFamily: palette.bodyFont,
               }}
             >
               {event.title}
@@ -172,109 +735,62 @@ export default function GuestLandingPage() {
       {/* ── Navigazione ── */}
       <Box
         sx={{
-          background: theme.palette.background.default,
+          background: palette.pageBackground,
           pt: 5,
           pb: 6,
           flex: 1,
         }}
       >
         <Container maxWidth="sm">
-          <Typography
-            variant="h6"
-            align="center"
-            sx={{
-              fontFamily: '"Playfair Display", serif',
-              color: theme.palette.text.secondary,
-              mb: 4,
-              fontWeight: 400,
-              fontSize: "1rem",
-              letterSpacing: "0.04em",
-            }}
-          >
-            Scopri tutto quello che abbiamo preparato per voi
-          </Typography>
+          <Stack spacing={3.2}>
+            {orderedBlocks.length > 0 ? (
+              orderedBlocks.map((block) => renderBlock(block))
+            ) : (
+              <Card
+                sx={{
+                  borderRadius: 4,
+                  background: palette.cardBackground,
+                  boxShadow: `0 8px 22px ${alpha(palette.accent, 0.16)}`,
+                }}
+              >
+                <CardContent>
+                  <Typography sx={{ color: palette.mutedTextColor }}>
+                    Questa landing e ancora in preparazione.
+                  </Typography>
+                </CardContent>
+              </Card>
+            )}
+
+            <Card
+              sx={{
+                borderRadius: 4,
+                background: palette.cardBackground,
+                boxShadow: `0 8px 22px ${alpha(palette.accent, 0.16)}`,
+              }}
+            >
+              <CardContent>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <PhotoCameraIcon sx={{ color: palette.accent }} />
+                  <ChecklistIcon sx={{ color: palette.accent }} />
+                  <CardGiftcardIcon sx={{ color: palette.accentAlt }} />
+                  <Typography sx={{ color: palette.mutedTextColor, ml: 1 }}>
+                    Contenuti aggiornabili dagli sposi con editor a blocchi.
+                  </Typography>
+                </Stack>
+              </CardContent>
+            </Card>
+          </Stack>
 
           <Box
             sx={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 2,
+              mt: 5,
+              color: alpha(theme.palette.text.secondary, 0.86),
+              textAlign: "center",
             }}
           >
-            <Button
-              component={RouterLink}
-              to={`/${publicId}/gallery`}
-              variant="contained"
-              size="large"
-              startIcon={<PhotoCameraIcon />}
-              sx={{
-                py: 2,
-                fontSize: "1.05rem",
-                borderRadius: 3,
-                fontFamily: '"Playfair Display", serif',
-                background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-                boxShadow: `0 4px 20px ${theme.palette.primary.main}55`,
-                "&:hover": {
-                  transform: "translateY(-1px)",
-                  boxShadow: `0 6px 24px ${theme.palette.primary.main}77`,
-                },
-                transition: "transform 0.15s, box-shadow 0.15s",
-              }}
-            >
-              Galleria foto &amp; dediche
-            </Button>
-
-            <Button
-              component={RouterLink}
-              to={`/${publicId}/rsvp`}
-              variant="outlined"
-              size="large"
-              startIcon={<ChecklistIcon />}
-              sx={{
-                py: 2,
-                fontSize: "1.05rem",
-                borderRadius: 3,
-                fontFamily: '"Playfair Display", serif',
-                borderColor: theme.palette.primary.main,
-                color: theme.palette.primary.main,
-                "&:hover": {
-                  background: `${theme.palette.primary.main}0F`,
-                  borderColor: theme.palette.primary.dark,
-                  transform: "translateY(-1px)",
-                },
-                transition: "transform 0.15s",
-              }}
-            >
-              Conferma la tua presenza (RSVP)
-            </Button>
-
-            <Button
-              component={RouterLink}
-              to={`/${publicId}/listanozze`}
-              variant="outlined"
-              size="large"
-              startIcon={<CardGiftcardIcon />}
-              sx={{
-                py: 2,
-                fontSize: "1.05rem",
-                borderRadius: 3,
-                fontFamily: '"Playfair Display", serif',
-                borderColor: theme.palette.secondary.main,
-                color: theme.palette.secondary.dark,
-                "&:hover": {
-                  background: `${theme.palette.secondary.main}0F`,
-                  borderColor: theme.palette.secondary.dark,
-                  transform: "translateY(-1px)",
-                },
-                transition: "transform 0.15s",
-              }}
-            >
-              Lista nozze
-            </Button>
-          </Box>
-
-          <Box sx={{ mt: 4 }}>
-            <WeddingInfoSection event={event} />
+            <Typography variant="caption" sx={{ fontFamily: palette.bodyFont }}>
+              Tema attivo: {landingConfig.theme}
+            </Typography>
           </Box>
         </Container>
       </Box>

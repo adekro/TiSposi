@@ -244,3 +244,21 @@ Unificare le pagine ospite con una navigation bar comune.
 - [x] **`GuestLandingPage`**: aggiunto `GuestNavbar` prima dell'hero
 - [x] **`GuestWeddingListPage`**: usa `GuestNavbar` con `hasWeddingList` attivo
 - [x] **`App.tsx`**: rotte `/e/:eventId/listanozze` coprono il redirect stabile
+
+---
+
+## 🚧 Fase 24 — Landing dinamica a blocchi (in corso)
+
+- [x] **Schema SQL**: aggiunta colonna `landing_config` (`jsonb`) su `public.events` con default idempotente in `supabase/schema.sql`
+- [x] **Tipi condivisi** in `src/types.ts`: `LandingConfig`, `LandingBlock` (text, menu_cta, story, event_info, wedding_menu, image, gallery), `LandingThemePreset` (`gold`, `rose`, `classic`)
+- [x] **API pubblica gallery**: payload `event.landingConfig` esposto da `api/gallery.ts` (via `api/_lib/events.ts`)
+- [x] **Guest landing render dinamico**: `src/pages/GuestLandingPage.tsx` ora legge `landingConfig`, applica tema preset, renderizza blocchi in ordine e mantiene fallback legacy automatico
+- [x] **Backend admin salvataggio landing**: nuovo endpoint `PATCH /api/admin/landing-config` con JWT, ownership check e validazione base del payload
+- [x] **Hook client base**: `src/hooks/useLandingConfig.ts` per load/save `landing_config`
+
+- [ ] **Editor admin a blocchi**: UI drag & drop (add/edit/delete/reorder/visibility) integrata in dashboard
+- [ ] **Blocco Hero editor avanzato**: gestione immagini separate desktop/tablet/mobile + focal point
+- [ ] **Blocco Menu CTA editor**: gestione bottoni/link con anteprima
+- [ ] **Blocchi Story/Scritta/Image/Gallery editor**: form dedicati con riuso RichTextEditor
+- [ ] **Integrazione Dashboard**: nuova sezione/tab "Landing" in `EventSettingsForm` o route protetta dedicata
+- [ ] **QA finale**: test responsive, test permessi API admin, regressione guest pages

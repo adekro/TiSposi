@@ -35,6 +35,7 @@ create table if not exists public.events (
   reception_time text,
   -- Fase 17: sito ospite
   landing_bg_url text,
+  landing_config jsonb default '{"headerFixed":true,"theme":"gold","hero":{"title":"Benvenuti","subtitle":null,"imageUrlDesktop":null,"imageUrlTablet":null,"imageUrlMobile":null,"overlayOpacity":0.45,"textAlign":"center"},"blocks":[]}'::jsonb,
   wedding_list_description text,
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now())
@@ -67,6 +68,10 @@ alter table public.events add column if not exists reception_venue_name text;
 alter table public.events add column if not exists reception_venue_address text;
 alter table public.events add column if not exists reception_venue_maps_url text;
 alter table public.events add column if not exists reception_time text;
+
+-- Migration: Landing dinamica a blocchi
+alter table public.events add column if not exists landing_config jsonb;
+alter table public.events alter column landing_config set default '{"headerFixed":true,"theme":"gold","hero":{"title":"Benvenuti","subtitle":null,"imageUrlDesktop":null,"imageUrlTablet":null,"imageUrlMobile":null,"overlayOpacity":0.45,"textAlign":"center"},"blocks":[]}'::jsonb;
 
 create table if not exists public.gallery_entries (
   id uuid primary key default gen_random_uuid(),

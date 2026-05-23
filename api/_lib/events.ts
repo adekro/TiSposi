@@ -1,4 +1,4 @@
-import type { StorageProvider } from "../../src/types";
+import type { LandingConfig, StorageProvider } from "../../src/types";
 import { getServiceSupabaseClient } from "./supabase.js";
 
 export interface EventRecord {
@@ -35,6 +35,7 @@ export interface EventRecord {
   reception_time: string | null;
   // Fase 17
   landing_bg_url: string | null;
+  landing_config: LandingConfig | null;
   wedding_list_description: string | null;
 }
 
@@ -46,7 +47,7 @@ export async function getEventByPublicId(publicId: string) {
   const { data, error } = await supabase
     .from("events")
     .select(
-      "id, public_id, title, spouses, storage_provider, google_drive_folder_id, wedding_date, venue_name, venue_address, venue_maps_url, dresscode, schedule, couple_story, menu, menu_antipasto, menu_primo, menu_secondo, menu_contorno, menu_dolce, menu_bevande, ceremony_venue_name, ceremony_venue_address, ceremony_venue_maps_url, ceremony_time, reception_venue_name, reception_venue_address, reception_venue_maps_url, reception_time, landing_bg_url, wedding_list_description",
+      "id, public_id, title, spouses, storage_provider, google_drive_folder_id, wedding_date, venue_name, venue_address, venue_maps_url, dresscode, schedule, couple_story, menu, menu_antipasto, menu_primo, menu_secondo, menu_contorno, menu_dolce, menu_bevande, ceremony_venue_name, ceremony_venue_address, ceremony_venue_maps_url, ceremony_time, reception_venue_name, reception_venue_address, reception_venue_maps_url, reception_time, landing_bg_url, landing_config, wedding_list_description",
     )
     .eq("public_id", normalized)
     .maybeSingle<EventRecord>();
