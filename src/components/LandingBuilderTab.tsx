@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Box,
@@ -6,6 +6,7 @@ import {
   Card,
   CardContent,
   Chip,
+  CircularProgress,
   Divider,
   FormControlLabel,
   IconButton,
@@ -21,6 +22,7 @@ import { DragIndicator as DragIndicatorIcon } from "@mui/icons-material";
 import { Save as SaveIcon } from "@mui/icons-material";
 import { Visibility as VisibilityIcon } from "@mui/icons-material";
 import { VisibilityOff as VisibilityOffIcon } from "@mui/icons-material";
+import { CloudUpload as CloudUploadIcon } from "@mui/icons-material";
 import type {
   LandingBlock,
   LandingBlockType,
@@ -29,6 +31,7 @@ import type {
 } from "../types";
 import RichTextEditor from "./RichTextEditor";
 import { useLandingConfig } from "../hooks/useLandingConfig";
+import { supabase } from "../lib/supabase";
 
 interface Props {
   userId: string;
@@ -229,6 +232,18 @@ export default function LandingBuilderTab({ userId, publicId, spouses }: Props) 
   const [newBlockType, setNewBlockType] = useState<LandingBlockType>("text");
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dropTargetId, setDropTargetId] = useState<string | null>(null);
+  const [heroUploadMessage, setHeroUploadMessage] = useState("");
+  const [heroUploadError, setHeroUploadError] = useState("");
+  const [desktopUploading, setDesktopUploading] = useState(false);
+  const [tabletUploading, setTabletUploading] = useState(false);
+  const [mobileUploading, setMobileUploading] = useState(false);
+  const [blockImageUploading, setBlockImageUploading] = useState<
+    Record<string, boolean>
+  >({});
+
+  const desktopInputRef = useRef<HTMLInputElement>(null);
+  const tabletInputRef = useRef<HTMLInputElement>(null);
+  const mobileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (landingHook.isLoading) return;
@@ -289,6 +304,244 @@ export default function LandingBuilderTab({ userId, publicId, spouses }: Props) 
     });
   };
 
+  const getAccessToken = async () => {
+    if (!supabase) {
+      throw new Error("Supabase non configurato nel client.");
+    }
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession();
+    if (error || !session?.access_token) {
+      throw new Error("Sessione scaduta. Rieffettua il login.");
+    }
+    return session.access_token;
+  };
+
+  const setHeroField = (
+    key: "imageUrlDesktop" | "imageUrlTablet" | "imageUrlMobile",
+    value: string | null,
+  ) => {
+    setConfig((prev) =>
+      prev
+        ? {
+            ...prev,
+            hero: {
+              ...prev.hero,
+              [key]: value,
+            },
+          }
+        : prev,
+    );
+  };
+
+  const uploadHeroImage = async (
+    variant: "desktop" | "tablet" | "mobile",
+    file: File,
+  ) => {
+    if (!landingHook.eventId) return;
+
+    const map = {
+      desktop: {
+        endpoint: "/api/upload-landing-desktop-bg",
+        key: "imageUrlDesktop" as const,
+        setLoading: setDesktopUploading,
+      },
+      tablet: {
+        endpoint: "/api/upload-landing-tablet-bg",
+        key: "imageUrlTablet" as const,
+        setLoading: setTabletUploading,
+      },
+      mobile: {
+        endpoint: "/api/upload-landing-mobile-bg",
+        key: "imageUrlMobile" as const,
+        setLoading: setMobileUploading,
+      },
+    };
+
+    const target = map[variant];
+    target.setLoading(true);
+    setHeroUploadError("");
+    setHeroUploadMessage("");
+
+    try {
+      const token = await getAccessToken();
+      const response = await fetch(target.endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": file.type,
+          Authorization: `Bearer ${token}`,
+        },
+        body: file,
+      });
+
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as
+          | { error?: string }
+          | null;
+        throw new Error(payload?.error ?? "Errore durante il caricamento");
+      }
+
+      const versionedUrl = `${target.endpoint}?eventId=${landingHook.eventId}&v=${Date.now()}`;
+      setHeroField(target.key, versionedUrl);
+      setHeroUploadMessage(
+        `Immagine Hero ${variant} caricata. Ricorda di salvare la landing.`,
+      );
+    } catch (error) {
+      setHeroUploadError(error instanceof Error ? error.message : "Errore sconosciuto");
+    } finally {
+      target.setLoading(false);
+    }
+  };
+
+  const deleteHeroImage = async (variant: "desktop" | "tablet" | "mobile") => {
+    const map = {
+      desktop: {
+        endpoint: "/api/upload-landing-desktop-bg",
+        key: "imageUrlDesktop" as const,
+        setLoading: setDesktopUploading,
+      },
+      tablet: {
+        endpoint: "/api/upload-landing-tablet-bg",
+        key: "imageUrlTablet" as const,
+        setLoading: setTabletUploading,
+      },
+      mobile: {
+        endpoint: "/api/upload-landing-mobile-bg",
+        key: "imageUrlMobile" as const,
+        setLoading: setMobileUploading,
+      },
+    };
+
+    const target = map[variant];
+    target.setLoading(true);
+    setHeroUploadError("");
+    setHeroUploadMessage("");
+
+    try {
+      const token = await getAccessToken();
+      const response = await fetch(target.endpoint, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as
+          | { error?: string }
+          | null;
+        throw new Error(payload?.error ?? "Errore durante la rimozione");
+      }
+
+      setHeroField(target.key, null);
+      setHeroUploadMessage(
+        `Immagine Hero ${variant} rimossa. Ricorda di salvare la landing.`,
+      );
+    } catch (error) {
+      setHeroUploadError(error instanceof Error ? error.message : "Errore sconosciuto");
+    } finally {
+      target.setLoading(false);
+    }
+  };
+
+  const setBlockImageLoading = (blockId: string, value: boolean) => {
+    setBlockImageUploading((prev) => ({
+      ...prev,
+      [blockId]: value,
+    }));
+  };
+
+  const uploadBlockImage = async (blockId: string, file: File) => {
+    if (!landingHook.eventId) return;
+
+    setBlockImageLoading(blockId, true);
+    setHeroUploadError("");
+    setHeroUploadMessage("");
+
+    try {
+      const token = await getAccessToken();
+      const endpoint = `/api/upload-landing-block-image?blockId=${encodeURIComponent(blockId)}`;
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": file.type,
+          Authorization: `Bearer ${token}`,
+        },
+        body: file,
+      });
+
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as
+          | { error?: string }
+          | null;
+        throw new Error(payload?.error ?? "Errore durante il caricamento immagine blocco");
+      }
+
+      const imageUrl = `/api/upload-landing-block-image?eventId=${landingHook.eventId}&blockId=${encodeURIComponent(blockId)}&v=${Date.now()}`;
+
+      updateBlock(blockId, (current) =>
+        current.type === "image"
+          ? {
+              ...current,
+              content: {
+                ...current.content,
+                imageUrl,
+              },
+            }
+          : current,
+      );
+
+      setHeroUploadMessage("Immagine blocco caricata. Ricorda di salvare la landing.");
+    } catch (error) {
+      setHeroUploadError(error instanceof Error ? error.message : "Errore sconosciuto");
+    } finally {
+      setBlockImageLoading(blockId, false);
+    }
+  };
+
+  const deleteBlockImage = async (blockId: string) => {
+    setBlockImageLoading(blockId, true);
+    setHeroUploadError("");
+    setHeroUploadMessage("");
+
+    try {
+      const token = await getAccessToken();
+      const endpoint = `/api/upload-landing-block-image?blockId=${encodeURIComponent(blockId)}`;
+      const response = await fetch(endpoint, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as
+          | { error?: string }
+          | null;
+        throw new Error(payload?.error ?? "Errore durante la rimozione immagine blocco");
+      }
+
+      updateBlock(blockId, (current) =>
+        current.type === "image"
+          ? {
+              ...current,
+              content: {
+                ...current.content,
+                imageUrl: "",
+              },
+            }
+          : current,
+      );
+
+      setHeroUploadMessage("Immagine blocco rimossa. Ricorda di salvare la landing.");
+    } catch (error) {
+      setHeroUploadError(error instanceof Error ? error.message : "Errore sconosciuto");
+    } finally {
+      setBlockImageLoading(blockId, false);
+    }
+  };
+
   if (!userId.trim()) {
     return <Alert severity="warning">Utente non autenticato.</Alert>;
   }
@@ -312,6 +565,8 @@ export default function LandingBuilderTab({ userId, publicId, spouses }: Props) 
 
   return (
     <Stack spacing={2.5}>
+      {heroUploadError ? <Alert severity="error">{heroUploadError}</Alert> : null}
+      {heroUploadMessage ? <Alert severity="success">{heroUploadMessage}</Alert> : null}
       {saveErrorMessage ? <Alert severity="error">{saveErrorMessage}</Alert> : null}
 
       <Card sx={{ borderRadius: 4 }}>
@@ -483,6 +738,122 @@ export default function LandingBuilderTab({ userId, publicId, spouses }: Props) 
                 }
                 fullWidth
               />
+            </Stack>
+
+            <Stack spacing={1.2}>
+              <Typography variant="subtitle2">Upload Hero desktop/tablet/mobile</Typography>
+              <Typography variant="body2" color="text.secondary">
+                Formati supportati: JPG, PNG, WebP (max 4 MB). L&apos;upload aggiorna in automatico il relativo campo URL.
+              </Typography>
+
+              <Stack direction={{ xs: "column", md: "row" }} spacing={1.2}>
+                <input
+                  ref={desktopInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  style={{ display: "none" }}
+                  onChange={async (event) => {
+                    const file = event.target.files?.[0];
+                    if (!file) return;
+                    await uploadHeroImage("desktop", file);
+                    if (desktopInputRef.current) {
+                      desktopInputRef.current.value = "";
+                    }
+                  }}
+                />
+
+                <input
+                  ref={tabletInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  style={{ display: "none" }}
+                  onChange={async (event) => {
+                    const file = event.target.files?.[0];
+                    if (!file) return;
+                    await uploadHeroImage("tablet", file);
+                    if (tabletInputRef.current) {
+                      tabletInputRef.current.value = "";
+                    }
+                  }}
+                />
+
+                <input
+                  ref={mobileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  style={{ display: "none" }}
+                  onChange={async (event) => {
+                    const file = event.target.files?.[0];
+                    if (!file) return;
+                    await uploadHeroImage("mobile", file);
+                    if (mobileInputRef.current) {
+                      mobileInputRef.current.value = "";
+                    }
+                  }}
+                />
+
+                <Stack spacing={1} sx={{ width: "100%" }}>
+                  <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                    <Button
+                      variant="outlined"
+                      startIcon={desktopUploading ? <CircularProgress size={16} /> : <CloudUploadIcon />}
+                      disabled={desktopUploading}
+                      onClick={() => desktopInputRef.current?.click()}
+                    >
+                      Carica Desktop
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      startIcon={<DeleteIcon />}
+                      disabled={desktopUploading || !config.hero.imageUrlDesktop}
+                      onClick={() => void deleteHeroImage("desktop")}
+                    >
+                      Rimuovi Desktop
+                    </Button>
+                  </Stack>
+
+                  <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                    <Button
+                      variant="outlined"
+                      startIcon={tabletUploading ? <CircularProgress size={16} /> : <CloudUploadIcon />}
+                      disabled={tabletUploading}
+                      onClick={() => tabletInputRef.current?.click()}
+                    >
+                      Carica Tablet
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      startIcon={<DeleteIcon />}
+                      disabled={tabletUploading || !config.hero.imageUrlTablet}
+                      onClick={() => void deleteHeroImage("tablet")}
+                    >
+                      Rimuovi Tablet
+                    </Button>
+                  </Stack>
+
+                  <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                    <Button
+                      variant="outlined"
+                      startIcon={mobileUploading ? <CircularProgress size={16} /> : <CloudUploadIcon />}
+                      disabled={mobileUploading}
+                      onClick={() => mobileInputRef.current?.click()}
+                    >
+                      Carica Mobile
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      startIcon={<DeleteIcon />}
+                      disabled={mobileUploading || !config.hero.imageUrlMobile}
+                      onClick={() => void deleteHeroImage("mobile")}
+                    >
+                      Rimuovi Mobile
+                    </Button>
+                  </Stack>
+                </Stack>
+              </Stack>
             </Stack>
 
             <TextField
@@ -910,6 +1281,68 @@ export default function LandingBuilderTab({ userId, publicId, spouses }: Props) 
                               }
                               fullWidth
                             />
+
+                            <Typography variant="body2" color="text.secondary">
+                              Upload diretto file (JPG, PNG, WebP - max 4 MB)
+                            </Typography>
+
+                            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                              <Button
+                                component="label"
+                                variant="outlined"
+                                startIcon={
+                                  blockImageUploading[block.id] ? (
+                                    <CircularProgress size={16} />
+                                  ) : (
+                                    <CloudUploadIcon />
+                                  )
+                                }
+                                disabled={Boolean(blockImageUploading[block.id])}
+                              >
+                                Carica file
+                                <input
+                                  hidden
+                                  type="file"
+                                  accept="image/jpeg,image/png,image/webp"
+                                  onChange={async (event) => {
+                                    const file = event.target.files?.[0];
+                                    if (!file) return;
+                                    await uploadBlockImage(block.id, file);
+                                    event.currentTarget.value = "";
+                                  }}
+                                />
+                              </Button>
+
+                              <Button
+                                variant="outlined"
+                                color="error"
+                                startIcon={<DeleteIcon />}
+                                disabled={
+                                  Boolean(blockImageUploading[block.id]) ||
+                                  !block.content.imageUrl
+                                }
+                                onClick={() => void deleteBlockImage(block.id)}
+                              >
+                                Rimuovi file
+                              </Button>
+                            </Stack>
+
+                            {block.content.imageUrl ? (
+                              <Box
+                                component="img"
+                                src={block.content.imageUrl}
+                                alt="Anteprima blocco immagine"
+                                sx={{
+                                  width: "100%",
+                                  maxWidth: 360,
+                                  height: 180,
+                                  objectFit: "cover",
+                                  borderRadius: 2,
+                                  border: "1px solid",
+                                  borderColor: "divider",
+                                }}
+                              />
+                            ) : null}
                           </Stack>
                         )}
 

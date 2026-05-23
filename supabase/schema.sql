@@ -645,6 +645,123 @@ create policy "Owners can manage own wedding list background"
     )
   );
 
+create table if not exists public.event_landing_desktop_backgrounds (
+  id uuid primary key default gen_random_uuid(),
+  event_id uuid not null unique references public.events (id) on delete cascade,
+  image_base64 text not null,
+  image_mime_type text not null,
+  updated_at timestamptz not null default timezone('utc', now())
+);
+
+alter table public.event_landing_desktop_backgrounds enable row level security;
+
+drop policy if exists "Owners can manage own landing desktop background" on public.event_landing_desktop_backgrounds;
+create policy "Owners can manage own landing desktop background"
+  on public.event_landing_desktop_backgrounds for all
+  using (
+    exists (
+      select 1 from public.events
+      where events.id = event_landing_desktop_backgrounds.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.events
+      where events.id = event_landing_desktop_backgrounds.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  );
+
+create table if not exists public.event_landing_tablet_backgrounds (
+  id uuid primary key default gen_random_uuid(),
+  event_id uuid not null unique references public.events (id) on delete cascade,
+  image_base64 text not null,
+  image_mime_type text not null,
+  updated_at timestamptz not null default timezone('utc', now())
+);
+
+alter table public.event_landing_tablet_backgrounds enable row level security;
+
+drop policy if exists "Owners can manage own landing tablet background" on public.event_landing_tablet_backgrounds;
+create policy "Owners can manage own landing tablet background"
+  on public.event_landing_tablet_backgrounds for all
+  using (
+    exists (
+      select 1 from public.events
+      where events.id = event_landing_tablet_backgrounds.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.events
+      where events.id = event_landing_tablet_backgrounds.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  );
+
+create table if not exists public.event_landing_mobile_backgrounds (
+  id uuid primary key default gen_random_uuid(),
+  event_id uuid not null unique references public.events (id) on delete cascade,
+  image_base64 text not null,
+  image_mime_type text not null,
+  updated_at timestamptz not null default timezone('utc', now())
+);
+
+alter table public.event_landing_mobile_backgrounds enable row level security;
+
+drop policy if exists "Owners can manage own landing mobile background" on public.event_landing_mobile_backgrounds;
+create policy "Owners can manage own landing mobile background"
+  on public.event_landing_mobile_backgrounds for all
+  using (
+    exists (
+      select 1 from public.events
+      where events.id = event_landing_mobile_backgrounds.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.events
+      where events.id = event_landing_mobile_backgrounds.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  );
+
+create table if not exists public.event_landing_block_images (
+  id uuid primary key default gen_random_uuid(),
+  event_id uuid not null references public.events (id) on delete cascade,
+  block_id text not null,
+  image_base64 text not null,
+  image_mime_type text not null,
+  updated_at timestamptz not null default timezone('utc', now()),
+  constraint event_landing_block_images_event_block_unique unique (event_id, block_id)
+);
+
+create index if not exists idx_event_landing_block_images_event_block
+  on public.event_landing_block_images (event_id, block_id);
+
+alter table public.event_landing_block_images enable row level security;
+
+drop policy if exists "Owners can manage own landing block images" on public.event_landing_block_images;
+create policy "Owners can manage own landing block images"
+  on public.event_landing_block_images for all
+  using (
+    exists (
+      select 1 from public.events
+      where events.id = event_landing_block_images.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.events
+      where events.id = event_landing_block_images.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  );
+
 -- Tabella lista nozze
 create table if not exists public.wedding_list_items (
   id uuid primary key default gen_random_uuid(),

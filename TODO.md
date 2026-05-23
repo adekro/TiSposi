@@ -257,7 +257,8 @@ Unificare le pagine ospite con una navigation bar comune.
 - [x] **Hook client base**: `src/hooks/useLandingConfig.ts` per load/save `landing_config`
 
 - [x] **Editor admin a blocchi**: UI drag & drop (add/edit/delete/reorder/visibility) integrata in dashboard (`Landing Builder` tab)
-- [ ] **Blocco Hero editor avanzato**: gestione immagini separate desktop/tablet/mobile + focal point
+- [x] **Blocco Hero editor avanzato**: gestione immagini separate desktop/tablet/mobile via upload dedicato + URL automatici nel Landing Builder
+- [x] **Blocco Immagine editor avanzato**: upload/rimozione file diretta nel blocco `image` con persistenza server-side per `block_id`
 - [ ] **Blocco Menu CTA editor**: gestione bottoni/link con anteprima
 - [ ] **Blocchi Story/Scritta/Image/Gallery editor**: form dedicati con riuso RichTextEditor
 - [ ] **Integrazione Dashboard**: nuova sezione/tab "Landing" in `EventSettingsForm` o route protetta dedicata
