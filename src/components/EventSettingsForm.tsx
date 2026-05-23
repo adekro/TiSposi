@@ -50,6 +50,7 @@ interface Props {
   onSave: () => Promise<void>;
   onDownloadQr: () => Promise<void>;
   onDownloadRsvpQr: () => Promise<void>;
+  onDownloadLandingQr: () => Promise<void>;
   onUploadBg: (file: File) => Promise<void>;
   onDeleteBg: () => Promise<void>;
   onUploadGalleryBg: (file: File) => Promise<void>;
@@ -83,6 +84,7 @@ export default function EventSettingsForm({
   onSave,
   onDownloadQr,
   onDownloadRsvpQr,
+  onDownloadLandingQr,
   onUploadBg,
   onDeleteBg,
   onUploadGalleryBg,
@@ -847,6 +849,14 @@ export default function EventSettingsForm({
               disabled={!publicIdValid}
             >
               Scarica QR RSVP
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<QrCode2Icon />}
+              onClick={() => void onDownloadLandingQr()}
+              disabled={!publicIdValid}
+            >
+              Scarica QR Landing
             </Button>
           </Stack>
 

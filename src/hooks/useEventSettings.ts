@@ -288,6 +288,21 @@ export function useEventSettings(userId: string, userEmail?: string) {
     link.click();
   };
 
+  const handleDownloadLandingQr = async () => {
+    if (!landingUrl) return;
+    const qrLandingUrl = eventId
+      ? `${window.location.origin}/e/${eventId}/landing`
+      : landingUrl;
+    const dataUrl = await QRCode.toDataURL(qrLandingUrl, {
+      width: 512,
+      margin: 2,
+    });
+    const link = document.createElement("a");
+    link.href = dataUrl;
+    link.download = `qrcode-landing-${normalizedPublicId}.png`;
+    link.click();
+  };
+
   const bgPreviewUrl = eventId
     ? `/api/upload-bg?eventId=${eventId}&v=${landingBgVersion}`
     : null;
@@ -597,5 +612,6 @@ export function useEventSettings(userId: string, userEmail?: string) {
     handleSave,
     handleDownloadQr,
     handleDownloadRsvpQr,
+    handleDownloadLandingQr,
   };
 }

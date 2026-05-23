@@ -50,7 +50,13 @@ export default function DashboardPage() {
   const isAdmin = user?.email === ADMIN_EMAIL;
   const userId = user?.id ?? "";
 
-  const { handleSave, handleDownloadQr, handleDownloadRsvpQr, ...formProps } =
+  const {
+    handleSave,
+    handleDownloadQr,
+    handleDownloadRsvpQr,
+    handleDownloadLandingQr,
+    ...formProps
+  } =
     useEventSettings(userId, user?.email);
   const { entries, stats, loading: rsvpLoading, error: rsvpError } = useRsvp(userId);
   const checklistHook = useChecklist(userId);
@@ -201,6 +207,7 @@ export default function DashboardPage() {
               onSave={handleSave}
               onDownloadQr={handleDownloadQr}
               onDownloadRsvpQr={handleDownloadRsvpQr}
+              onDownloadLandingQr={handleDownloadLandingQr}
             />
           )}
 
