@@ -286,44 +286,6 @@ export default function GuestLandingPage() {
     [publicId],
   );
 
-  if (isLoading) {
-    return (
-      <Box
-        sx={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: theme.palette.background.default,
-        }}
-      >
-        <CircularProgress color="primary" />
-      </Box>
-    );
-  }
-
-  if (error || !event) {
-    return (
-      <Box
-        sx={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: theme.palette.background.default,
-        }}
-      >
-        <Typography color="text.secondary">Evento non trovato.</Typography>
-      </Box>
-    );
-  }
-
-  const fallbackConfig = buildLegacyLandingConfig(event);
-  const persistedConfig = event.landingConfig ?? fallbackConfig;
-  const landingConfig = isBuilderPreview ? previewConfig ?? persistedConfig : persistedConfig;
-  const palette = LANDING_THEME_PRESETS[landingConfig.theme] ?? LANDING_THEME_PRESETS.gold;
-  const hasWeddingList = Boolean(event.weddingListDescription);
-
   useEffect(() => {
     if (!isBuilderPreview) {
       setPreviewConfig(null);
@@ -398,6 +360,44 @@ export default function GuestLandingPage() {
     window.addEventListener("storage", handleStorage);
     return () => window.removeEventListener("storage", handleStorage);
   }, [isBuilderPreview, publicId]);
+
+  if (isLoading) {
+    return (
+      <Box
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: theme.palette.background.default,
+        }}
+      >
+        <CircularProgress color="primary" />
+      </Box>
+    );
+  }
+
+  if (error || !event) {
+    return (
+      <Box
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: theme.palette.background.default,
+        }}
+      >
+        <Typography color="text.secondary">Evento non trovato.</Typography>
+      </Box>
+    );
+  }
+
+  const fallbackConfig = buildLegacyLandingConfig(event);
+  const persistedConfig = event.landingConfig ?? fallbackConfig;
+  const landingConfig = isBuilderPreview ? previewConfig ?? persistedConfig : persistedConfig;
+  const palette = LANDING_THEME_PRESETS[landingConfig.theme] ?? LANDING_THEME_PRESETS.gold;
+  const hasWeddingList = Boolean(event.weddingListDescription);
 
   const heroDesktop = landingConfig.hero.imageUrlDesktop ?? event.landingBgUrl ?? null;
   const heroTablet = landingConfig.hero.imageUrlTablet ?? heroDesktop;
