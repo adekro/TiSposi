@@ -68,13 +68,17 @@ async function saveLandingConfig(eventId: string, landingConfig: LandingConfig) 
 export function useLandingConfig(userId: string) {
   const queryClient = useQueryClient();
 
-  const query = useQuery({
+  const query = useQuery<LandingConfigResponse | null, Error>({
     queryKey: ["landing-config", userId],
     queryFn: () => fetchLandingConfig(userId),
     enabled: userId.trim().length > 0,
   });
 
-  const mutation = useMutation({
+  const mutation = useMutation<
+    void,
+    Error,
+    { eventId: string; landingConfig: LandingConfig }
+  >({
     mutationFn: async ({ eventId, landingConfig }: { eventId: string; landingConfig: LandingConfig }) => {
       await saveLandingConfig(eventId, landingConfig);
     },

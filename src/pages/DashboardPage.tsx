@@ -42,6 +42,7 @@ import TablesTab from "../components/TablesTab";
 import WeddingListTab from "../components/WeddingListTab";
 import StatisticsTab from "../components/StatisticsTab";
 import MediaTab from "../components/MediaTab";
+import LandingBuilderTab from "../components/LandingBuilderTab";
 
 const ADMIN_EMAIL = "e.croce88@gmail.com";
 
@@ -145,6 +146,7 @@ export default function DashboardPage() {
               scrollButtons="auto"
             >
               <Tab label="Configurazione evento" />
+              <Tab label="Landing Builder" />
               <Tab
                 label={
                   stats.totalRsvp > 0
@@ -212,6 +214,14 @@ export default function DashboardPage() {
           )}
 
           {tab === 1 && (
+            <LandingBuilderTab
+              userId={userId}
+              publicId={formProps.normalizedPublicId}
+              spouses={formProps.form.spouses}
+            />
+          )}
+
+          {tab === 2 && (
             <Stack spacing={3}>
               {/* Stats aggregate */}
               <Stack
@@ -428,8 +438,8 @@ export default function DashboardPage() {
               )}
             </Stack>
           )}
-          {tab === 2 && <ChecklistTab hook={checklistHook} />}
-          {tab === 3 && (
+          {tab === 3 && <ChecklistTab hook={checklistHook} />}
+          {tab === 4 && (
             <Stack spacing={2}>
               <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
                 <Tabs
@@ -465,13 +475,13 @@ export default function DashboardPage() {
               )}
             </Stack>
           )}
-          {tab === 4 && <BudgetTab hook={budgetHook} />}
-          {tab === 5 && <SuppliersTab hook={suppliersHook} />}
-          {tab === 6 && <ActivitiesTab hook={activitiesHook} />}
-          {tab === 7 && <WeddingListTab hook={weddingListHook} />}
-          {tab === 8 && <StatisticsTab userId={userId} />}
-          {tab === 9 && <MediaTab userId={userId} />}
-          {tab === 10 && isAdmin && <AdminPanel />}
+          {tab === 5 && <BudgetTab hook={budgetHook} />}
+          {tab === 6 && <SuppliersTab hook={suppliersHook} />}
+          {tab === 7 && <ActivitiesTab hook={activitiesHook} />}
+          {tab === 8 && <WeddingListTab hook={weddingListHook} />}
+          {tab === 9 && <StatisticsTab userId={userId} />}
+          {tab === 10 && <MediaTab userId={userId} />}
+          {tab === 11 && isAdmin && <AdminPanel />}
         </Stack>
       </Container>
     </Box>

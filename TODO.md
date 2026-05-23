@@ -256,7 +256,7 @@ Unificare le pagine ospite con una navigation bar comune.
 - [x] **Backend admin salvataggio landing**: nuovo endpoint `PATCH /api/admin/landing-config` con JWT, ownership check e validazione base del payload
 - [x] **Hook client base**: `src/hooks/useLandingConfig.ts` per load/save `landing_config`
 
-- [ ] **Editor admin a blocchi**: UI drag & drop (add/edit/delete/reorder/visibility) integrata in dashboard
+- [x] **Editor admin a blocchi**: UI drag & drop (add/edit/delete/reorder/visibility) integrata in dashboard (`Landing Builder` tab)
 - [ ] **Blocco Hero editor avanzato**: gestione immagini separate desktop/tablet/mobile + focal point
 - [ ] **Blocco Menu CTA editor**: gestione bottoni/link con anteprima
 - [ ] **Blocchi Story/Scritta/Image/Gallery editor**: form dedicati con riuso RichTextEditor
