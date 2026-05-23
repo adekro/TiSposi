@@ -263,6 +263,10 @@ function normalizeLandingConfigBeforeSave(config: LandingConfig): LandingConfig 
   };
 }
 
+function getPreviewStorageKey(publicId: string) {
+  return `landing-preview:${publicId}`;
+}
+
 function getTypeLabel(type: LandingBlockType) {
   return BLOCK_OPTIONS.find((option) => option.type === type)?.label ?? type;
 }
@@ -285,6 +289,8 @@ export default function LandingBuilderTab({ userId, publicId, spouses }: Props) 
   const desktopInputRef = useRef<HTMLInputElement>(null);
   const tabletInputRef = useRef<HTMLInputElement>(null);
   const mobileInputRef = useRef<HTMLInputElement>(null);
+  const previewChannelRef = useRef<BroadcastChannel | null>(null);
+  const latestConfigRef = useRef<LandingConfig | null>(null);
 
   useEffect(() => {
     if (landingHook.isLoading) return;
@@ -295,6 +301,67 @@ export default function LandingBuilderTab({ userId, publicId, spouses }: Props) 
     () => normalizeOrders(config?.blocks ?? []),
     [config?.blocks],
   );
+
+  useEffect(() => {
+    latestConfigRef.current = config ? normalizeLandingConfigBeforeSave(config) : null;
+  }, [config]);
+
+  useEffect(() => {
+    if (!publicId.trim()) return;
+    if (typeof window === "undefined") return;
+    if (typeof BroadcastChannel === "undefined") return;
+
+    const channelName = `landing-preview-${publicId}`;
+    const channel = new BroadcastChannel(channelName);
+    previewChannelRef.current = channel;
+
+    const handleMessage = (event: MessageEvent) => {
+      const payload = event.data as { type?: string } | null;
+      if (!payload?.type) return;
+      if (payload.type === "landing-config-request") {
+        const snapshot = latestConfigRef.current;
+        if (!snapshot) return;
+        channel.postMessage({
+          type: "landing-config-update",
+          source: "builder",
+          at: Date.now(),
+          config: snapshot,
+        });
+      }
+    };
+
+    channel.addEventListener("message", handleMessage);
+
+    return () => {
+      channel.removeEventListener("message", handleMessage);
+      channel.close();
+      previewChannelRef.current = null;
+    };
+  }, [publicId]);
+
+  useEffect(() => {
+    if (!publicId.trim()) return;
+    if (!config) return;
+    if (typeof window === "undefined") return;
+
+    const normalized = normalizeLandingConfigBeforeSave(config);
+    const payload = {
+      at: Date.now(),
+      config: normalized,
+    };
+
+    try {
+      window.localStorage.setItem(getPreviewStorageKey(publicId), JSON.stringify(payload));
+    } catch {
+      // ignore storage quota errors in preview sync
+    }
+
+    previewChannelRef.current?.postMessage({
+      type: "landing-config-update",
+      source: "builder",
+      ...payload,
+    });
+  }, [config, publicId]);
 
   const setBlocks = (updater: (prev: LandingBlock[]) => LandingBlock[]) => {
     setConfig((prev) => {
@@ -1447,6 +1514,16 @@ export default function LandingBuilderTab({ userId, publicId, spouses }: Props) 
           disabled={!publicId}
         >
           Apri anteprima pubblica
+        </Button>
+        <Button
+          variant="outlined"
+          component="a"
+          href={publicId ? `/${publicId}/landing?preview=builder` : "#"}
+          target="_blank"
+          rel="noreferrer"
+          disabled={!publicId}
+        >
+          Apri anteprima live
         </Button>
         <Box sx={{ display: "flex", alignItems: "center" }}>
           <Typography variant="caption" color="text.secondary">

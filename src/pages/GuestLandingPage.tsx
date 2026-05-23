@@ -5,6 +5,7 @@ import {
   CardContent,
   CircularProgress,
   Container,
+  Chip,
   Stack,
   Typography,
   alpha,
@@ -14,7 +15,8 @@ import { PhotoCamera as PhotoCameraIcon } from "@mui/icons-material";
 import { Checklist as ChecklistIcon } from "@mui/icons-material";
 import { CardGiftcard as CardGiftcardIcon } from "@mui/icons-material";
 import { RestaurantMenu as RestaurantMenuIcon } from "@mui/icons-material";
-import { useParams, Link as RouterLink } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { useParams, Link as RouterLink, useSearchParams } from "react-router-dom";
 import { useGallery } from "../hooks/useGallery";
 import LegalFooter from "../components/LegalFooter";
 import PWAInstallBanner from "../components/PWAInstallBanner";
@@ -194,6 +196,10 @@ function formatDisplayDate(dateStr?: string | null) {
   }
 }
 
+function getPreviewStorageKey(publicId: string) {
+  return `landing-preview:${publicId}`;
+}
+
 function renderWeddingMenu(event: PublicEventSummary, palette: LandingThemeView) {
   const sections = [
     { label: "Antipasto", value: event.menuAntipasto },
@@ -267,9 +273,18 @@ function renderWeddingMenu(event: PublicEventSummary, palette: LandingThemeView)
 
 export default function GuestLandingPage() {
   const { publicId = "" } = useParams();
+  const [searchParams] = useSearchParams();
   const theme = useTheme();
   const { data, isLoading, error } = useGallery(publicId);
   const event = data?.event;
+  const [previewConfig, setPreviewConfig] = useState<LandingConfig | null>(null);
+  const [previewUpdatedAt, setPreviewUpdatedAt] = useState<number | null>(null);
+
+  const isBuilderPreview = searchParams.get("preview") === "builder";
+  const previewChannelName = useMemo(
+    () => (publicId ? `landing-preview-${publicId}` : ""),
+    [publicId],
+  );
 
   if (isLoading) {
     return (
@@ -304,9 +319,85 @@ export default function GuestLandingPage() {
   }
 
   const fallbackConfig = buildLegacyLandingConfig(event);
-  const landingConfig = event.landingConfig ?? fallbackConfig;
+  const persistedConfig = event.landingConfig ?? fallbackConfig;
+  const landingConfig = isBuilderPreview ? previewConfig ?? persistedConfig : persistedConfig;
   const palette = LANDING_THEME_PRESETS[landingConfig.theme] ?? LANDING_THEME_PRESETS.gold;
   const hasWeddingList = Boolean(event.weddingListDescription);
+
+  useEffect(() => {
+    if (!isBuilderPreview) {
+      setPreviewConfig(null);
+      setPreviewUpdatedAt(null);
+    }
+  }, [isBuilderPreview]);
+
+  useEffect(() => {
+    if (!isBuilderPreview || !publicId || typeof window === "undefined") return;
+
+    try {
+      const raw = window.localStorage.getItem(getPreviewStorageKey(publicId));
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as { at?: number; config?: LandingConfig };
+      if (parsed?.config) {
+        setPreviewConfig(parsed.config);
+      }
+      if (typeof parsed?.at === "number") {
+        setPreviewUpdatedAt(parsed.at);
+      }
+    } catch {
+      // ignore malformed preview payload
+    }
+  }, [isBuilderPreview, publicId]);
+
+  useEffect(() => {
+    if (!isBuilderPreview || !publicId || typeof window === "undefined") return;
+    if (typeof BroadcastChannel === "undefined") return;
+
+    const channel = new BroadcastChannel(previewChannelName);
+
+    const handleMessage = (
+      eventMessage: MessageEvent<{ type?: string; at?: number; config?: LandingConfig }>,
+    ) => {
+      if (eventMessage.data?.type !== "landing-config-update") return;
+      if (!eventMessage.data.config) return;
+      setPreviewConfig(eventMessage.data.config);
+      setPreviewUpdatedAt(eventMessage.data.at ?? Date.now());
+    };
+
+    channel.addEventListener("message", handleMessage);
+    channel.postMessage({ type: "landing-config-request", source: "landing" });
+
+    return () => {
+      channel.removeEventListener("message", handleMessage);
+      channel.close();
+    };
+  }, [isBuilderPreview, previewChannelName, publicId]);
+
+  useEffect(() => {
+    if (!isBuilderPreview || !publicId || typeof window === "undefined") return;
+
+    const storageKey = getPreviewStorageKey(publicId);
+    const handleStorage = (eventStorage: StorageEvent) => {
+      if (eventStorage.key !== storageKey || !eventStorage.newValue) return;
+      try {
+        const parsed = JSON.parse(eventStorage.newValue) as {
+          at?: number;
+          config?: LandingConfig;
+        };
+        if (parsed?.config) {
+          setPreviewConfig(parsed.config);
+        }
+        if (typeof parsed?.at === "number") {
+          setPreviewUpdatedAt(parsed.at);
+        }
+      } catch {
+        // ignore malformed preview payload
+      }
+    };
+
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, [isBuilderPreview, publicId]);
 
   const heroDesktop = landingConfig.hero.imageUrlDesktop ?? event.landingBgUrl ?? null;
   const heroTablet = landingConfig.hero.imageUrlTablet ?? heroDesktop;
@@ -596,6 +687,47 @@ export default function GuestLandingPage() {
         background: palette.pageBackground,
       }}
     >
+      {isBuilderPreview ? (
+        <Box
+          sx={{
+            position: "fixed",
+            top: { xs: 74, sm: 86 },
+            right: { xs: 12, sm: 20 },
+            zIndex: 1600,
+            width: { xs: "calc(100% - 24px)", sm: 340 },
+            p: 2,
+            borderRadius: 3,
+            border: "1px solid",
+            borderColor: alpha(palette.accent, 0.35),
+            bgcolor: alpha("#111111", 0.78),
+            backdropFilter: "blur(8px)",
+            color: "#fff",
+            boxShadow: `0 12px 28px ${alpha("#000", 0.28)}`,
+          }}
+        >
+          <Stack spacing={1}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+              Anteprima live landing
+            </Typography>
+            <Typography variant="caption" sx={{ opacity: 0.9 }}>
+              Le modifiche dal Landing Builder vengono mostrate in tempo reale qui.
+            </Typography>
+            <Stack direction="row" spacing={1} alignItems="center" useFlexGap flexWrap="wrap">
+              <Chip
+                size="small"
+                color={previewConfig ? "success" : "default"}
+                label={previewConfig ? "Sync attiva" : "In attesa"}
+              />
+              {previewUpdatedAt ? (
+                <Typography variant="caption" sx={{ opacity: 0.85 }}>
+                  Aggiornata alle {new Date(previewUpdatedAt).toLocaleTimeString("it-IT")}
+                </Typography>
+              ) : null}
+            </Stack>
+          </Stack>
+        </Box>
+      ) : null}
+
       <PWAInstallBanner />
       <GuestNavbar
         publicId={publicId}
