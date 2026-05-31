@@ -27,6 +27,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         event: {
           id: event.id,
           spouses: event.spouses,
+          weddingDate: event.wedding_date,
           rsvpBgUrl: rsvpBg ? `/api/upload-rsvp-bg?eventId=${event.id}` : null,
           landingConfig: event.landing_config,
         },

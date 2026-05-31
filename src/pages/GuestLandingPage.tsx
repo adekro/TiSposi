@@ -32,6 +32,7 @@ import {
   type LandingThemeView,
   resolveLandingTheme,
 } from "../lib/landingTheme";
+import WeddingDecorativeOverlay from "../components/WeddingDecorativeOverlay";
 
 function isNonEmpty(value: string | null | undefined) {
   return Boolean(value && value.trim().length > 0);
@@ -705,6 +706,11 @@ export default function GuestLandingPage() {
           background: hasHeroImage ? undefined : palette.heroFallback,
         }}
       >
+        {/* Ornamenti botanici sugli angoli dell'hero */}
+        <WeddingDecorativeOverlay
+          color={hasHeroImage ? "#ffffff" : palette.accent}
+          intensity={hasHeroImage ? 0.30 : 0.40}
+        />
         {hasHeroImage && (
           <picture
             style={{
