@@ -15,7 +15,7 @@ import { PhotoCamera as PhotoCameraIcon } from "@mui/icons-material";
 import { Checklist as ChecklistIcon } from "@mui/icons-material";
 import { CardGiftcard as CardGiftcardIcon } from "@mui/icons-material";
 import { RestaurantMenu as RestaurantMenuIcon } from "@mui/icons-material";
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { useParams, Link as RouterLink, useSearchParams } from "react-router-dom";
 import { useGallery } from "../hooks/useGallery";
 import LegalFooter from "../components/LegalFooter";
@@ -32,7 +32,7 @@ import {
   type LandingThemeView,
   resolveLandingTheme,
 } from "../lib/landingTheme";
-import WeddingDecorativeOverlay from "../components/WeddingDecorativeOverlay";
+import WeddingDecorativeOverlay, { WeddingDecorativeDivider } from "../components/WeddingDecorativeOverlay";
 
 function isNonEmpty(value: string | null | undefined) {
   return Boolean(value && value.trim().length > 0);
@@ -838,9 +838,16 @@ export default function GuestLandingPage() {
         }}
       >
         <Container maxWidth="sm">
-          <Stack spacing={3.2}>
+          <Stack spacing={0}>
             {orderedBlocks.length > 0 ? (
-              orderedBlocks.map((block) => renderBlock(block))
+              orderedBlocks.map((block, i) => (
+                <Fragment key={block.id}>
+                  {i > 0 && <WeddingDecorativeDivider color={palette.accent} />}
+                  <Box sx={{ pb: 3.2 }}>
+                    {renderBlock(block)}
+                  </Box>
+                </Fragment>
+              ))
             ) : (
               <Card
                 sx={{
@@ -857,24 +864,28 @@ export default function GuestLandingPage() {
               </Card>
             )}
 
-            <Card
-              sx={{
-                borderRadius: 4,
-                background: palette.cardBackground,
-                boxShadow: `0 8px 22px ${alpha(palette.accent, 0.16)}`,
-              }}
-            >
-              <CardContent>
-                <Stack direction="row" spacing={1} alignItems="center">
-                  <PhotoCameraIcon sx={{ color: palette.accent }} />
-                  <ChecklistIcon sx={{ color: palette.accent }} />
-                  <CardGiftcardIcon sx={{ color: palette.accentAlt }} />
-                  <Typography sx={{ color: palette.mutedTextColor, ml: 1 }}>
-                    Contenuti aggiornabili dagli sposi con editor a blocchi.
-                  </Typography>
-                </Stack>
-              </CardContent>
-            </Card>
+            <WeddingDecorativeDivider color={palette.accent} />
+
+            <Box sx={{ pt: 0, pb: 3.2 }}>
+              <Card
+                sx={{
+                  borderRadius: 4,
+                  background: palette.cardBackground,
+                  boxShadow: `0 8px 22px ${alpha(palette.accent, 0.16)}`,
+                }}
+              >
+                <CardContent>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <PhotoCameraIcon sx={{ color: palette.accent }} />
+                    <ChecklistIcon sx={{ color: palette.accent }} />
+                    <CardGiftcardIcon sx={{ color: palette.accentAlt }} />
+                    <Typography sx={{ color: palette.mutedTextColor, ml: 1 }}>
+                      Contenuti aggiornabili dagli sposi con editor a blocchi.
+                    </Typography>
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Box>
           </Stack>
 
           <Box

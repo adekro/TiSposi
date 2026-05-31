@@ -1,11 +1,90 @@
 import { Box } from "@mui/material";
 
-interface Props {
+interface OverlayProps {
   color?: string;
   /** 0–1, default 0.30 */
   intensity?: number;
   /** Size in px of each corner ornament, default 220 */
   size?: number;
+}
+
+interface DividerProps {
+  color?: string;
+  /** 0–1, default 1.0 */
+  intensity?: number;
+}
+
+/**
+ * Separatore botanico orizzontale: rosa centrale con rami, foglie e ornamenti.
+ * Usarlo come divider tra sezioni/card.
+ */
+export function WeddingDecorativeDivider({ color = "#C9A76C", intensity = 1.0 }: DividerProps) {
+  const op = (base: number) => Math.min(1, base * intensity);
+
+  return (
+    <Box
+      sx={{ width: "100%", display: "flex", justifyContent: "center", py: 0.5 }}
+      aria-hidden="true"
+    >
+      <svg
+        width="100%"
+        height="44"
+        viewBox="0 0 400 44"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        preserveAspectRatio="xMidYMid meet"
+      >
+        {/* ── Rosa centrale ── */}
+        {/* Petali esterni */}
+        <ellipse cx="200" cy="11" rx="6"  ry="10" fill={color} opacity={op(0.30)}/>
+        <ellipse cx="208" cy="13" rx="7"  ry="5"  transform="rotate(45 208 13)"  fill={color} opacity={op(0.28)}/>
+        <ellipse cx="211" cy="22" rx="10" ry="6"  fill={color} opacity={op(0.30)}/>
+        <ellipse cx="208" cy="31" rx="7"  ry="5"  transform="rotate(-45 208 31)" fill={color} opacity={op(0.28)}/>
+        <ellipse cx="200" cy="33" rx="6"  ry="10" fill={color} opacity={op(0.30)}/>
+        <ellipse cx="192" cy="31" rx="7"  ry="5"  transform="rotate(45 192 31)"  fill={color} opacity={op(0.28)}/>
+        <ellipse cx="189" cy="22" rx="10" ry="6"  fill={color} opacity={op(0.30)}/>
+        <ellipse cx="192" cy="13" rx="7"  ry="5"  transform="rotate(-45 192 13)" fill={color} opacity={op(0.28)}/>
+        {/* Petali interni */}
+        <ellipse cx="200" cy="15" rx="5" ry="7"  fill={color} opacity={op(0.52)}/>
+        <ellipse cx="200" cy="29" rx="5" ry="7"  fill={color} opacity={op(0.52)}/>
+        <ellipse cx="194" cy="22" rx="7" ry="5"  fill={color} opacity={op(0.52)}/>
+        <ellipse cx="206" cy="22" rx="7" ry="5"  fill={color} opacity={op(0.52)}/>
+        {/* Centro */}
+        <circle cx="200" cy="22" r="5.5" fill={color} opacity={op(0.72)}/>
+        <circle cx="200" cy="22" r="2.8" fill={color} opacity={op(0.92)}/>
+
+        {/* ── Diamantini affiancati alla rosa ── */}
+        <path d="M 181 22 L 178 19 L 175 22 L 178 25 Z" fill={color} opacity={op(0.40)}/>
+        <path d="M 225 22 L 222 19 L 219 22 L 222 25 Z" fill={color} opacity={op(0.40)}/>
+
+        {/* ── Linee orizzontali ── */}
+        <line x1="0"   y1="22" x2="172" y2="22" stroke={color} strokeWidth="0.8" opacity={op(0.28)}/>
+        <line x1="228" y1="22" x2="400" y2="22" stroke={color} strokeWidth="0.8" opacity={op(0.28)}/>
+
+        {/* ── Foglie sinistra (alternano sopra/sotto la linea) ── */}
+        <ellipse cx="148" cy="18" rx="11" ry="5"  transform="rotate(-12 148 18)" fill={color} opacity={op(0.26)}/>
+        <ellipse cx="108" cy="26" rx="10" ry="4.5" transform="rotate(13 108 26)"  fill={color} opacity={op(0.22)}/>
+        <ellipse cx="68"  cy="18" rx="9"  ry="4"  transform="rotate(-10 68  18)" fill={color} opacity={op(0.19)}/>
+
+        {/* ── Puntini ornamentali sinistra ── */}
+        <circle cx="156" cy="22" r="2.5" fill={color} opacity={op(0.34)}/>
+        <circle cx="116" cy="22" r="2"   fill={color} opacity={op(0.27)}/>
+        <circle cx="76"  cy="22" r="2.5" fill={color} opacity={op(0.24)}/>
+        <circle cx="36"  cy="22" r="1.8" fill={color} opacity={op(0.18)}/>
+
+        {/* ── Foglie destra ── */}
+        <ellipse cx="252" cy="18" rx="11" ry="5"  transform="rotate(12 252 18)"  fill={color} opacity={op(0.26)}/>
+        <ellipse cx="292" cy="26" rx="10" ry="4.5" transform="rotate(-13 292 26)" fill={color} opacity={op(0.22)}/>
+        <ellipse cx="332" cy="18" rx="9"  ry="4"  transform="rotate(10 332 18)"  fill={color} opacity={op(0.19)}/>
+
+        {/* ── Puntini ornamentali destra ── */}
+        <circle cx="244" cy="22" r="2.5" fill={color} opacity={op(0.34)}/>
+        <circle cx="284" cy="22" r="2"   fill={color} opacity={op(0.27)}/>
+        <circle cx="324" cy="22" r="2.5" fill={color} opacity={op(0.24)}/>
+        <circle cx="364" cy="22" r="1.8" fill={color} opacity={op(0.18)}/>
+      </svg>
+    </Box>
+  );
 }
 
 /**

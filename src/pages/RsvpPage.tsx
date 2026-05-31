@@ -23,7 +23,7 @@ import { HowToReg as HowToRegIcon } from "@mui/icons-material";
 import { CheckCircleOutline as CheckCircleOutlineIcon } from "@mui/icons-material";
 import LegalFooter from "../components/LegalFooter";
 import GuestNavbar from "../components/GuestNavbar";
-import WeddingDecorativeOverlay from "../components/WeddingDecorativeOverlay";
+import WeddingDecorativeOverlay, { WeddingDecorativeDivider } from "../components/WeddingDecorativeOverlay";
 import { resolveLandingTheme } from "../lib/landingTheme";
 import type { LandingConfig } from "../types";
 
@@ -318,6 +318,7 @@ export default function RsvpPage() {
         }}
       >
         <Container maxWidth="sm">
+          <WeddingDecorativeDivider color={palette.accent} />
           {submitted ? (
             /* ── Stato ringraziamento ── */
             <Stack spacing={3} alignItems="center" sx={{ mt: 2 }}>
