@@ -10,7 +10,48 @@ import { registerSW } from "virtual:pwa-register";
 
 // Registra il Service Worker PWA con aggiornamento automatico silenzioso
 if (import.meta.env.PROD) {
-  registerSW({ immediate: true });
+  const updateSW = registerSW({
+    immediate: true,
+    onNeedRefresh() {
+      // Applica subito il nuovo SW quando disponibile.
+      void updateSW(true);
+    },
+    onRegisteredSW(_swUrl, registration) {
+      if (!registration) return;
+
+      // Forza un check periodico, utile per recepire prima manifest/icona aggiornati.
+      setInterval(
+        () => {
+          void registration.update();
+        },
+        60 * 60 * 1000,
+      );
+    },
+  });
+
+  const iconVersion = import.meta.env.VITE_ICON_VERSION ?? "1";
+  const iconVersionKey = "pwa-icon-version";
+  const previousVersion = localStorage.getItem(iconVersionKey);
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const isStandalone =
+    window.matchMedia("(display-mode: standalone)").matches ||
+    (window.navigator as Navigator & { standalone?: boolean }).standalone ===
+      true;
+
+  if (
+    isIOS &&
+    isStandalone &&
+    previousVersion &&
+    previousVersion !== iconVersion
+  ) {
+    setTimeout(() => {
+      window.alert(
+        "Icona app aggiornata: su iPhone potrebbe servire rimuovere e reinstallare la PWA dalla Home per vedere la nuova icona.",
+      );
+    }, 1200);
+  }
+
+  localStorage.setItem(iconVersionKey, iconVersion);
 }
 
 // In sviluppo forziamo la rimozione di SW/cache per evitare bundle stantii.
