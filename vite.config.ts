@@ -5,6 +5,7 @@ import path from "path";
 
 export default defineConfig(({ mode }) => {
   const iconVersion = process.env.VITE_ICON_VERSION ?? mode;
+  process.env.VITE_ICON_VERSION = iconVersion;
 
   return {
     server: {
