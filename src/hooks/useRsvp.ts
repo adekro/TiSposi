@@ -41,6 +41,8 @@ export function useRsvp(userId: string) {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [aligning, setAligning] = useState(false);
+  const [alignError, setAlignError] = useState("");
 
   const fetchEntries = async () => {
     if (!userId || !supabase) {
@@ -125,5 +127,85 @@ export function useRsvp(userId: string) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
-  return { entries, stats, loading, error, refetch: fetchEntries };
+  const alignEntries = async (mappings: Array<{ entryId: string; guestId: string }>) => {
+    if (!supabase || mappings.length === 0) return;
+
+    setAligning(true);
+    setAlignError("");
+
+    try {
+      const entryIds = mappings.map((mapping) => mapping.entryId);
+      const guestIds = mappings.map((mapping) => mapping.guestId);
+
+      if (new Set(entryIds).size !== entryIds.length || new Set(guestIds).size !== guestIds.length) {
+        throw new Error("Ogni RSVP e ogni invitato possono essere selezionati una sola volta.");
+      }
+
+      const { data: latestEntries, error: latestEntriesError } = await supabase
+        .from("rsvp_entries")
+        .select("id, guest_id, attending")
+        .in("id", entryIds)
+        .returns<Array<Pick<RsvpEntry, "id" | "guest_id" | "attending">>>();
+
+      if (latestEntriesError) throw new Error(latestEntriesError.message);
+
+      const latestEntryMap = new Map((latestEntries ?? []).map((entry) => [entry.id, entry]));
+      for (const mapping of mappings) {
+        const currentEntry = latestEntryMap.get(mapping.entryId);
+        if (!currentEntry) throw new Error("Uno degli RSVP selezionati non esiste più.");
+        if (currentEntry.guest_id) {
+          throw new Error("Uno degli RSVP selezionati è già stato allineato.");
+        }
+      }
+
+      const { data: occupiedGuests, error: occupiedGuestsError } = await supabase
+        .from("rsvp_entries")
+        .select("id, guest_id")
+        .in("guest_id", guestIds)
+        .returns<Array<Pick<RsvpEntry, "id" | "guest_id">>>();
+
+      if (occupiedGuestsError) throw new Error(occupiedGuestsError.message);
+      if ((occupiedGuests ?? []).some((entry) => entry.guest_id)) {
+        throw new Error("Almeno un invitato selezionato ha già un RSVP collegato.");
+      }
+
+      for (const mapping of mappings) {
+        const sourceEntry = latestEntryMap.get(mapping.entryId);
+        const { error: updateRsvpError } = await supabase
+          .from("rsvp_entries")
+          .update({ guest_id: mapping.guestId })
+          .eq("id", mapping.entryId)
+          .is("guest_id", null);
+
+        if (updateRsvpError) throw new Error(updateRsvpError.message);
+
+        const { error: updateGuestError } = await supabase
+          .from("guest_list")
+          .update({ rsvp_status: sourceEntry?.attending ? "confirmed" : "declined" })
+          .eq("id", mapping.guestId);
+
+        if (updateGuestError) throw new Error(updateGuestError.message);
+      }
+
+      await fetchEntries();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Errore durante l'allineamento RSVP.";
+      setAlignError(message);
+      throw err instanceof Error ? err : new Error(message);
+    } finally {
+      setAligning(false);
+    }
+  };
+
+  return {
+    entries,
+    stats,
+    loading,
+    error,
+    aligning,
+    alignError,
+    unalignedEntries: entries.filter((entry) => !entry.guest_id),
+    alignEntries,
+    refetch: fetchEntries,
+  };
 }

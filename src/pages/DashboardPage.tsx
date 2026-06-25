@@ -5,8 +5,16 @@ import {
   Button,
   Chip,
   Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Divider,
+  FormControl,
+  InputLabel,
+  MenuItem,
   Paper,
+  Select,
   Stack,
   Tab,
   Table,
@@ -16,9 +24,10 @@ import {
   TableHead,
   TableRow,
   Tabs,
+  TextField,
   Typography,
 } from "@mui/material";
-import { Download as DownloadIcon } from "@mui/icons-material";
+import { Download as DownloadIcon, Link as LinkIcon } from "@mui/icons-material";
 import { AdminPanelSettings as AdminPanelSettingsIcon } from "@mui/icons-material";
 import { useAuth } from "../contexts/AuthContext";
 import AdminPanel from "../components/AdminPanel";
@@ -59,7 +68,16 @@ export default function DashboardPage() {
     ...formProps
   } =
     useEventSettings(userId, user?.email);
-  const { entries, stats, loading: rsvpLoading, error: rsvpError } = useRsvp(userId);
+  const {
+    entries,
+    stats,
+    loading: rsvpLoading,
+    error: rsvpError,
+    aligning: rsvpAligning,
+    alignError: rsvpAlignError,
+    unalignedEntries,
+    alignEntries,
+  } = useRsvp(userId);
   const checklistHook = useChecklist(userId);
   const guestListHook = useGuestList(userId);
   const budgetHook = useBudget(userId);
@@ -70,6 +88,9 @@ export default function DashboardPage() {
   const [tab, setTab] = useState(0);
   const [rsvpSubTab, setRsvpSubTab] = useState(0);
   const [guestSubTab, setGuestSubTab] = useState(0);
+  const [alignDialogOpen, setAlignDialogOpen] = useState(false);
+  const [alignSelections, setAlignSelections] = useState<Record<string, string>>({});
+  const [alignDialogError, setAlignDialogError] = useState("");
 
   if (!user) {
     return null;
@@ -121,6 +142,47 @@ export default function DashboardPage() {
     link.download = "rsvp.csv";
     link.click();
     URL.revokeObjectURL(url);
+  };
+
+  const availableGuests = guestListHook.guests.filter((guest) => !guestListHook.rsvpByGuestId[guest.id]);
+  const selectedGuestIds = new Set(Object.values(alignSelections).filter(Boolean));
+  const isAlignConfirmDisabled =
+    unalignedEntries.length === 0 ||
+    unalignedEntries.some((entry) => !alignSelections[entry.id]) ||
+    selectedGuestIds.size !== unalignedEntries.length;
+
+  const openAlignDialog = () => {
+    if (unalignedEntries.length === 0) return;
+    const initialSelections: Record<string, string> = {};
+    for (const entry of unalignedEntries) initialSelections[entry.id] = "";
+    setAlignSelections(initialSelections);
+    setAlignDialogError("");
+    setAlignDialogOpen(true);
+  };
+
+  const closeAlignDialog = () => {
+    if (rsvpAligning) return;
+    setAlignDialogOpen(false);
+    setAlignDialogError("");
+  };
+
+  const handleAlignSelectionChange = (entryId: string, guestId: string) => {
+    setAlignDialogError("");
+    setAlignSelections((prev) => ({ ...prev, [entryId]: guestId }));
+  };
+
+  const handleAlignConfirm = async () => {
+    try {
+      const mappings = unalignedEntries.map((entry) => ({
+        entryId: entry.id,
+        guestId: alignSelections[entry.id],
+      }));
+      await alignEntries(mappings);
+      await guestListHook.refetch();
+      closeAlignDialog();
+    } catch (err) {
+      setAlignDialogError(err instanceof Error ? err.message : "Errore durante l'allineamento RSVP.");
+    }
   };
 
   return (
@@ -273,7 +335,17 @@ export default function DashboardPage() {
                   {/* ── Sub-tab 0: Risposte ── */}
                   {rsvpSubTab === 0 && (
                     <>
-                      <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+                      <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1, flexWrap: "wrap" }}>
+                        {unalignedEntries.length > 0 && (
+                          <Button
+                            variant="contained"
+                            startIcon={<LinkIcon />}
+                            onClick={openAlignDialog}
+                            size="small"
+                          >
+                            {`Allinea (${unalignedEntries.length})`}
+                          </Button>
+                        )}
                         <Button
                           variant="outlined"
                           startIcon={<DownloadIcon />}
@@ -484,6 +556,75 @@ export default function DashboardPage() {
           {tab === 11 && isAdmin && <AdminPanel />}
         </Stack>
       </Container>
+
+      <Dialog open={alignDialogOpen} onClose={closeAlignDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>Allinea RSVP agli invitati</DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={2} sx={{ pt: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              Associa ogni RSVP non ancora collegato a un invitato della lista.
+            </Typography>
+
+            {(alignDialogError || rsvpAlignError) && (
+              <Alert severity="error">{alignDialogError || rsvpAlignError}</Alert>
+            )}
+
+            {unalignedEntries.length === 0 ? (
+              <Alert severity="info">Tutti gli RSVP sono già allineati.</Alert>
+            ) : (
+              unalignedEntries.map((entry) => {
+                const selectedGuestId = alignSelections[entry.id] ?? "";
+                return (
+                  <Stack
+                    key={entry.id}
+                    direction={{ xs: "column", sm: "row" }}
+                    spacing={2}
+                    alignItems={{ xs: "stretch", sm: "center" }}
+                  >
+                    <TextField
+                      label="RSVP"
+                      value={`${entry.guest_name} • ${new Date(entry.created_at).toLocaleDateString("it-IT")}`}
+                      size="small"
+                      fullWidth
+                      InputProps={{ readOnly: true }}
+                    />
+                    <FormControl size="small" fullWidth>
+                      <InputLabel>Invitato</InputLabel>
+                      <Select
+                        value={selectedGuestId}
+                        label="Invitato"
+                        onChange={(e) => handleAlignSelectionChange(entry.id, e.target.value)}
+                      >
+                        {availableGuests.map((guest) => {
+                          const isTakenElsewhere =
+                            guest.id !== selectedGuestId && selectedGuestIds.has(guest.id);
+                          return (
+                            <MenuItem key={guest.id} value={guest.id} disabled={isTakenElsewhere}>
+                              {guest.full_name}
+                            </MenuItem>
+                          );
+                        })}
+                      </Select>
+                    </FormControl>
+                  </Stack>
+                );
+              })
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeAlignDialog} disabled={rsvpAligning}>
+            Annulla
+          </Button>
+          <Button
+            variant="contained"
+            onClick={() => void handleAlignConfirm()}
+            disabled={isAlignConfirmDisabled || rsvpAligning}
+          >
+            {rsvpAligning ? "Allineamento…" : "Conferma"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
