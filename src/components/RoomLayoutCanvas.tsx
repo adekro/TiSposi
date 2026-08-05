@@ -1,4 +1,4 @@
-import { useRef, useState, forwardRef } from "react";
+import { useState, forwardRef } from "react";
 import { Stage, Layer, Circle, Rect, Text, Group } from "react-konva";
 import type { Stage as StageType } from "konva/lib/Stage";
 import type {

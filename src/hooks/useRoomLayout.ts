@@ -120,9 +120,8 @@ export function useRoomLayout(userId: string) {
 
     // Upsert table positions
     const positionsToUpsert = Object.entries(payload.tablePositions).map(
-      ([tableId, pos]) => ({
+      ([, pos]) => ({
         layout_id: layoutData.id,
-        table_id: tableId,
         ...pos,
         updated_at: new Date().toISOString(),
       }),
@@ -137,9 +136,8 @@ export function useRoomLayout(userId: string) {
 
     // Upsert guest icons
     const iconsToUpsert = Object.entries(payload.guestIcons).map(
-      ([guestId, icon]) => ({
+      ([, icon]) => ({
         layout_id: layoutData.id,
-        guest_id: guestId,
         ...icon,
         updated_at: new Date().toISOString(),
       }),
