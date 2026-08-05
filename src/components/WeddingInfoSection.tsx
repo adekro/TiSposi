@@ -54,8 +54,11 @@ export default function WeddingInfoSection({ event }: Props) {
   const hasLegacyVenue = Boolean(
     event.venueName || event.venueAddress || event.dresscode || event.schedule,
   );
+  const hasFlightInfo = Boolean(event.showFlightInfo);
+  const hasParkingInfo = Boolean(event.showParkingInfo);
+  const hasAccommodationInfo = Boolean(event.showAccommodationInfo);
   const hasInfo =
-    hasCeremony || hasReception || hasLegacyVenue;
+    hasCeremony || hasReception || hasLegacyVenue || hasFlightInfo || hasParkingInfo || hasAccommodationInfo;
 
   // Menu strutturato (Fase 7) o fallback testo libero
   const menuCourses = [
@@ -238,6 +241,37 @@ export default function WeddingInfoSection({ event }: Props) {
                       Programma
                     </Typography>
                     <PreformattedText text={event.schedule} />
+                  </Box>
+                )}
+
+                {hasFlightInfo && (
+                  <Box>
+                    <Typography variant="subtitle2" color="primary" gutterBottom>
+                      ✈️ Arrivo in aereo
+                    </Typography>
+                    {event.flightAirport && <Typography variant="body2">Aeroporto: {event.flightAirport}</Typography>}
+                    {event.flightShuttle && <Typography variant="body2" color="text.secondary">Navetta: {event.flightShuttle}</Typography>}
+                    {event.flightSchedule && <PreformattedText text={event.flightSchedule} />}
+                  </Box>
+                )}
+
+                {hasParkingInfo && (
+                  <Box>
+                    <Typography variant="subtitle2" color="primary" gutterBottom>
+                      🚗 Parcheggio
+                    </Typography>
+                    {event.parkingInfo && <PreformattedText text={event.parkingInfo} />}
+                  </Box>
+                )}
+
+                {hasAccommodationInfo && (
+                  <Box>
+                    <Typography variant="subtitle2" color="primary" gutterBottom>
+                      🛏️ Pernottamento
+                    </Typography>
+                    {event.accommodationHotel && <Typography variant="body2">Hotel: {event.accommodationHotel}</Typography>}
+                    {event.accommodationFullBoard && <Typography variant="body2" color="text.secondary">Pensione completa: {event.accommodationFullBoard}</Typography>}
+                    {event.accommodationAgreements && <PreformattedText text={event.accommodationAgreements} />}
                   </Box>
                 )}
               </Box>

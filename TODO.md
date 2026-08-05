@@ -264,3 +264,56 @@ Unificare le pagine ospite con una navigation bar comune.
 - [ ] **Blocchi Story/Scritta/Image/Gallery editor**: form dedicati con riuso RichTextEditor
 - [ ] **Integrazione Dashboard**: nuova sezione/tab "Landing" in `EventSettingsForm` o route protetta dedicata
 - [ ] **QA finale**: test responsive, test permessi API admin, regressione guest pages
+
+---
+
+## Fase 25 — Progetto Gold: richieste cliente
+
+### Priorità 1 — RSVP e gestione invitati
+
+- [x] Link RSVP personali e conferma indipendente per ogni invitato della lista.
+- [x] Salvataggio di una risposta RSVP per ogni singolo componente associato.
+- [x] Allineamento manuale delle risposte non associate dalla dashboard, con controllo che ogni invitato venga abbinato una sola volta.
+- [x] Notifica email immediata all'organizzatore dopo ogni conferma tramite Supabase Edge Function e Resend (configurare `RESEND_API_KEY` e `RESEND_FROM` nei secret Supabase). Il template include nome, partecipanti, note e timestamp.
+- [ ] Ricerca fuzzy degli invitati nella schermata di allineamento RSVP.
+
+### Priorità 2 — Restyling UI Gold
+
+- [x] Nuovi temi senza cornici IA, fregi pesanti o ornamenti ridondanti.
+- [x] Sistema decorativo a linee sottili con variabile globale `--accent-color`.
+- [x] Cuore minimal outline, senza riempimento e colorato dal tema.
+- [x] Temi colore configurabili: Gold, Green, Blue, Rose Gold, Black.
+
+### Priorità 3 — Dashboard user friendly
+
+- [x] Sostituire Hero con “Immagine di Copertina”, CTA con “Pulsante di Invito all'Azione”, Parametro Pubblico con “Chiave di Accesso QR”, Rot Pubblica con “Indirizzo Web del Sito”, Blocchi Pagina con “Sezioni del Sito”, Fisso con “Blocca Testata in Alto”.
+- [x] Aggiornare tooltip, placeholder e descrizioni; aggiungere pulsanti informativi dove necessario.
+
+### Priorità 4 — Countdown e logistica
+
+- [x] Verificare il countdown client-side esistente: aggiornamento ogni secondo e stato evento terminato.
+- [x] Toggle dashboard per mostrare/nascondere completamente aereo (aeroporto, navetta, orari), parcheggio e pernottamento (hotel, pensione completa, convenzioni).
+
+### Priorità 5 — Modulo Tablo
+
+- [x] Canvas con tavoli rotondi/quadrati, drag & drop e ridimensionamento.
+- [x] Trascinamento ospiti sui tavoli con icone configurabili.
+- [x] Esportazione PNG HD e PDF per stampa.
+
+**Implementato**:
+- **Schema SQL**: tabelle `room_layouts`, `table_positions`, `guest_icons` con RLS policies
+- **Hook `useRoomLayout`**: gestione state layout, posizioni tavoli e icone ospiti con CRUD operations
+- **Componente `RoomLayoutCanvas`**: canvas Konva con drag & drop per tavoli (circle/rectangle) e ospiti (avatar con iniziali + colore casuale)
+- **Componente `RoomLayoutTab`**: UI completa con toolbar (Salva/Esporta PNG/PDF), sidebar elementi da posizionare, canvas centrale
+- **Integrazione Dashboard**: terzo sotto-tab "Layout" dentro tab "Invitati" (Lista → Tavoli → Layout)
+- **Export**: PNG HD (pixelRatio 2) e PDF A4 landscape via jsPDF
+- **Librerie**: `konva`, `react-konva@18`, `jspdf` installate con `--legacy-peer-deps`
+
+### Priorità 6 — Playlist
+
+- [ ] Sostituire il semplice elenco link con player Spotify incorporato, senza nuove finestre.
+
+### Refactor e QA
+
+- [ ] Revisione mobile-first, prestazioni/lazy loading e coerenza di bordi, icone, tipografia e colori.
+- [ ] Test RSVP, dashboard, temi, countdown, logistica, Tablo e playlist.

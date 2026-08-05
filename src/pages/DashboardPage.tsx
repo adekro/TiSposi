@@ -48,6 +48,7 @@ import BudgetTab from "../components/BudgetTab";
 import SuppliersTab from "../components/SuppliersTab";
 import ActivitiesTab from "../components/ActivitiesTab";
 import TablesTab from "../components/TablesTab";
+import RoomLayoutTab from "../components/RoomLayoutTab";
 import WeddingListTab from "../components/WeddingListTab";
 import StatisticsTab from "../components/StatisticsTab";
 import MediaTab from "../components/MediaTab";
@@ -532,6 +533,7 @@ export default function DashboardPage() {
                         : "Tavoli"
                     }
                   />
+                  <Tab label="Layout" />
                 </Tabs>
               </Box>
               {guestSubTab === 0 && (
@@ -544,6 +546,14 @@ export default function DashboardPage() {
               )}
               {guestSubTab === 1 && (
                 <TablesTab tablesHook={tablesHook} guestListHook={guestListHook} />
+              )}
+              {guestSubTab === 2 && (
+                <RoomLayoutTab
+                  userId={userId}
+                  tablesHook={tablesHook}
+                  guestListHook={guestListHook}
+                  spouses={formProps.form.spouses}
+                />
               )}
             </Stack>
           )}

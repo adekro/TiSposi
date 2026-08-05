@@ -106,6 +106,7 @@ export default function GalleryPage() {
     <Box
       sx={{
         minHeight: "100vh",
+        "--accent-color": palette.accent,
         backgroundColor: palette.pageBackground,
         backgroundImage: palette.pagePattern,
         backgroundSize: "220px 220px",

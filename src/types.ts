@@ -4,6 +4,10 @@ export type StorageProvider = "google_drive" | "supabase_db";
 
 export type LandingThemePreset =
   | "gold"
+  | "green"
+  | "blue"
+  | "rose_gold"
+  | "black"
   | "rose"
   | "classic"
   | "wallpaper_ivory"
@@ -153,6 +157,16 @@ export interface PublicEventSummary {
   receptionVenueAddress?: string | null;
   receptionVenueMapsUrl?: string | null;
   receptionTime?: string | null;
+  showFlightInfo?: boolean;
+  flightAirport?: string | null;
+  flightShuttle?: string | null;
+  flightSchedule?: string | null;
+  showParkingInfo?: boolean;
+  parkingInfo?: string | null;
+  showAccommodationInfo?: boolean;
+  accommodationHotel?: string | null;
+  accommodationFullBoard?: string | null;
+  accommodationAgreements?: string | null;
   // Fase 17: sito ospite
   landingBgUrl?: string | null;
   galleryBgUrl?: string | null;
@@ -200,6 +214,16 @@ export interface EventSettingsRow {
   reception_venue_address: string | null;
   reception_venue_maps_url: string | null;
   reception_time: string | null;
+  show_flight_info: boolean;
+  flight_airport: string | null;
+  flight_shuttle: string | null;
+  flight_schedule: string | null;
+  show_parking_info: boolean;
+  parking_info: string | null;
+  show_accommodation_info: boolean;
+  accommodation_hotel: string | null;
+  accommodation_full_board: string | null;
+  accommodation_agreements: string | null;
   // Fase 17: sito ospite
   landing_bg_url: string | null;
   landing_config: LandingConfig | null;
@@ -359,4 +383,58 @@ export interface WeddingListItem {
 export type WeddingListFormData = Omit<
   WeddingListItem,
   "id" | "event_id" | "created_at"
+>;
+
+// ── Fase 25: Modulo Tablo — Layout sala ──────────────────────────────────────
+export interface RoomLayout {
+  id: string;
+  event_id: string;
+  canvas_width: number;
+  canvas_height: number;
+  background_image_url: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TablePosition {
+  id: string;
+  layout_id: string;
+  table_id: string;
+  x: number;
+  y: number;
+  width: number | null;
+  height: number | null;
+  radius: number | null;
+  shape: "circle" | "rectangle";
+  rotation: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GuestIcon {
+  id: string;
+  layout_id: string;
+  guest_id: string;
+  x: number;
+  y: number;
+  icon_type: "avatar";
+  icon_color: string;
+  icon_text: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type RoomLayoutFormData = Omit<
+  RoomLayout,
+  "id" | "event_id" | "created_at" | "updated_at"
+>;
+
+export type TablePositionFormData = Omit<
+  TablePosition,
+  "id" | "layout_id" | "created_at" | "updated_at"
+>;
+
+export type GuestIconFormData = Omit<
+  GuestIcon,
+  "id" | "layout_id" | "created_at" | "updated_at"
 >;

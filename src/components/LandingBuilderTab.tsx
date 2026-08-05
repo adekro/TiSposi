@@ -14,6 +14,7 @@ import {
   Stack,
   Switch,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import { Add as AddIcon } from "@mui/icons-material";
@@ -23,6 +24,7 @@ import { Save as SaveIcon } from "@mui/icons-material";
 import { Visibility as VisibilityIcon } from "@mui/icons-material";
 import { VisibilityOff as VisibilityOffIcon } from "@mui/icons-material";
 import { CloudUpload as CloudUploadIcon } from "@mui/icons-material";
+import { InfoOutlined as InfoOutlinedIcon } from "@mui/icons-material";
 import type {
   LandingBlock,
   LandingBlockType,
@@ -46,7 +48,7 @@ interface BlockTypeOption {
 
 const BLOCK_OPTIONS: BlockTypeOption[] = [
   { type: "text", label: "Scritta" },
-  { type: "menu_cta", label: "Menu CTA" },
+  { type: "menu_cta", label: "Pulsante di Invito all'Azione" },
   { type: "story", label: "La nostra storia" },
   { type: "event_info", label: "Info evento" },
   { type: "wedding_menu", label: "Menu matrimonio" },
@@ -56,12 +58,10 @@ const BLOCK_OPTIONS: BlockTypeOption[] = [
 
 const THEME_OPTIONS: Array<{ value: LandingThemePreset; label: string }> = [
   { value: "gold", label: "Gold" },
-  { value: "rose", label: "Rose" },
-  { value: "classic", label: "Classic" },
-  { value: "wallpaper_ivory", label: "Carta da parati Avorio" },
-  { value: "eucalyptus_mint", label: "Eucalipto Soft" },
-  { value: "blush_watercolor", label: "Acquerello Blush" },
-  { value: "floral_frame", label: "Cornice Floreale" },
+  { value: "green", label: "Green" },
+  { value: "blue", label: "Blue" },
+  { value: "rose_gold", label: "Rose Gold" },
+  { value: "black", label: "Black" },
 ];
 
 const MENU_CTA_SLOT_LABELS = [
@@ -495,7 +495,7 @@ export default function LandingBuilderTab({ userId, publicId, spouses }: Props) 
       const versionedUrl = `${target.endpoint}?eventId=${landingHook.eventId}&v=${Date.now()}`;
       setHeroField(target.key, versionedUrl);
       setHeroUploadMessage(
-        `Immagine Hero ${variant} caricata. Ricorda di salvare la landing.`,
+        `Immagine di Copertina ${variant} caricata. Ricorda di salvare la landing.`,
       );
     } catch (error) {
       setHeroUploadError(error instanceof Error ? error.message : "Errore sconosciuto");
@@ -546,7 +546,7 @@ export default function LandingBuilderTab({ userId, publicId, spouses }: Props) 
 
       setHeroField(target.key, null);
       setHeroUploadMessage(
-        `Immagine Hero ${variant} rimossa. Ricorda di salvare la landing.`,
+        `Immagine di Copertina ${variant} rimossa. Ricorda di salvare la landing.`,
       );
     } catch (error) {
       setHeroUploadError(error instanceof Error ? error.message : "Errore sconosciuto");
@@ -704,7 +704,7 @@ export default function LandingBuilderTab({ userId, publicId, spouses }: Props) 
 
               <TextField
                 select
-                label="Allineamento testo Hero"
+                label="Allineamento testo Immagine di Copertina"
                 value={config.hero.textAlign}
                 onChange={(e) => {
                   const textAlign = e.target.value as "left" | "center" | "right";
@@ -744,7 +744,7 @@ export default function LandingBuilderTab({ userId, publicId, spouses }: Props) 
                   }
                 />
               }
-              label="Header fisso"
+              label="Blocca Testata in Alto"
             />
           </Stack>
         </CardContent>
@@ -753,10 +753,17 @@ export default function LandingBuilderTab({ userId, publicId, spouses }: Props) 
       <Card sx={{ borderRadius: 4 }}>
         <CardContent>
           <Stack spacing={2.2}>
-            <Typography variant="h6">Hero</Typography>
+            <Stack direction="row" alignItems="center" spacing={0.5}>
+              <Typography variant="h6">Immagine di Copertina</Typography>
+              <Tooltip title="Configura titolo, testo e immagini che gli ospiti vedono all'apertura del sito.">
+                <IconButton size="small" aria-label="Informazioni sull'immagine di copertina">
+                  <InfoOutlinedIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </Stack>
 
             <TextField
-              label="Titolo Hero"
+              label="Titolo Immagine di Copertina"
               value={config.hero.title}
               onChange={(e) =>
                 setConfig((prev) =>
@@ -775,7 +782,7 @@ export default function LandingBuilderTab({ userId, publicId, spouses }: Props) 
             />
 
             <TextField
-              label="Sottotitolo Hero"
+              label="Sottotitolo Immagine di Copertina"
               value={config.hero.subtitle ?? ""}
               onChange={(e) =>
                 setConfig((prev) =>
@@ -851,7 +858,7 @@ export default function LandingBuilderTab({ userId, publicId, spouses }: Props) 
             </Stack>
 
             <Stack spacing={1.2}>
-              <Typography variant="subtitle2">Upload Hero desktop/tablet/mobile</Typography>
+              <Typography variant="subtitle2">Carica Immagine di Copertina per desktop/tablet/mobile</Typography>
               <Typography variant="body2" color="text.secondary">
                 Formati supportati: JPG, PNG, WebP (max 4 MB). L&apos;upload aggiorna in automatico il relativo campo URL.
               </Typography>
@@ -967,7 +974,7 @@ export default function LandingBuilderTab({ userId, publicId, spouses }: Props) 
             </Stack>
 
             <TextField
-              label="Overlay Hero (0 - 1)"
+              label="Oscuramento Immagine di Copertina (0 - 1)"
               type="number"
               value={config.hero.overlayOpacity}
               onChange={(e) => {
@@ -997,7 +1004,14 @@ export default function LandingBuilderTab({ userId, publicId, spouses }: Props) 
       <Card sx={{ borderRadius: 4 }}>
         <CardContent>
           <Stack spacing={2.2}>
-            <Typography variant="h6">Blocchi pagina</Typography>
+            <Stack direction="row" alignItems="center" spacing={0.5}>
+              <Typography variant="h6">Sezioni del Sito</Typography>
+              <Tooltip title="Aggiungi, ordina e rendi visibili le sezioni della pagina ospiti.">
+                <IconButton size="small" aria-label="Informazioni sulle sezioni del sito">
+                  <InfoOutlinedIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </Stack>
             <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
               <TextField
                 select
@@ -1291,7 +1305,7 @@ export default function LandingBuilderTab({ userId, publicId, spouses }: Props) 
                             </Button>
                             {block.content.items.length >= 3 ? (
                               <Typography variant="caption" color="text.secondary">
-                                Limite raggiunto: il blocco CTA supporta 3 bottoni (Gallery, RSVP, Lista nozze).
+                                Limite raggiunto: questa sezione supporta 3 pulsanti (Gallery, RSVP, Lista nozze).
                               </Typography>
                             ) : null}
                           </Stack>

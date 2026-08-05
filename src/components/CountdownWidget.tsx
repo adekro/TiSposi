@@ -73,8 +73,8 @@ export default function CountdownWidget({ weddingDate, spouses }: Props) {
   const units = [
     { label: "giorni", value: timeLeft.days },
     { label: "ore", value: timeLeft.hours },
-    { label: "min", value: timeLeft.minutes },
-    { label: "sec", value: timeLeft.seconds },
+    { label: "minuti", value: timeLeft.minutes },
+    { label: "secondi", value: timeLeft.seconds },
   ];
 
   return (

@@ -638,6 +638,7 @@ export default function GuestLandingPage() {
     <Box
       sx={{
         minHeight: "100vh",
+        "--accent-color": palette.accent,
         display: "flex",
         flexDirection: "column",
         backgroundColor: palette.pageBackground,
@@ -707,10 +708,7 @@ export default function GuestLandingPage() {
         }}
       >
         {/* Ornamenti botanici sugli angoli dell'hero */}
-        <WeddingDecorativeOverlay
-          color={hasHeroImage ? "#ffffff" : palette.accent}
-          intensity={hasHeroImage ? 0.30 : 0.40}
-        />
+        <WeddingDecorativeOverlay intensity={hasHeroImage ? 0.30 : 0.40} />
         {hasHeroImage && (
           <picture
             style={{
@@ -842,7 +840,7 @@ export default function GuestLandingPage() {
             {orderedBlocks.length > 0 ? (
               orderedBlocks.map((block, i) => (
                 <Fragment key={block.id}>
-                  {i > 0 && <WeddingDecorativeDivider color={palette.accent} />}
+                  {i > 0 && <WeddingDecorativeDivider />}
                   <Box sx={{ pb: 3.2 }}>
                     {renderBlock(block)}
                   </Box>
@@ -864,7 +862,7 @@ export default function GuestLandingPage() {
               </Card>
             )}
 
-            <WeddingDecorativeDivider color={palette.accent} />
+            <WeddingDecorativeDivider />
 
             <Box sx={{ pt: 0, pb: 3.2 }}>
               <Card

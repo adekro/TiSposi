@@ -94,6 +94,7 @@ export default function GuestWeddingListPage() {
     <Box
       sx={{
         minHeight: "100vh",
+        "--accent-color": palette.accent,
         display: "flex",
         flexDirection: "column",
         backgroundColor: palette.pageBackground,

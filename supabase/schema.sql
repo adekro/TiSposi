@@ -69,6 +69,19 @@ alter table public.events add column if not exists reception_venue_address text;
 alter table public.events add column if not exists reception_venue_maps_url text;
 alter table public.events add column if not exists reception_time text;
 
+-- Fase 25: logistica modulare sul sito ospite
+alter table public.events
+  add column if not exists show_flight_info boolean not null default false,
+  add column if not exists flight_airport text,
+  add column if not exists flight_shuttle text,
+  add column if not exists flight_schedule text,
+  add column if not exists show_parking_info boolean not null default false,
+  add column if not exists parking_info text,
+  add column if not exists show_accommodation_info boolean not null default false,
+  add column if not exists accommodation_hotel text,
+  add column if not exists accommodation_full_board text,
+  add column if not exists accommodation_agreements text;
+
 -- Migration: Landing dinamica a blocchi
 alter table public.events add column if not exists landing_config jsonb;
 alter table public.events alter column landing_config set default '{"headerFixed":true,"theme":"gold","hero":{"title":"Benvenuti","subtitle":null,"imageUrlDesktop":null,"imageUrlTablet":null,"imageUrlMobile":null,"overlayOpacity":0.45,"textAlign":"center"},"blocks":[]}'::jsonb;
@@ -795,6 +808,124 @@ create policy "Owners can manage wedding list items"
     exists (
       select 1 from public.events
       where events.id = wedding_list_items.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  );
+
+-- ── Fase 25: Modulo Tablo — Layout sala ──────────────────────────────────────
+
+-- Tabella principale layout sala (uno per evento)
+create table if not exists public.room_layouts (
+  id uuid primary key default gen_random_uuid(),
+  event_id uuid not null unique references public.events (id) on delete cascade,
+  canvas_width integer not null default 1200 check (canvas_width > 0),
+  canvas_height integer not null default 800 check (canvas_height > 0),
+  background_image_url text,
+  created_at timestamptz not null default timezone('utc', now()),
+  updated_at timestamptz not null default timezone('utc', now())
+);
+
+create index if not exists idx_room_layouts_event_id
+  on public.room_layouts (event_id);
+
+alter table public.room_layouts enable row level security;
+
+drop policy if exists "Owners can manage room layouts" on public.room_layouts;
+create policy "Owners can manage room layouts"
+  on public.room_layouts for all
+  using (
+    exists (
+      select 1 from public.events
+      where events.id = room_layouts.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.events
+      where events.id = room_layouts.event_id
+        and events.owner_user_id = auth.uid()
+    )
+  );
+
+-- Posizioni tavoli nel canvas
+create table if not exists public.table_positions (
+  id uuid primary key default gen_random_uuid(),
+  layout_id uuid not null references public.room_layouts (id) on delete cascade,
+  table_id uuid not null references public.tables (id) on delete cascade,
+  x numeric not null check (x >= 0),
+  y numeric not null check (y >= 0),
+  width numeric check (width > 0),
+  height numeric check (height > 0),
+  radius numeric check (radius > 0),
+  shape text not null default 'circle' check (shape in ('circle', 'rectangle')),
+  rotation numeric not null default 0,
+  created_at timestamptz not null default timezone('utc', now()),
+  updated_at timestamptz not null default timezone('utc', now()),
+  constraint table_positions_layout_table_unique unique (layout_id, table_id)
+);
+
+create index if not exists idx_table_positions_layout_table
+  on public.table_positions (layout_id, table_id);
+
+alter table public.table_positions enable row level security;
+
+drop policy if exists "Owners can manage table positions" on public.table_positions;
+create policy "Owners can manage table positions"
+  on public.table_positions for all
+  using (
+    exists (
+      select 1 from public.room_layouts
+      join public.events on events.id = room_layouts.event_id
+      where room_layouts.id = table_positions.layout_id
+        and events.owner_user_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.room_layouts
+      join public.events on events.id = room_layouts.event_id
+      where room_layouts.id = table_positions.layout_id
+        and events.owner_user_id = auth.uid()
+    )
+  );
+
+-- Icone ospiti sul canvas
+create table if not exists public.guest_icons (
+  id uuid primary key default gen_random_uuid(),
+  layout_id uuid not null references public.room_layouts (id) on delete cascade,
+  guest_id uuid not null references public.guest_list (id) on delete cascade,
+  x numeric not null check (x >= 0),
+  y numeric not null check (y >= 0),
+  icon_type text not null default 'avatar' check (icon_type in ('avatar')),
+  icon_color text not null default '#1976d2',
+  icon_text text not null,
+  created_at timestamptz not null default timezone('utc', now()),
+  updated_at timestamptz not null default timezone('utc', now()),
+  constraint guest_icons_layout_guest_unique unique (layout_id, guest_id)
+);
+
+create index if not exists idx_guest_icons_layout_guest
+  on public.guest_icons (layout_id, guest_id);
+
+alter table public.guest_icons enable row level security;
+
+drop policy if exists "Owners can manage guest icons" on public.guest_icons;
+create policy "Owners can manage guest icons"
+  on public.guest_icons for all
+  using (
+    exists (
+      select 1 from public.room_layouts
+      join public.events on events.id = room_layouts.event_id
+      where room_layouts.id = guest_icons.layout_id
+        and events.owner_user_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.room_layouts
+      join public.events on events.id = room_layouts.event_id
+      where room_layouts.id = guest_icons.layout_id
         and events.owner_user_id = auth.uid()
     )
   );

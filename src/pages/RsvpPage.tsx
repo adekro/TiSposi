@@ -26,6 +26,7 @@ import GuestNavbar from "../components/GuestNavbar";
 import WeddingDecorativeOverlay, { WeddingDecorativeDivider } from "../components/WeddingDecorativeOverlay";
 import { resolveLandingTheme } from "../lib/landingTheme";
 import type { LandingConfig } from "../types";
+import { supabase } from "../lib/supabase";
 
 export default function RsvpPage() {
   const { publicId = "" } = useParams();
@@ -131,10 +132,10 @@ export default function RsvpPage() {
     setLoading(true);
 
     try {
-      const res = await fetch(`/api/rsvp?publicId=${encodeURIComponent(publicId)}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      if (!supabase) throw new Error("Supabase non configurato.");
+      const { error: invokeError } = await supabase.functions.invoke("rsvp", {
+        body: {
+          publicId,
           guestName: cleanName,
           attending: isAttending,
           numGuests: isAttending ? guests : 0,
@@ -150,13 +151,9 @@ export default function RsvpPage() {
             isAttending && needsAccommodation && accommodationNotes.trim()
               ? sanitize(accommodationNotes.trim())
               : null,
-        }),
+        },
       });
-
-      if (!res.ok) {
-        const data = (await res.json()) as { error?: string };
-        throw new Error(data.error ?? "Errore durante l'invio.");
-      }
+      if (invokeError) throw new Error(invokeError.message || "Errore durante l'invio.");
 
       setSubmitted(true);
     } catch (err) {
@@ -170,6 +167,7 @@ export default function RsvpPage() {
     <Box
       sx={{
         minHeight: "100vh",
+        "--accent-color": palette.accent,
         display: "flex",
         flexDirection: "column",
         backgroundColor: palette.pageBackground,
@@ -217,10 +215,7 @@ export default function RsvpPage() {
         />
 
         {/* Ornamenti botanici agli angoli */}
-        <WeddingDecorativeOverlay
-          color={hasHeroImage ? "#ffffff" : palette.accent}
-          intensity={hasHeroImage ? 0.28 : 0.40}
-        />
+        <WeddingDecorativeOverlay intensity={hasHeroImage ? 0.28 : 0.40} />
 
         {/* Contenuto hero */}
         <Container
@@ -318,7 +313,7 @@ export default function RsvpPage() {
         }}
       >
         <Container maxWidth="sm">
-          <WeddingDecorativeDivider color={palette.accent} />
+          <WeddingDecorativeDivider />
           {submitted ? (
             /* ── Stato ringraziamento ── */
             <Stack spacing={3} alignItems="center" sx={{ mt: 2 }}>

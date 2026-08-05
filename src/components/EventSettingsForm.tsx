@@ -9,9 +9,13 @@ import {
   CardContent,
   CircularProgress,
   Divider,
+  FormControlLabel,
+  IconButton,
   Link,
   Stack,
+  Switch,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import { Save as SaveIcon } from "@mui/icons-material";
@@ -19,6 +23,7 @@ import { QrCode2 as QrCode2Icon } from "@mui/icons-material";
 import { ExpandMore as ExpandMoreIcon } from "@mui/icons-material";
 import { CloudUpload as CloudUploadIcon } from "@mui/icons-material";
 import { Delete as DeleteIcon } from "@mui/icons-material";
+import { InfoOutlined as InfoOutlinedIcon } from "@mui/icons-material";
 import { useRef, useState } from "react";
 import type { EventFormState } from "../hooks/useEventSettings";
 import { normalizePublicId } from "../hooks/useEventSettings";
@@ -129,7 +134,7 @@ export default function EventSettingsForm({
             disabled={disabled}
           />
           <TextField
-            label="Parametro pubblico"
+            label="Chiave di Accesso QR"
             value={form.publicId}
             onChange={(e) =>
               updateField("publicId", normalizePublicId(e.target.value))
@@ -139,7 +144,7 @@ export default function EventSettingsForm({
               normalizedPublicId.length === 0
                 ? "Usa solo lettere minuscole e numeri (senza trattini)."
                 : publicIdValid
-                  ? `Route pubblica: /${normalizedPublicId}/gallery`
+                  ? `Indirizzo Web del Sito: /${normalizedPublicId}/gallery`
                   : "Formato non valido. Usa solo lettere minuscole e numeri."
             }
             fullWidth
@@ -328,6 +333,49 @@ export default function EventSettingsForm({
                   disabled={disabled}
                   helperText="Un'ora per riga o testo libero"
                 />
+
+                <Divider sx={{ my: 1 }} />
+
+                <Stack direction="row" alignItems="center" spacing={0.5}>
+                  <Typography variant="subtitle2" color="primary">Logistica ospiti</Typography>
+                  <Tooltip title="Attiva solo le informazioni che vuoi mostrare sul sito degli ospiti.">
+                    <IconButton size="small" aria-label="Informazioni sulla logistica ospiti">
+                      <InfoOutlinedIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Stack>
+
+                <FormControlLabel
+                  control={<Switch checked={form.showFlightInfo} onChange={(e) => updateField("showFlightInfo", e.target.checked)} disabled={disabled} />}
+                  label="Mostra informazioni aereo"
+                />
+                {form.showFlightInfo && (
+                  <Stack spacing={2}>
+                    <TextField label="Aeroporto" value={form.flightAirport} onChange={(e) => updateField("flightAirport", e.target.value)} fullWidth disabled={disabled} />
+                    <TextField label="Navetta" value={form.flightShuttle} onChange={(e) => updateField("flightShuttle", e.target.value)} placeholder="Punto di ritrovo e istruzioni" fullWidth disabled={disabled} />
+                    <TextField label="Orari" value={form.flightSchedule} onChange={(e) => updateField("flightSchedule", e.target.value)} placeholder="Arrivi, partenze e orari navetta" fullWidth multiline minRows={2} disabled={disabled} />
+                  </Stack>
+                )}
+
+                <FormControlLabel
+                  control={<Switch checked={form.showParkingInfo} onChange={(e) => updateField("showParkingInfo", e.target.checked)} disabled={disabled} />}
+                  label="Mostra informazioni parcheggio"
+                />
+                {form.showParkingInfo && (
+                  <TextField label="Parcheggio" value={form.parkingInfo} onChange={(e) => updateField("parkingInfo", e.target.value)} placeholder="Indirizzo, accesso e istruzioni" fullWidth multiline minRows={2} disabled={disabled} />
+                )}
+
+                <FormControlLabel
+                  control={<Switch checked={form.showAccommodationInfo} onChange={(e) => updateField("showAccommodationInfo", e.target.checked)} disabled={disabled} />}
+                  label="Mostra informazioni pernottamento"
+                />
+                {form.showAccommodationInfo && (
+                  <Stack spacing={2}>
+                    <TextField label="Hotel" value={form.accommodationHotel} onChange={(e) => updateField("accommodationHotel", e.target.value)} fullWidth disabled={disabled} />
+                    <TextField label="Pensione completa" value={form.accommodationFullBoard} onChange={(e) => updateField("accommodationFullBoard", e.target.value)} fullWidth disabled={disabled} />
+                    <TextField label="Convenzioni" value={form.accommodationAgreements} onChange={(e) => updateField("accommodationAgreements", e.target.value)} fullWidth multiline minRows={2} disabled={disabled} />
+                  </Stack>
+                )}
               </Stack>
             </AccordionDetails>
           </Accordion>
@@ -438,7 +486,7 @@ export default function EventSettingsForm({
             <AccordionDetails>
               <Stack spacing={2}>
                 <Typography variant="body2" color="text.secondary">
-                  Carica un&apos;immagine (JPG, PNG, WebP - max 4 MB) da usare come sfondo dell&apos;hero nella pagina galleria.
+                  Carica un&apos;immagine (JPG, PNG, WebP - max 4 MB) da usare come immagine di copertina nella pagina galleria.
                 </Typography>
                 {galleryBgPreviewUrl && !galleryBgImgError ? (
                   <Box
