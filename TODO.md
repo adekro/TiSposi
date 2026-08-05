@@ -301,6 +301,7 @@ Unificare le pagine ospite con una navigation bar comune.
 - [x] Esportazione PNG HD e PDF per stampa.
 
 **Implementato**:
+
 - **Schema SQL**: tabelle `room_layouts`, `table_positions`, `guest_icons` con RLS policies
 - **Hook `useRoomLayout`**: gestione state layout, posizioni tavoli e icone ospiti con CRUD operations
 - **Componente `RoomLayoutCanvas`**: canvas Konva con drag & drop per tavoli (circle/rectangle) e ospiti (avatar con iniziali + colore casuale)

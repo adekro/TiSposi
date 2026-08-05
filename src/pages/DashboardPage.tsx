@@ -27,7 +27,10 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { Download as DownloadIcon, Link as LinkIcon } from "@mui/icons-material";
+import {
+  Download as DownloadIcon,
+  Link as LinkIcon,
+} from "@mui/icons-material";
 import { AdminPanelSettings as AdminPanelSettingsIcon } from "@mui/icons-material";
 import { useAuth } from "../contexts/AuthContext";
 import AdminPanel from "../components/AdminPanel";
@@ -67,8 +70,7 @@ export default function DashboardPage() {
     handleDownloadRsvpQr,
     handleDownloadLandingQr,
     ...formProps
-  } =
-    useEventSettings(userId, user?.email);
+  } = useEventSettings(userId, user?.email);
   const {
     entries,
     stats,
@@ -90,7 +92,9 @@ export default function DashboardPage() {
   const [rsvpSubTab, setRsvpSubTab] = useState(0);
   const [guestSubTab, setGuestSubTab] = useState(0);
   const [alignDialogOpen, setAlignDialogOpen] = useState(false);
-  const [alignSelections, setAlignSelections] = useState<Record<string, string>>({});
+  const [alignSelections, setAlignSelections] = useState<
+    Record<string, string>
+  >({});
   const [alignDialogError, setAlignDialogError] = useState("");
 
   if (!user) {
@@ -116,8 +120,18 @@ export default function DashboardPage() {
 
   const handleExportCsv = () => {
     const header = [
-      "Nome", "Presente", "N. Persone", "Menu", "Intolleranze", "Note",
-      "Mezzo di trasporto", "Parcheggio", "Navetta", "Alloggio", "Note alloggio", "Data",
+      "Nome",
+      "Presente",
+      "N. Persone",
+      "Menu",
+      "Intolleranze",
+      "Note",
+      "Mezzo di trasporto",
+      "Parcheggio",
+      "Navetta",
+      "Alloggio",
+      "Note alloggio",
+      "Data",
     ];
     const rows = entries.map((e) => [
       e.guest_name,
@@ -136,7 +150,9 @@ export default function DashboardPage() {
     const csv = [header, ...rows]
       .map((row) => row.map((v) => `"${v.replace(/"/g, '""')}"`).join(","))
       .join("\n");
-    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const blob = new Blob(["\uFEFF" + csv], {
+      type: "text/csv;charset=utf-8;",
+    });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
@@ -145,8 +161,12 @@ export default function DashboardPage() {
     URL.revokeObjectURL(url);
   };
 
-  const availableGuests = guestListHook.guests.filter((guest) => !guestListHook.rsvpByGuestId[guest.id]);
-  const selectedGuestIds = new Set(Object.values(alignSelections).filter(Boolean));
+  const availableGuests = guestListHook.guests.filter(
+    (guest) => !guestListHook.rsvpByGuestId[guest.id],
+  );
+  const selectedGuestIds = new Set(
+    Object.values(alignSelections).filter(Boolean),
+  );
   const isAlignConfirmDisabled =
     unalignedEntries.length === 0 ||
     unalignedEntries.some((entry) => !alignSelections[entry.id]) ||
@@ -182,7 +202,11 @@ export default function DashboardPage() {
       await guestListHook.refetch();
       closeAlignDialog();
     } catch (err) {
-      setAlignDialogError(err instanceof Error ? err.message : "Errore durante l'allineamento RSVP.");
+      setAlignDialogError(
+        err instanceof Error
+          ? err.message
+          : "Errore durante l'allineamento RSVP.",
+      );
     }
   };
 
@@ -212,9 +236,7 @@ export default function DashboardPage() {
               <Tab label="Landing Builder" />
               <Tab
                 label={
-                  stats.totalRsvp > 0
-                    ? `RSVP (${stats.totalRsvp})`
-                    : "RSVP"
+                  stats.totalRsvp > 0 ? `RSVP (${stats.totalRsvp})` : "RSVP"
                 }
               />
               <Tab
@@ -316,7 +338,8 @@ export default function DashboardPage() {
 
               {!rsvpLoading && entries.length === 0 && !rsvpError && (
                 <Typography color="text.secondary" textAlign="center" py={4}>
-                  Nessuna risposta ricevuta ancora. Condividi il QR RSVP con gli ospiti!
+                  Nessuna risposta ricevuta ancora. Condividi il QR RSVP con gli
+                  ospiti!
                 </Typography>
               )}
 
@@ -336,7 +359,14 @@ export default function DashboardPage() {
                   {/* ── Sub-tab 0: Risposte ── */}
                   {rsvpSubTab === 0 && (
                     <>
-                      <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1, flexWrap: "wrap" }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "flex-end",
+                          gap: 1,
+                          flexWrap: "wrap",
+                        }}
+                      >
                         {unalignedEntries.length > 0 && (
                           <Button
                             variant="contained"
@@ -357,7 +387,10 @@ export default function DashboardPage() {
                         </Button>
                       </Box>
 
-                      <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
+                      <TableContainer
+                        component={Paper}
+                        sx={{ borderRadius: 3 }}
+                      >
                         <Table size="small">
                           <TableHead>
                             <TableRow>
@@ -385,10 +418,14 @@ export default function DashboardPage() {
                                   {e.attending ? e.num_guests : "—"}
                                 </TableCell>
                                 <TableCell>{e.menu_choice ?? "—"}</TableCell>
-                                <TableCell>{e.dietary_restrictions ?? "—"}</TableCell>
+                                <TableCell>
+                                  {e.dietary_restrictions ?? "—"}
+                                </TableCell>
                                 <TableCell>{e.notes ?? "—"}</TableCell>
                                 <TableCell sx={{ whiteSpace: "nowrap" }}>
-                                  {new Date(e.created_at).toLocaleDateString("it-IT")}
+                                  {new Date(e.created_at).toLocaleDateString(
+                                    "it-IT",
+                                  )}
                                 </TableCell>
                               </TableRow>
                             ))}
@@ -402,31 +439,60 @@ export default function DashboardPage() {
                   {rsvpSubTab === 1 && (
                     <Stack spacing={3}>
                       {stats.totalAttending === 0 ? (
-                        <Typography color="text.secondary" textAlign="center" py={4}>
+                        <Typography
+                          color="text.secondary"
+                          textAlign="center"
+                          py={4}
+                        >
                           Nessun ospite confermato ancora.
                         </Typography>
                       ) : (
                         <>
                           {/* Chips aggregate mezzo di trasporto */}
                           <Box>
-                            <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+                            <Typography
+                              variant="subtitle2"
+                              fontWeight={600}
+                              gutterBottom
+                            >
                               Mezzo di trasporto
                             </Typography>
-                            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                            <Stack
+                              direction="row"
+                              spacing={1}
+                              flexWrap="wrap"
+                              useFlexGap
+                            >
                               {stats.logisticsStats.auto > 0 && (
-                                <Chip label={`Auto 🚗: ${stats.logisticsStats.auto}`} variant="outlined" />
+                                <Chip
+                                  label={`Auto 🚗: ${stats.logisticsStats.auto}`}
+                                  variant="outlined"
+                                />
                               )}
                               {stats.logisticsStats.treno > 0 && (
-                                <Chip label={`Treno 🚂: ${stats.logisticsStats.treno}`} variant="outlined" />
+                                <Chip
+                                  label={`Treno 🚂: ${stats.logisticsStats.treno}`}
+                                  variant="outlined"
+                                />
                               )}
                               {stats.logisticsStats.aereo > 0 && (
-                                <Chip label={`Aereo ✈️: ${stats.logisticsStats.aereo}`} variant="outlined" />
+                                <Chip
+                                  label={`Aereo ✈️: ${stats.logisticsStats.aereo}`}
+                                  variant="outlined"
+                                />
                               )}
                               {stats.logisticsStats.altro > 0 && (
-                                <Chip label={`Altro: ${stats.logisticsStats.altro}`} variant="outlined" />
+                                <Chip
+                                  label={`Altro: ${stats.logisticsStats.altro}`}
+                                  variant="outlined"
+                                />
                               )}
                               {stats.logisticsStats.noMethod > 0 && (
-                                <Chip label={`Non specificato: ${stats.logisticsStats.noMethod}`} variant="outlined" color="default" />
+                                <Chip
+                                  label={`Non specificato: ${stats.logisticsStats.noMethod}`}
+                                  variant="outlined"
+                                  color="default"
+                                />
                               )}
                             </Stack>
                           </Box>
@@ -435,23 +501,44 @@ export default function DashboardPage() {
 
                           {/* Chips richieste logistiche */}
                           <Box>
-                            <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+                            <Typography
+                              variant="subtitle2"
+                              fontWeight={600}
+                              gutterBottom
+                            >
                               Richieste logistiche
                             </Typography>
-                            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                            <Stack
+                              direction="row"
+                              spacing={1}
+                              flexWrap="wrap"
+                              useFlexGap
+                            >
                               <Chip
                                 label={`Parcheggio 🅿️: ${stats.logisticsStats.needsParking}`}
-                                color={stats.logisticsStats.needsParking > 0 ? "warning" : "default"}
+                                color={
+                                  stats.logisticsStats.needsParking > 0
+                                    ? "warning"
+                                    : "default"
+                                }
                                 variant="outlined"
                               />
                               <Chip
                                 label={`Navetta 🚌: ${stats.logisticsStats.needsShuttle}`}
-                                color={stats.logisticsStats.needsShuttle > 0 ? "warning" : "default"}
+                                color={
+                                  stats.logisticsStats.needsShuttle > 0
+                                    ? "warning"
+                                    : "default"
+                                }
                                 variant="outlined"
                               />
                               <Chip
                                 label={`Alloggio 🏨: ${stats.logisticsStats.needsAccommodation}`}
-                                color={stats.logisticsStats.needsAccommodation > 0 ? "warning" : "default"}
+                                color={
+                                  stats.logisticsStats.needsAccommodation > 0
+                                    ? "warning"
+                                    : "default"
+                                }
                                 variant="outlined"
                               />
                             </Stack>
@@ -461,18 +548,31 @@ export default function DashboardPage() {
 
                           {/* Tabella dettaglio ospiti presenti */}
                           <Box>
-                            <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+                            <Typography
+                              variant="subtitle2"
+                              fontWeight={600}
+                              gutterBottom
+                            >
                               Dettaglio per ospite (presenti)
                             </Typography>
-                            <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
+                            <TableContainer
+                              component={Paper}
+                              sx={{ borderRadius: 3 }}
+                            >
                               <Table size="small">
                                 <TableHead>
                                   <TableRow>
                                     <TableCell>Nome</TableCell>
                                     <TableCell>Mezzo</TableCell>
-                                    <TableCell align="center">Parcheggio</TableCell>
-                                    <TableCell align="center">Navetta</TableCell>
-                                    <TableCell align="center">Alloggio</TableCell>
+                                    <TableCell align="center">
+                                      Parcheggio
+                                    </TableCell>
+                                    <TableCell align="center">
+                                      Navetta
+                                    </TableCell>
+                                    <TableCell align="center">
+                                      Alloggio
+                                    </TableCell>
                                     <TableCell>Note alloggio</TableCell>
                                   </TableRow>
                                 </TableHead>
@@ -484,7 +584,12 @@ export default function DashboardPage() {
                                         <TableCell>{e.guest_name}</TableCell>
                                         <TableCell>
                                           {e.arrival_method
-                                            ? { auto: "Auto 🚗", treno: "Treno 🚂", aereo: "Aereo ✈️", altro: "Altro" }[e.arrival_method]
+                                            ? {
+                                                auto: "Auto 🚗",
+                                                treno: "Treno 🚂",
+                                                aereo: "Aereo ✈️",
+                                                altro: "Altro",
+                                              }[e.arrival_method]
                                             : "—"}
                                         </TableCell>
                                         <TableCell align="center">
@@ -496,7 +601,9 @@ export default function DashboardPage() {
                                         <TableCell align="center">
                                           {e.needs_accommodation ? "✓" : "—"}
                                         </TableCell>
-                                        <TableCell>{e.accommodation_notes ?? "—"}</TableCell>
+                                        <TableCell>
+                                          {e.accommodation_notes ?? "—"}
+                                        </TableCell>
                                       </TableRow>
                                     ))}
                                 </TableBody>
@@ -545,7 +652,10 @@ export default function DashboardPage() {
                 />
               )}
               {guestSubTab === 1 && (
-                <TablesTab tablesHook={tablesHook} guestListHook={guestListHook} />
+                <TablesTab
+                  tablesHook={tablesHook}
+                  guestListHook={guestListHook}
+                />
               )}
               {guestSubTab === 2 && (
                 <RoomLayoutTab
@@ -567,7 +677,12 @@ export default function DashboardPage() {
         </Stack>
       </Container>
 
-      <Dialog open={alignDialogOpen} onClose={closeAlignDialog} maxWidth="sm" fullWidth>
+      <Dialog
+        open={alignDialogOpen}
+        onClose={closeAlignDialog}
+        maxWidth="sm"
+        fullWidth
+      >
         <DialogTitle>Allinea RSVP agli invitati</DialogTitle>
         <DialogContent dividers>
           <Stack spacing={2} sx={{ pt: 1 }}>
@@ -576,7 +691,9 @@ export default function DashboardPage() {
             </Typography>
 
             {(alignDialogError || rsvpAlignError) && (
-              <Alert severity="error">{alignDialogError || rsvpAlignError}</Alert>
+              <Alert severity="error">
+                {alignDialogError || rsvpAlignError}
+              </Alert>
             )}
 
             {unalignedEntries.length === 0 ? (
@@ -603,13 +720,20 @@ export default function DashboardPage() {
                       <Select
                         value={selectedGuestId}
                         label="Invitato"
-                        onChange={(e) => handleAlignSelectionChange(entry.id, e.target.value)}
+                        onChange={(e) =>
+                          handleAlignSelectionChange(entry.id, e.target.value)
+                        }
                       >
                         {availableGuests.map((guest) => {
                           const isTakenElsewhere =
-                            guest.id !== selectedGuestId && selectedGuestIds.has(guest.id);
+                            guest.id !== selectedGuestId &&
+                            selectedGuestIds.has(guest.id);
                           return (
-                            <MenuItem key={guest.id} value={guest.id} disabled={isTakenElsewhere}>
+                            <MenuItem
+                              key={guest.id}
+                              value={guest.id}
+                              disabled={isTakenElsewhere}
+                            >
                               {guest.full_name}
                             </MenuItem>
                           );

@@ -27,10 +27,7 @@ import RoomLayoutCanvas from "./RoomLayoutCanvas";
 import { useRoomLayout } from "../hooks/useRoomLayout";
 import type { useTables } from "../hooks/useTables";
 import type { useGuestList } from "../hooks/useGuestList";
-import type {
-  TablePositionFormData,
-  GuestIconFormData,
-} from "../types";
+import type { TablePositionFormData, GuestIconFormData } from "../types";
 
 type TablesHook = ReturnType<typeof useTables>;
 type GuestListHook = ReturnType<typeof useGuestList>;
@@ -67,14 +64,8 @@ export default function RoomLayoutTab({
 }: Props) {
   const { tables, assignments } = tablesHook;
   const { guests } = guestListHook;
-  const {
-    layout,
-    tablePositions,
-    guestIcons,
-    loading,
-    error,
-    saveLayout,
-  } = useRoomLayout(userId);
+  const { layout, tablePositions, guestIcons, loading, error, saveLayout } =
+    useRoomLayout(userId);
 
   const stageRef = useRef<StageType>(null);
   const [saving, setSaving] = useState(false);
@@ -95,7 +86,7 @@ export default function RoomLayoutTab({
   const unpositionedTables = tables.filter(
     (t) =>
       !tablePositions.some((p) => p.table_id === t.id) &&
-      !localTablePositions[t.id]
+      !localTablePositions[t.id],
   );
 
   // Ospiti assegnati senza icona
@@ -104,12 +95,12 @@ export default function RoomLayoutTab({
     (g) =>
       assignedGuestIds.has(g.id) &&
       !guestIcons.some((i) => i.guest_id === g.id) &&
-      !localGuestIcons[g.id]
+      !localGuestIcons[g.id],
   );
 
   const handleChange = (
     positions: Record<string, TablePositionFormData>,
-    icons: Record<string, GuestIconFormData>
+    icons: Record<string, GuestIconFormData>,
   ) => {
     setLocalTablePositions(positions);
     setLocalGuestIcons(icons);
@@ -133,7 +124,7 @@ export default function RoomLayoutTab({
       setLocalGuestIcons({});
     } catch (err) {
       setSaveError(
-        err instanceof Error ? err.message : "Errore nel salvataggio."
+        err instanceof Error ? err.message : "Errore nel salvataggio.",
       );
     } finally {
       setSaving(false);
@@ -513,8 +504,8 @@ export default function RoomLayoutTab({
 
       {tables.length === 0 && (
         <Alert severity="info">
-          Nessun tavolo creato. Vai alla scheda &quot;Tavoli&quot; per creare
-          il primo tavolo e poi torna qui per posizionarlo sul canvas!
+          Nessun tavolo creato. Vai alla scheda &quot;Tavoli&quot; per creare il
+          primo tavolo e poi torna qui per posizionarlo sul canvas!
         </Alert>
       )}
     </Stack>

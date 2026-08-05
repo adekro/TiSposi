@@ -104,8 +104,12 @@ export function useRoomLayout(userId: string) {
     const { data: layoutData, error: layoutErr } = await supabase
       .from("room_layouts")
       .upsert(
-        { event_id: eventId, ...payload.layout, updated_at: new Date().toISOString() },
-        { onConflict: "event_id" }
+        {
+          event_id: eventId,
+          ...payload.layout,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "event_id" },
       )
       .select()
       .single<RoomLayout>();
@@ -121,7 +125,7 @@ export function useRoomLayout(userId: string) {
         table_id: tableId,
         ...pos,
         updated_at: new Date().toISOString(),
-      })
+      }),
     );
 
     if (positionsToUpsert.length > 0) {
@@ -138,7 +142,7 @@ export function useRoomLayout(userId: string) {
         guest_id: guestId,
         ...icon,
         updated_at: new Date().toISOString(),
-      })
+      }),
     );
 
     if (iconsToUpsert.length > 0) {
