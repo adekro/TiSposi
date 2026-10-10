@@ -14,6 +14,7 @@ import { CameraAlt as CameraAltIcon } from "@mui/icons-material";
 import { Edit as EditIcon } from "@mui/icons-material";
 import { Autorenew as AutorenewIcon } from "@mui/icons-material";
 import { MusicNote as MusicNoteIcon } from "@mui/icons-material";
+import { AddPhotoAlternate as AddPhotoAlternateIcon } from "@mui/icons-material";
 import { useGallery } from "../hooks/useGallery";
 import { useMusicRequests } from "../hooks/useMusicRequests";
 import { useQueryClient } from "@tanstack/react-query";
@@ -346,6 +347,22 @@ export default function GalleryPage() {
             sx={{ width: 64, height: 64 }}
           >
             <CameraAltIcon sx={{ fontSize: 28 }} />
+          </Fab>
+        </Tooltip>
+        <Tooltip title="Carica un'immagine" placement="left">
+          <Fab
+            size="medium"
+            onClick={() => captureRef.current?.openUpload()}
+            aria-label="Carica un'immagine"
+            sx={{
+              bgcolor: "background.paper",
+              color: "primary.main",
+              border: `1px solid`,
+              borderColor: "divider",
+              boxShadow: 2,
+            }}
+          >
+            <AddPhotoAlternateIcon />
           </Fab>
         </Tooltip>
       </Box>

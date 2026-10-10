@@ -19,6 +19,7 @@ import {
 
 export interface PhotoCaptureHandle {
   open: () => void;
+  openUpload: () => void;
 }
 
 interface PhotoCaptureProps {
@@ -52,10 +53,12 @@ async function maybeConvertHeic(file: File): Promise<File> {
 
 const PhotoCapture = forwardRef<PhotoCaptureHandle, PhotoCaptureProps>(
   function PhotoCapture({ publicId, onUploaded, onError }, ref) {
-    const inputRef = useRef<HTMLInputElement>(null);
+    const cameraInputRef = useRef<HTMLInputElement>(null);
+    const uploadInputRef = useRef<HTMLInputElement>(null);
 
     useImperativeHandle(ref, () => ({
-      open: () => inputRef.current?.click(),
+      open: () => cameraInputRef.current?.click(),
+      openUpload: () => uploadInputRef.current?.click(),
     }));
     const [preview, setPreview] = useState<string | null>(null);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -160,12 +163,20 @@ const PhotoCapture = forwardRef<PhotoCaptureHandle, PhotoCaptureProps>(
 
     return (
       <>
-        {/* Input camera nascosto */}
+        {/* Input per scattare una foto */}
         <input
-          ref={inputRef}
+          ref={cameraInputRef}
           type="file"
           accept="image/*,.heic,.heif"
           capture="environment"
+          style={{ display: "none" }}
+          onChange={handleFileChange}
+        />
+        {/* Input per scegliere immagini dal dispositivo */}
+        <input
+          ref={uploadInputRef}
+          type="file"
+          accept="image/*,.heic,.heif"
           style={{ display: "none" }}
           onChange={handleFileChange}
         />

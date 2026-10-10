@@ -50,7 +50,7 @@ export default function PhotoGrid({ items, loading }: PhotoGridProps) {
           Nessuna foto ancora…
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-          Sii il primo a scattare una foto!
+          Sii il primo a scattare o caricare una foto!
         </Typography>
       </Box>
     )
